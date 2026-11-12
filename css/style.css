@@ -5,12 +5,18 @@
   --shadow: 0 1px 2px rgba(13, 20, 36, .06), 0 6px 18px rgba(13, 20, 36, .06);
 }
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #0b1020; --card: #141b2e; --ink: #e9eefb; --mute: #98a4bd; --line: #26304a; --grid: #232c44;
     --brand: #5b9bff; --brand2: #7d7dff; --soft: #18233f;
     --s-a: #5b9bff; --s-b: #ff6b78; --s-c: #36c796; --s-d: #ffb23e; --s-e: #a98bff;
     --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 6px 18px rgba(0, 0, 0, .3);
   }
+}
+:root[data-theme="dark"] {
+  --bg: #0b1020; --card: #141b2e; --ink: #e9eefb; --mute: #98a4bd; --line: #26304a; --grid: #232c44;
+  --brand: #5b9bff; --brand2: #7d7dff; --soft: #18233f;
+  --s-a: #5b9bff; --s-b: #ff6b78; --s-c: #36c796; --s-d: #ffb23e; --s-e: #a98bff;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 6px 18px rgba(0, 0, 0, .3);
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -29,7 +35,7 @@ main { max-width: 1060px; margin: 0 auto; padding: 0 16px 48px; }
 .brand { display: flex; align-items: center; gap: 10px; direction: ltr; }
 .brand img { height: 40px; width: auto; border-radius: 6px; background: #fff; }
 .brand b { display: block; font-size: 1.05rem; letter-spacing: .01em; line-height: 1.2; }
-.brand small { display: block; font-size: .62rem; letter-spacing: .28em; color: var(--mute); }
+.brand small { display: block; font-size: .62rem; letter-spacing: .04em; color: var(--mute); }
 .lang {
   font: inherit; font-weight: 600; font-size: .9rem; cursor: pointer; color: var(--brand);
   background: var(--soft); border: 1px solid var(--line); border-radius: 999px; padding: 6px 16px;
@@ -139,3 +145,34 @@ sub, sup { font-size: .72em; line-height: 0; }
   .pnav { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) { .book { transition: none; } }
+
+/* en-tête : actions */
+.acts { display: flex; align-items: center; gap: 8px; }
+.theme { font: inherit; font-size: 1.05rem; line-height: 1; cursor: pointer; color: var(--ink); background: var(--soft);
+  border: 1px solid var(--line); border-radius: 50%; width: 36px; height: 36px; }
+.theme:hover { border-color: var(--brand); }
+.theme:focus-visible, .insta:focus-visible, summary:focus-visible { outline: 3px solid color-mix(in srgb, var(--brand) 45%, transparent); outline-offset: 2px; }
+
+/* chapitres complets */
+.chips i.full { color: #fff; background: linear-gradient(120deg, var(--s-c), var(--brand)); }
+.eq.mj { white-space: normal; }
+.eq mjx-container { margin: 0 !important; }
+.sol, .exo > p, .steps li, .eq.mj { overflow-x: auto; overflow-y: hidden; }
+.exp-t { margin: 0 0 6px; font-weight: 650; font-size: 1.02rem; }
+.steps { margin: 10px 0 0; padding: 0; list-style: none; counter-reset: st; display: grid; gap: 10px; }
+.steps li { counter-increment: st; position: relative; padding: 10px 12px 10px 48px; background: var(--soft); border-radius: 12px; }
+.steps li::before { content: counter(st); position: absolute; left: 12px; top: 10px; width: 24px; height: 24px; border-radius: 50%;
+  display: grid; place-items: center; font-size: .8rem; font-weight: 700; color: #fff; background: var(--s-d); }
+.exo { border: 1px solid var(--line); border-inline-start: 4px solid var(--s-e); border-radius: 10px; padding: 12px 14px; margin-top: 10px; }
+.exo p { margin: 0 0 8px; }
+.exo summary { cursor: pointer; color: var(--brand); font-weight: 600; width: fit-content; border-radius: 6px; }
+.sol { margin-top: 10px; padding: 12px 14px; background: color-mix(in srgb, var(--s-c) 12%, var(--card)); border-radius: 10px; line-height: 2.1; }
+.soon { color: var(--mute); font-size: .9rem; text-align: center; margin: 4px 0 16px; }
+
+/* pied de page */
+.foot { display: grid; justify-items: center; gap: 10px; }
+.insta { display: inline-flex; align-items: center; gap: 8px; color: #fff; font-weight: 650; font-size: .92rem; padding: 9px 18px; border-radius: 999px;
+  background: linear-gradient(45deg, #f09433, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888); direction: ltr; }
+.insta:hover { filter: brightness(1.08); }
+.insta svg { width: 20px; height: 20px; flex: none; }
+@media (max-width: 640px) { .brand small { letter-spacing: .04em; } .brand b { font-size: .95rem; } .lang { padding: 6px 12px; } }

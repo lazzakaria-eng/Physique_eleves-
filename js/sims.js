@@ -567,7 +567,7 @@ S('rlcf', [['R', 'R (Ω)', 5, 200, 1, 30], ['L', 'L (H)', 0.01, 1, 0.01, 0.1], [
   c.line(c.X(f0), c.Y(0), c.X(f0), c.Y(I0), c.mute, 1, [4, 4]); c.text('N_0', c.X(f0), c.Y(0) - 6, c.ink, 'center', 12, true);
   const z = Z(v.x), w = w0 * v.x, phi = atan((v.L * w - 1 / (C * w)) / v.R); c.pt(v.x * f0, U / z * 1000);
   return ['N_0 = 1 / (2π·√(LC)) = ' + fmt(f0) + ' Hz', 'N = ' + fmt(v.x * f0) + ' Hz', 'Z = ' + fmt(z) + ' Ω', 'I = U / Z = ' + fmt(U / z * 1000) + ' mA  (U = 6 V)',
-  'φ = ' + fmt(deg(phi)) + '°  (' + (abs(v.x - 1) < 0.005 ? T('résonance', 'رنين') : phi > 0 ? T('inductif', 'تحريضي') : T('capacitif', 'كثافي')) + ')',
+  'φ = ' + fmt(abs(phi) < 1e-9 ? 0 : deg(phi)) + '°  (' + (abs(v.x - 1) < 0.005 ? T('résonance', 'رنين') : phi > 0 ? T('inductif', 'تحريضي') : T('capacitif', 'كثافي')) + ')',
   'ΔN = R / (2π·L) = ' + fmt(v.R / (2 * PI * v.L)) + ' Hz', 'Q = N_0 / ΔN = ' + fmt(v.L * w0 / v.R)];
 });
 

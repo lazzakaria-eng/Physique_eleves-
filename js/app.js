@@ -6,7 +6,8 @@
     get(k, d) { try { return localStorage.getItem(k) || d; } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* stockage indisponible */ } },
   };
-  let lang = store.get('lang', 'ar');
+  let lang = store.get('lang', 'fr');
+  let theme = store.get('theme', '');
   let level = store.get('level', 'tc');
   let query = '';
   let stopSim = null;
@@ -18,6 +19,29 @@
     .replace(/_\{([^}]*)\}/g, '<sub>$1</sub>').replace(/\^\{([^}]*)\}/g, '<sup>$1</sup>')
     .replace(/_([A-Za-z0-9ΔℓΩ])/g, '<sub>$1</sub>').replace(/\^([A-Za-z0-9])/g, '<sup>$1</sup>');
 
+  // conversion mini-notation → LaTeX (pour MathJax)
+  function toTex(s) {
+    s = s.replace(/[A-Za-zÀ-ÿ]{3,}|\b(et|si|eV|Pa|Hz|km|Bq)\b/g, (w, _, i, str) => /^(sin|cos|tan|ln)$/.test(w) ? '\\' + w : (str[i - 1] === '{' ? '' : '\\,') + '\\text{' + w + '}' + (str[i + w.length] === ' ' && str[i - 1] !== '{' ? '\\ ' : ''))
+      .replace(/θ̈/g, '\\ddot{θ}').replace(/θ̇/g, '\\dot{θ}');
+    for (let i; (i = s.indexOf('√(')) >= 0;) {
+      let d = 0, j = i + 1;
+      for (; j < s.length; j++) { if (s[j] === '(') d++; else if (s[j] === ')' && --d === 0) break; }
+      s = s.slice(0, i) + '\\sqrt{' + s.slice(i + 2, j) + '}' + s.slice(j + 1);
+    }
+    return s.replace(/√(\w+)/g, '\\sqrt{$1}')
+      .replace(/(\d),(\d)/g, '$1{,}$2').replace(/(\d) (\d{3})/g, '$1\\,$2')
+      .replace(/·/g, '\\cdot ').replace(/×/g, '\\times ').replace(/½/g, '\\tfrac{1}{2}').replace(/′/g, "'")
+      .replace(/ℓ/g, '\\ell{}').replace(/ℰ/g, '\\mathcal{E}').replace(/−/g, '-').replace(/%/g, '\\%')
+      .replace(/ {2,}/g, '\\quad ').replace(/ ; /g, '\;;\\quad ');
+  }
+  function typeset() {
+    if (!(window.MathJax && MathJax.typesetPromise)) return;
+    document.querySelectorAll('[data-tex]').forEach(el => { el.textContent = '\\(' + el.dataset.tex + '\\)'; el.removeAttribute('data-tex'); el.classList.add('mj'); });
+    MathJax.typesetClear && MathJax.typesetClear();
+    MathJax.typesetPromise([$('#app')]).catch(e => console.error(e));
+  }
+  window.__typeset = typeset;
+
   const ALL = [];
   LEVELS.forEach(lv => lv.domains.forEach(d => d.lessons.forEach((l, i) => ALL.push(Object.assign(l, { lv, dom: d })))));
   LEVELS.forEach(lv => { let n = 0; lv.domains.forEach(d => d.lessons.forEach(l => { l.num = ++n; })); lv.count = n; });
@@ -28,7 +52,7 @@
       <span class="num">${showLevel ? esc(l.lv.tag) + ' · ' : ''}${String(l.num).padStart(2, '0')}</span>
       <span class="ttl">${esc(t(l.fr, l.ar))}</span>
       <span class="sub" dir="${lang === 'ar' ? 'ltr' : 'rtl'}">${esc(t(l.ar, l.fr))}</span>
-      <span class="chips"><i>${t('Explication', 'شرح')}</i><i>${t('Simulation', 'محاكاة')}</i><i>${l.f.length} ${t('relations', 'علاقات')}</i></span>
+      <span class="chips"><i>${t('Explication', 'شرح')}</i><i>${t('Simulation', 'محاكاة')}</i><i>${l.f.length} ${t('relations', 'علاقات')}</i>${EXTRA[l.id] ? `<i class="full">${t('Exercices corrigés', 'تمارين مصححة')}</i>` : ''}</span>
     </a>`;
   }
 
@@ -66,7 +90,7 @@
 
   /* ---------- leçon ---------- */
   function lesson(l) {
-    const i = ALL.indexOf(l), prev = ALL[i - 1], next = ALL[i + 1];
+    const i = ALL.indexOf(l), prev = ALL[i - 1], next = ALL[i + 1], X = EXTRA[l.id];
     const nav = (x, dir) => x ? `<a class="pn ${dir}" href="#/l/${x.id}"><small>${dir === 'prev' ? t('Précédent', 'السابق') : t('Suivant', 'التالي')} · ${esc(x.lv.tag)}</small>${esc(t(x.fr, x.ar))}</a>` : '<span></span>';
     $('#app').innerHTML = `
       <article class="lesson">
@@ -74,20 +98,31 @@
         <h1>${esc(t(l.fr, l.ar))}</h1>
         <p class="alt" dir="${lang === 'ar' ? 'ltr' : 'rtl'}">${esc(t(l.ar, l.fr))}</p>
 
-        <section class="card"><h2><span>1</span>${t('L’essentiel', 'شرح مختصر')}</h2>
+        <section class="card"><h2><span>1</span>${t('L’essentiel du cours', 'شرح مختصر')}</h2>
           <p class="ex">${esc(t(l.exFr, l.exAr))}</p></section>
 
-        <section class="card"><h2><span>2</span>${t('Expérience — simulation', 'تجربة — محاكاة')}</h2>
-          <p class="hint">${t('Modifiez les grandeurs et observez le résultat.', 'غيّر المقادير ولاحظ النتيجة.')}</p>
+        <section class="card"><h2><span>2</span>${t('Formules et relations essentielles', 'ملخص العلاقات')}</h2>
+          <div class="formulas">${l.f.map((x, k) => `<div class="fm"><div class="eq" dir="ltr" data-tex="${esc(X && X.tex[k] ? X.tex[k] : toTex(x[0]))}">${mk(x[0])}</div><div class="mean">${esc(t(x[1], x[2]))}</div></div>`).join('')}</div></section>
+
+        <section class="card"><h2><span>3</span>${t('Simulation interactive', 'محاكاة تفاعلية')}</h2>
+          <p class="hint">${t('Déplacez les curseurs et observez le résultat.', 'غيّر المقادير ولاحظ النتيجة.')}</p>
           <div id="sim" class="sim" dir="ltr"></div></section>
 
-        <section class="card"><h2><span>3</span>${t('Résumé des relations', 'ملخص العلاقات')}</h2>
-          <div class="formulas">${l.f.map(x => `<div class="fm"><div class="eq" dir="ltr">${mk(x[0])}</div><div class="mean">${esc(t(x[1], x[2]))}</div></div>`).join('')}</div></section>
+        ${X ? `<section class="card" dir="ltr" lang="fr"><h2><span>4</span>Expérience, étape par étape</h2>
+          <p class="exp-t">${esc(X.exp.titre)}</p>
+          <p class="hint"><b>Matériel :</b> ${esc(X.exp.materiel)}</p>
+          <ol class="steps">${X.exp.etapes.map(e => `<li>${e}</li>`).join('')}</ol></section>
+
+        <section class="card" dir="ltr" lang="fr"><h2><span>5</span>Exercices corrigés</h2>
+          ${X.exos.map((e, k) => `<div class="exo"><p><b>Exercice ${k + 1}.</b> ${e.q}</p>
+            <details><summary>Voir la correction</summary><div class="sol">${e.a}</div></details></div>`).join('')}</section>`
+        : `<p class="soon">${t('Expérience détaillée et exercices corrigés : bientôt disponibles pour ce chapitre.', 'التجربة المفصلة والتمارين المصححة : قريبا لهذا الدرس.')}</p>`}
 
         <nav class="pnav">${nav(prev, 'prev')}${nav(next, 'next')}</nav>
       </article>`;
     level = l.lv.id; store.set('level', level);
     mountSim($('#sim'), l.sim);
+    typeset();
   }
 
   /* ---------- simulation ---------- */
@@ -147,12 +182,21 @@
     if (stopSim) { stopSim(); stopSim = null; }
     document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
     $('#lang').textContent = lang === 'ar' ? 'Français' : 'العربية';
-    $('#foot').textContent = t('Bibliothèque de Physique — Zakaria Lazrak · Tronc Commun, 1ʳᵉ Bac SM, 2ᵉ Bac PC', 'مكتبة الفيزياء — Zakaria Lazrak · الجذع المشترك، الأولى باك علوم رياضية، الثانية باك علوم فيزيائية');
+    if (theme) document.documentElement.dataset.theme = theme; else delete document.documentElement.dataset.theme;
+    const dark = theme ? theme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    $('#theme').textContent = dark ? '☀' : '☾';
+    $('#theme').setAttribute('aria-label', dark ? t('Mode clair', 'الوضع الفاتح') : t('Mode sombre', 'الوضع الداكن'));
+    $('#insta').href = INSTAGRAM_URL;
+    $('#foot').textContent = t('Zakaria Lazrak — Professeur de Physique-Chimie · Programme marocain : Tronc Commun, 1ʳᵉ Bac, 2ᵉ Bac', 'Zakaria Lazrak — أستاذ الفيزياء والكيمياء · المقرر المغربي : الجذع المشترك، الأولى باك، الثانية باك');
     const m = location.hash.match(/^#\/l\/([\w-]+)/), l = m && ALL.find(x => x.id === m[1]);
     if (l) { lesson(l); document.title = t(l.fr, l.ar) + ' — ' + t('Bibliothèque de Physique', 'مكتبة الفيزياء'); window.scrollTo(0, 0); }
     else { home(); document.title = t('Bibliothèque de Physique | Zakaria Lazrak', 'مكتبة الفيزياء | Zakaria Lazrak'); }
   }
   $('#lang').addEventListener('click', () => { lang = lang === 'ar' ? 'fr' : 'ar'; store.set('lang', lang); route(); });
+  $('#theme').addEventListener('click', () => {
+    const dark = theme ? theme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    theme = dark ? 'light' : 'dark'; store.set('theme', theme); route();
+  });
   window.addEventListener('hashchange', route);
   route();
 })();
