@@ -6,7 +6,9 @@
 <title>Bibliothèque de Physique-Chimie | Zakaria Lazrak</title>
 <meta name="description" content="Bibliothèque de physique-chimie : cours, formules, simulations interactives et exercices corrigés — Tronc Commun, 1ʳᵉ Bac, 2ᵉ Bac (programme marocain).">
 <link rel="icon" href="assets/icon.jpg">
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" id="css">
+<style>body { visibility: hidden; }</style>
+<noscript><style>body { visibility: visible; }</style></noscript>
 </head>
 <body>
 <header class="top">
@@ -31,13 +33,6 @@
   </a>
   <span id="foot"></span>
 </footer>
-<script src="js/sims.js"></script>
-<script src="js/sims-chimie.js"></script>
-<script src="js/data.js"></script>
-<script src="js/data-chimie.js"></script>
-<script src="js/extra.js"></script>
-<script src="js/resume.js"></script>
-<script src="js/series.js"></script>
 <script>
   window.MathJax = {
     tex: { inlineMath: [['\\(', '\\)']] },
@@ -46,6 +41,24 @@
   };
 </script>
 <script src="assets/mathjax/tex-svg.js" async></script>
-<script src="js/app.js"></script>
+<script>
+  // Chargement des fichiers du site avec le numéro de version lu dans version.txt :
+  // après une mise à jour, les élèves reçoivent tout de suite les nouveaux fichiers (pas d'ancienne copie en cache).
+  (function () {
+    var files = ['js/sims.js', 'js/sims-chimie.js', 'js/data.js', 'js/data-chimie.js', 'js/extra.js', 'js/resume.js', 'js/series.js', 'js/app.js'];
+    var show = function () { document.body.style.visibility = 'visible'; };
+    function load(v) {
+      var q = v ? '?v=' + encodeURIComponent(v) : '';
+      var css = document.getElementById('css'); css.onload = css.onerror = show; css.href = 'css/style.css' + q;
+      files.forEach(function (f) { var s = document.createElement('script'); s.src = f + q; s.async = false; document.body.appendChild(s); });
+      setTimeout(show, 2500);
+    }
+    try {
+      fetch('version.txt?t=' + Date.now(), { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.text() : ''; })
+        .then(function (t) { load(t.trim().slice(0, 40)); }, function () { load(''); });
+    } catch (e) { load(''); }
+  })();
+</script>
 </body>
 </html>

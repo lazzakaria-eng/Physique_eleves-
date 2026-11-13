@@ -44,9 +44,15 @@ Site statique, sans framework ni étape de build.
 
 Le fichier `.nojekyll` désactive Jekyll ; tous les chemins sont relatifs.
 
+## Mises à jour
+
+Après chaque modification du site, changer le texte de `version.txt` (par exemple la date du jour).
+Les navigateurs des élèves chargent alors tout de suite les nouveaux fichiers au lieu d'une ancienne copie.
+
 ## Structure
 
 - `index.html`, `css/style.css` — page et styles
+- `version.txt` — numéro de version du site (à changer à chaque mise à jour)
 - `js/data.js`, `js/data-chimie.js` — chapitres de physique et de chimie (titres, explications, relations)
 - `js/extra.js` — lien Instagram, formules LaTeX, expériences, quiz et exercices corrigés
 - `js/resume.js` — points « à retenir », simulations supplémentaires par chapitre, noms des simulations
