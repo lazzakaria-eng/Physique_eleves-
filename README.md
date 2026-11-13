@@ -5,11 +5,11 @@ pour le **Tronc Commun**, la **1ʳᵉ Bac Sciences Mathématiques** et la **2ᵉ
 
 Chaque chapitre contient :
 
-1. une explication simple et courte du cours ;
-2. le résumé des formules et relations essentielles (MathJax) ;
+1. une explication simple (étape par étape pour les chapitres complets) ;
+2. le résumé des formules essentielles (MathJax) ;
 3. une simulation interactive (canvas JavaScript, avec curseurs) ;
-4. une expérience expliquée étape par étape ;
-5. des exercices corrigés.
+4. une expérience virtuelle avec un protocole court ;
+5. un mini-quiz de 5 questions corrigées (et des exercices corrigés).
 
 Les parties 4 et 5 sont rédigées pour deux chapitres pour l'instant : **Le mouvement** (TC) et
 **Décroissance radioactive** (2ᵉ Bac). Pour en ajouter, compléter `js/extra.js`.

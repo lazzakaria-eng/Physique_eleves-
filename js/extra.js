@@ -4,9 +4,24 @@
 // Lien du bouton Instagram (pied de page)
 const INSTAGRAM_URL = 'https://instagram.com/zakarialazrak';
 
-// EXTRA[id de la leçon] = { tex: [formules LaTeX, même ordre que dans data.js], exp: {titre, materiel, etapes}, exos: [{q, a}] }
+// EXTRA[id de la leçon] = { cours: [étapes], quiz: [{q, o: options, r: bonne réponse, e: explication}], tex: [formules LaTeX, même ordre que dans data.js], exp: {titre, materiel, etapes}, exos: [{q, a}] }
 const EXTRA = {
   'tc-mouvement': {
+    cours: [
+      '<b>Choisir un référentiel.</b> Le mouvement est relatif : un passager assis dans un train est immobile par rapport au train, mais en mouvement par rapport au quai. On précise toujours le corps de référence.',
+      '<b>Repérer la position.</b> On associe au référentiel un repère d’espace (position \\(x\\)) et un repère de temps (date \\(t\\)).',
+      '<b>Observer la trajectoire.</b> C’est l’ensemble des positions occupées par le point : droite (mouvement rectiligne), cercle (circulaire) ou courbe quelconque (curviligne).',
+      '<b>Calculer la vitesse.</b> La vitesse moyenne vaut \\(v_m = \\dfrac{d}{\\Delta t}\\). La vitesse instantanée en \\(M_i\\) se calcule entre les deux points voisins : \\(v_i = \\dfrac{M_{i-1}M_{i+1}}{2\\tau}\\).',
+      '<b>Reconnaître la nature du mouvement.</b> Vitesse constante : mouvement uniforme ; vitesse qui augmente : accéléré ; vitesse qui diminue : retardé.',
+      '<b>Écrire l’équation horaire.</b> Pour un mouvement rectiligne uniforme : \\(x(t) = v\\cdot t + x_0\\). Pour un mouvement circulaire uniforme : \\(v = R\\cdot\\omega\\) et \\(T = \\dfrac{2\\pi}{\\omega}\\).',
+    ],
+    quiz: [
+      { q: 'Un passager est assis dans un train qui roule. Il est…', o: ['immobile par rapport au train et en mouvement par rapport au quai', 'en mouvement par rapport au train', 'immobile par rapport au quai', 'immobile dans tous les référentiels'], r: 0, e: 'Le mouvement dépend du référentiel choisi : il est relatif.' },
+      { q: 'Sur un enregistrement (\\(\\tau = 20\\ \\text{ms}\\)), on mesure \\(M_1M_3 = 2{,}0\\ \\text{cm}\\). La vitesse \\(v_2\\) vaut :', o: ['\\(0{,}25\\ \\text{m/s}\\)', '\\(0{,}50\\ \\text{m/s}\\)', '\\(1{,}0\\ \\text{m/s}\\)', '\\(2{,}0\\ \\text{m/s}\\)'], r: 1, e: '\\(v_2 = \\dfrac{M_1M_3}{2\\tau} = \\dfrac{0{,}020}{0{,}040} = 0{,}50\\ \\text{m/s}\\).' },
+      { q: 'L’équation horaire d’un mobile est \\(x(t) = 3t + 2\\) (en m et s). Sa vitesse est :', o: ['\\(2\\ \\text{m/s}\\)', '\\(5\\ \\text{m/s}\\)', '\\(3\\ \\text{m/s}\\)', '\\(1{,}5\\ \\text{m/s}\\)'], r: 2, e: 'Dans \\(x(t) = v\\cdot t + x_0\\), le coefficient de \\(t\\) est la vitesse : \\(v = 3\\ \\text{m/s}\\) et \\(x_0 = 2\\ \\text{m}\\).' },
+      { q: 'Sur un enregistrement rectiligne, la distance entre deux points successifs augmente. Le mouvement est :', o: ['uniforme', 'retardé', 'circulaire', 'accéléré'], r: 3, e: 'Pendant la même durée \\(\\tau\\), le mobile parcourt une distance de plus en plus grande : sa vitesse augmente.' },
+      { q: 'Un point situé à \\(R = 0{,}20\\ \\text{m}\\) de l’axe tourne à \\(\\omega = 10\\ \\text{rad/s}\\). Sa vitesse est :', o: ['\\(2{,}0\\ \\text{m/s}\\)', '\\(50\\ \\text{m/s}\\)', '\\(0{,}02\\ \\text{m/s}\\)', '\\(20\\ \\text{m/s}\\)'], r: 0, e: '\\(v = R\\cdot\\omega = 0{,}20\\times10 = 2{,}0\\ \\text{m/s}\\).' },
+    ],
     tex: [
       'v_m = \\dfrac{d}{\\Delta t}',
       'v_i = \\dfrac{M_{i-1}M_{i+1}}{2\\,\\tau}',
@@ -15,7 +30,7 @@ const EXTRA = {
       'T = \\dfrac{2\\pi}{\\omega} \\qquad f = \\dfrac{1}{T}',
     ],
     exp: {
-      titre: 'Étude du mouvement d’un autoporteur sur une table à coussin d’air',
+      titre: 'Enregistrement du mouvement d’un autoporteur sur une table à coussin d’air',
       materiel: 'Table à coussin d’air horizontale, autoporteur, feuille d’enregistrement, règle graduée.',
       etapes: [
         'Régler la table à l’horizontale et choisir la durée entre deux marques : \\(\\tau = 40\\ \\text{ms}\\).',
@@ -44,6 +59,21 @@ const EXTRA = {
   },
 
   '2b-radioactivite': {
+    cours: [
+      '<b>Un noyau instable.</b> Certains noyaux \\({}^{A}_{Z}\\text{X}\\) ont trop de protons, trop de neutrons ou trop de nucléons : ils sont radioactifs.',
+      '<b>Il se désintègre.</b> Le noyau se transforme spontanément en un autre noyau en émettant une particule : \\(\\alpha\\) (noyau \\({}^{4}_{2}\\text{He}\\)), \\(\\beta^-\\) (électron) ou \\(\\beta^+\\) (positon), souvent suivie d’un rayonnement \\(\\gamma\\).',
+      '<b>On équilibre l’équation.</b> Les lois de Soddy imposent la conservation du nombre de nucléons \\(A\\) et du nombre de charge \\(Z\\).',
+      '<b>Le phénomène est aléatoire.</b> On ne peut pas prévoir quand un noyau donné va se désintégrer, mais pour un grand nombre de noyaux on connaît la loi : \\(N(t) = N_0\\,e^{-\\lambda t}\\).',
+      '<b>La demi-vie.</b> Au bout de \\(t_{1/2} = \\dfrac{\\ln 2}{\\lambda}\\), la moitié des noyaux a disparu ; au bout de \\(2\\,t_{1/2}\\) il en reste le quart, et ainsi de suite.',
+      '<b>L’activité.</b> C’est le nombre de désintégrations par seconde : \\(a = \\lambda N\\), en becquerels (Bq). Elle décroît comme \\(N\\), ce qui permet de dater un échantillon.',
+    ],
+    quiz: [
+      { q: 'La désintégration d’un noyau radioactif est un phénomène :', o: ['provoqué par la chaleur', 'spontané et aléatoire', 'périodique', 'qui dépend de la pression'], r: 1, e: 'Elle est spontanée, aléatoire et indépendante des conditions extérieures (température, pression…).' },
+      { q: 'Au bout de deux demi-vies, il reste :', o: ['50 % des noyaux', '0 % des noyaux', '25 % des noyaux', '12,5 % des noyaux'], r: 2, e: '\\(N = \\dfrac{N_0}{2^2} = \\dfrac{N_0}{4}\\), soit 25 %.' },
+      { q: 'Pour \\(t_{1/2} = 10\\ \\text{jours}\\), la constante radioactive vaut environ :', o: ['\\(0{,}069\\ \\text{j}^{-1}\\)', '\\(6{,}9\\ \\text{j}^{-1}\\)', '\\(0{,}10\\ \\text{j}^{-1}\\)', '\\(14\\ \\text{j}^{-1}\\)'], r: 0, e: '\\(\\lambda = \\dfrac{\\ln 2}{t_{1/2}} = \\dfrac{0{,}693}{10} \\approx 0{,}069\\ \\text{j}^{-1}\\).' },
+      { q: 'La désintégration \\({}^{14}_{6}\\text{C} \\longrightarrow {}^{14}_{7}\\text{N} + {}^{0}_{-1}\\text{e}\\) est de type :', o: ['\\(\\alpha\\)', '\\(\\beta^+\\)', '\\(\\gamma\\)', '\\(\\beta^-\\)'], r: 3, e: 'La particule émise est un électron \\({}^{0}_{-1}\\text{e}\\) : radioactivité \\(\\beta^-\\).' },
+      { q: 'Un échantillon a une activité \\(a_0 = 800\\ \\text{Bq}\\) et une demi-vie de 5 min. Son activité au bout de 15 min est :', o: ['\\(400\\ \\text{Bq}\\)', '\\(100\\ \\text{Bq}\\)', '\\(200\\ \\text{Bq}\\)', '\\(267\\ \\text{Bq}\\)'], r: 1, e: '15 min \\(= 3\\,t_{1/2}\\), donc \\(a = \\dfrac{a_0}{2^3} = \\dfrac{800}{8} = 100\\ \\text{Bq}\\).' },
+    ],
     tex: [
       'N(t) = N_0\\,e^{-\\lambda t}',
       't_{1/2} = \\dfrac{\\ln 2}{\\lambda}',

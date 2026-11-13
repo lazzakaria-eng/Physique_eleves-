@@ -76,6 +76,7 @@
       <section class="hero">
         <img src="assets/logo.jpg" alt="Zakaria Lazrak — Physique &amp; Chimie" width="150" height="150">
         <div>
+          <p class="who" dir="ltr">Zakaria Lazrak — Professeur de Physique-Chimie</p>
           <h1>${t('Bibliothèque de Physique-Chimie', 'مكتبة الفيزياء والكيمياء')}</h1>
           <p>${t('Toutes les leçons en un seul endroit : une explication courte, une expérience en simulation et le résumé des relations.',
       'جميع الدروس في مكان واحد : شرح قصير، تجربة بالمحاكاة وملخص العلاقات لكل درس.')}</p>
@@ -101,8 +102,8 @@
         <h1>${esc(t(l.fr, l.ar))}</h1>
         <p class="alt" dir="${lang === 'ar' ? 'ltr' : 'rtl'}">${esc(t(l.ar, l.fr))}</p>
 
-        <section class="card"><h2><span>1</span>${t('L’essentiel du cours', 'شرح مختصر')}</h2>
-          <p class="ex">${esc(t(l.exFr, l.exAr))}</p></section>
+        <section class="card"><h2><span>1</span>${X && X.cours && lang !== 'ar' ? 'Le cours, étape par étape' : t('L’essentiel du cours', 'شرح مختصر')}</h2>
+          ${X && X.cours && lang !== 'ar' ? `<ol class="steps cours">${X.cours.map(e => `<li>${e}</li>`).join('')}</ol>` : `<p class="ex">${esc(t(l.exFr, l.exAr))}</p>`}</section>
 
         <section class="card"><h2><span>2</span>${t('Formules et relations essentielles', 'ملخص العلاقات')}</h2>
           <div class="formulas">${l.f.map((x, k) => `<div class="fm"><div class="eq" dir="ltr" data-tex="${esc(X && X.tex[k] ? X.tex[k] : toTex(x[0]))}">${mk(x[0])}</div><div class="mean">${esc(t(x[1], x[2]))}</div></div>`).join('')}</div></section>
@@ -111,20 +112,36 @@
           <p class="hint">${t('Déplacez les curseurs et observez le résultat.', 'غيّر المقادير ولاحظ النتيجة.')}</p>
           <div id="sim" class="sim" dir="ltr"></div></section>
 
-        ${X ? `<section class="card" dir="ltr" lang="fr"><h2><span>4</span>Expérience, étape par étape</h2>
+        ${X ? `<section class="card" dir="ltr" lang="fr"><h2><span>4</span>Expérience virtuelle — protocole</h2>
           <p class="exp-t">${esc(X.exp.titre)}</p>
           <p class="hint"><b>Matériel :</b> ${esc(X.exp.materiel)}</p>
           <ol class="steps">${X.exp.etapes.map(e => `<li>${e}</li>`).join('')}</ol></section>
 
-        <section class="card" dir="ltr" lang="fr"><h2><span>5</span>Exercices corrigés</h2>
+        <section class="card" dir="ltr" lang="fr"><h2><span>5</span>Mini-quiz</h2>
+          <p class="hint">5 questions : choisissez une réponse, la correction s’affiche tout de suite.</p>
+          ${X.quiz.map((q, k) => `<div class="qz" data-r="${q.r}"><p><b>${k + 1}.</b> ${q.q}</p>
+            <div class="opts">${q.o.map((o, j) => `<button type="button" data-j="${j}">${o}</button>`).join('')}</div>
+            <p class="expl" hidden>${q.e}</p></div>`).join('')}
+          <p class="score" id="score" aria-live="polite"></p></section>
+
+        <section class="card" dir="ltr" lang="fr"><h2><span>6</span>Exercices corrigés</h2>
           ${X.exos.map((e, k) => `<div class="exo"><p><b>Exercice ${k + 1}.</b> ${e.q}</p>
             <details><summary>Voir la correction</summary><div class="sol">${e.a}</div></details></div>`).join('')}</section>`
-        : `<p class="soon">${t('Expérience détaillée et exercices corrigés : bientôt disponibles pour ce chapitre.', 'التجربة المفصلة والتمارين المصححة : قريبا لهذا الدرس.')}</p>`}
+        : `<p class="soon">${t('Expérience virtuelle et mini-quiz : bientôt disponibles pour ce chapitre.', 'التجربة الافتراضية والاختبار القصير : قريبا لهذا الدرس.')}</p>`}
 
         <nav class="pnav">${nav(prev, 'prev')}${nav(next, 'next')}</nav>
       </article>`;
     level = l.lv.id; store.set('level', level);
     mountSim($('#sim'), l.sim);
+    let good = 0, done = 0;
+    document.querySelectorAll('.qz').forEach(qz => qz.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+      if (qz.dataset.done) return; qz.dataset.done = 1; done++;
+      const ok = b.dataset.j === qz.dataset.r; if (ok) good++;
+      b.classList.add(ok ? 'ok' : 'ko'); qz.querySelector(`button[data-j="${qz.dataset.r}"]`).classList.add('ok');
+      qz.querySelectorAll('button').forEach(x => { x.disabled = true; });
+      qz.querySelector('.expl').hidden = false;
+      $('#score').textContent = 'Score : ' + good + ' / ' + done + (done === 5 ? (good === 5 ? ' — Excellent !' : good >= 3 ? ' — Bien, revoyez les questions manquées.' : ' — Relisez le cours puis réessayez.') : '');
+    })));
     typeset();
   }
 
@@ -189,8 +206,8 @@
     const dark = theme ? theme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
     $('#theme').textContent = dark ? '☀' : '☾';
     $('#theme').setAttribute('aria-label', dark ? t('Mode clair', 'الوضع الفاتح') : t('Mode sombre', 'الوضع الداكن'));
-    $('#insta').href = INSTAGRAM_URL;
-    $('#foot').textContent = t('Zakaria Lazrak — Professeur de Physique-Chimie · Programme marocain : Tronc Commun, 1ʳᵉ Bac, 2ᵉ Bac', 'Zakaria Lazrak — أستاذ الفيزياء والكيمياء · المقرر المغربي : الجذع المشترك، الأولى باك، الثانية باك');
+    $('#insta').href = INSTAGRAM_URL; $('#insta-top').href = INSTAGRAM_URL;
+    $('#foot').textContent = t('Zakaria Lazrak — Professeur de Physique-Chimie · Programme marocain (BIOF) : Tronc Commun, 1ʳᵉ Bac, 2ᵉ Bac', 'Zakaria Lazrak — أستاذ الفيزياء والكيمياء · المقرر المغربي : الجذع المشترك، الأولى باك، الثانية باك');
     const m = location.hash.match(/^#\/l\/([\w-]+)/), l = m && ALL.find(x => x.id === m[1]);
     if (l) { lesson(l); document.title = t(l.fr, l.ar) + ' — ' + t('Bibliothèque de Physique-Chimie', 'مكتبة الفيزياء والكيمياء'); window.scrollTo(0, 0); }
     else { home(); document.title = t('Bibliothèque de Physique-Chimie | Zakaria Lazrak', 'مكتبة الفيزياء والكيمياء | Zakaria Lazrak'); }

@@ -177,3 +177,25 @@ sub, sup { font-size: .72em; line-height: 0; }
 .insta:hover { filter: brightness(1.08); }
 .insta svg { width: 20px; height: 20px; flex: none; }
 @media (max-width: 640px) { .brand small { letter-spacing: .04em; } .brand b { font-size: .95rem; } .lang { padding: 6px 12px; } }
+
+/* accueil : nom ; en-tête : Instagram */
+.who { margin: 0 0 4px; font-weight: 700; font-size: .95rem; color: var(--brand); letter-spacing: .01em; }
+.insta.mini { padding: 7px 14px; font-size: .85rem; }
+.insta.mini svg { width: 18px; height: 18px; }
+@media (max-width: 640px) { .insta.mini { padding: 8px; } .insta.mini span { display: none; } .acts { gap: 6px; } }
+
+/* cours en étapes + mini-quiz */
+.steps.cours li::before { background: var(--brand); }
+.qz { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-top: 10px; overflow-x: auto; }
+.qz > p { margin: 0 0 10px; }
+.opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
+.opts button { font: inherit; color: var(--ink); text-align: start; cursor: pointer; background: var(--bg); border: 1.5px solid var(--line); border-radius: 10px; padding: 9px 12px; min-width: 0; overflow-x: auto; }
+.opts button:hover:not(:disabled) { border-color: var(--brand); }
+.opts button:focus-visible { outline: 3px solid color-mix(in srgb, var(--brand) 45%, transparent); outline-offset: 2px; }
+.opts button:disabled { cursor: default; opacity: 1; color: var(--ink); }
+.opts button.ok { border-color: var(--s-c); background: color-mix(in srgb, var(--s-c) 18%, var(--card)); font-weight: 600; }
+.opts button.ok::after { content: " ✓"; color: var(--s-c); }
+.opts button.ko { border-color: var(--s-b); background: color-mix(in srgb, var(--s-b) 15%, var(--card)); }
+.opts button.ko::after { content: " ✗"; color: var(--s-b); }
+.expl { margin: 10px 0 0 !important; padding: 8px 12px; background: var(--soft); border-radius: 8px; font-size: .93rem; overflow-x: auto; }
+.score { margin: 14px 0 0; font-weight: 700; color: var(--brand); }
