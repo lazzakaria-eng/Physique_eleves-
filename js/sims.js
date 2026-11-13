@@ -673,3 +673,34 @@ S('bohr', [['ni', ['n initial', 'n البدئي'], 1, 7, 1, 3], ['nf', ['n final
   const low = min(v.ni, v.nf), ser = low === 1 ? 'Lyman (UV)' : low === 2 ? 'Balmer (' + T('visible', 'مرئي') + ')' : low === 3 ? 'Paschen (IR)' : 'IR';
   return ['E_n = −13,6 / n²  (eV)', 'ΔE = |E_{' + v.nf + '} − E_{' + v.ni + '}| = ' + fmt(dE, 4) + ' eV', 'ν = ΔE / h = ' + fmt(dE * 1.602e-19 / 6.626e-34) + ' Hz', 'λ = h·c / ΔE = ' + fmt(lam, 4) + ' nm', T('Série de ', 'متسلسلة ') + ser];
 });
+
+/* ---------- compléments ---------- */
+S('oscilloscope', [['Um', 'U_m (V)', 0.5, 8, 0.1, 3], ['f', 'f (Hz)', 50, 2000, 10, 250],
+['Sv', ['Sensibilité verticale S_v', 'الحساسية الرأسية S_v'], [['0,5 V/div', '0,5 V/div'], ['1 V/div', '1 V/div'], ['2 V/div', '2 V/div'], ['5 V/div', '5 V/div']], 1],
+['Sh', ['Balayage S_h', 'الحساسية الأفقية S_h'], [['0,2 ms/div', '0,2 ms/div'], ['0,5 ms/div', '0,5 ms/div'], ['1 ms/div', '1 ms/div'], ['2 ms/div', '2 ms/div'], ['5 ms/div', '5 ms/div']], 2]], 0, (c, v) => {
+  const sv = [0.5, 1, 2, 5][v.Sv], sh = [0.2, 0.5, 1, 2, 5][v.Sh] * 1e-3, x0 = 120, y0 = 20, d = 40, cy = y0 + 4 * d, ctx = c.ctx;
+  c.rect(x0, y0, 10 * d, 8 * d, '#0b2a1e');
+  for (let i = 0; i <= 10; i++) c.line(x0 + i * d, y0, x0 + i * d, y0 + 8 * d, i === 5 ? '#3f8f6d' : '#1f5a44', 1);
+  for (let j = 0; j <= 8; j++) c.line(x0, y0 + j * d, x0 + 10 * d, y0 + j * d, j === 4 ? '#3f8f6d' : '#1f5a44', 1);
+  ctx.save(); ctx.beginPath(); ctx.rect(x0, y0, 10 * d, 8 * d); ctx.clip(); ctx.beginPath();
+  for (let i = 0; i <= 800; i++) { const x = i / 2, y = cy - v.Um / sv * d * sin(2 * PI * v.f * (x / d) * sh); i ? ctx.lineTo(x0 + x, y) : ctx.moveTo(x0 + x, y); }
+  ctx.strokeStyle = '#5dffb0'; ctx.lineWidth = 2.5; ctx.stroke(); ctx.restore();
+  const T0 = 1 / v.f;
+  return ['y = ' + fmt(v.Um / sv) + ' div  ⇒  U_m = S_v·y = ' + fmt(v.Um) + ' V', 'x = ' + fmt(T0 / sh) + ' div  ⇒  T = S_h·x = ' + fmt(T0 * 1000) + ' ms', 'f = 1 / T = ' + fmt(v.f) + ' Hz', 'U_{eff} = U_m / √2 = ' + fmt(v.Um / sqrt(2)) + ' V',
+    v.Um / sv > 4 ? T('La courbe sort de l’écran : augmenter S_v', 'المنحنى يخرج من الشاشة : كبّر S_v') : ''].filter(Boolean);
+});
+
+S('lorentz', [['B', 'B (mT)', 0.5, 3, 0.1, 1], ['v0', 'v (×10⁶ m/s)', 1, 10, 0.5, 6], ['q', ['Particule', 'الدقيقة'], [['électron (q = −e)', 'إلكترون (q = −e)'], ['positon (q = +e)', 'بوزيترون (q = +e)']], 0]], 1, (c, v, t) => {
+  const e = 1.6e-19, me = 9.11e-31, B = v.B * 1e-3, vv = v.v0 * 1e6, R = me * vv / (e * B), Tp = 2 * PI * me / (e * B), sc = 1300, Rp = R * sc, sg = v.q === 0 ? 1 : -1;
+  for (let i = 0; i < 11; i++) for (let j = 0; j < 6; j++) { const x = 70 + i * 50, y = 40 + j * 56; c.circ(x, y, 6, null, c.grid, 1.5); c.line(x - 4, y - 4, x + 4, y + 4, c.grid, 1.5); c.line(x - 4, y + 4, x + 4, y - 4, c.grid, 1.5); }
+  c.text('B ⊗', 600, 30, c.mute, 'center', 14, true);
+  const ex = 200, ey = 180, cx = ex, cy = ey + sg * Rp, a = 2 * PI * (t % 3.5) / 3;
+  c.arrow(60, ey, ex - 8, ey, c.d, '', 2);
+  c.ctx.save(); c.ctx.beginPath(); c.ctx.rect(0, 0, 640, 360); c.ctx.clip();
+  c.circ(cx, cy, Rp, null, c.d, 2);
+  const px = cx + Rp * sin(a), py = cy - sg * Rp * cos(a);
+  c.arrow(px, py, px + 34 * cos(a), py + sg * 34 * sin(a), c.b, 'v', 2); c.arrow(px, py, px + (cx - px) / Rp * 30, py + (cy - py) / Rp * 30, c.c, 'F', 2);
+  c.circ(px, py, 6, c.a); c.ctx.restore();
+  return ['F = |q|·v·B = ' + fmt(e * vv * B) + ' N', 'R = m·v / (|q|·B) = ' + fmt(R * 100) + ' cm', 'T = 2π·m / (|q|·B) = ' + fmt(Tp) + ' s  (' + T('indépendante de v', 'لا يتعلق بـ v') + ')',
+  T('F ⟂ v : la force ne travaille pas, la vitesse garde la même valeur', 'F ⟂ v : القوة لا تنجز شغلا، قيمة السرعة تبقى ثابتة')];
+});
