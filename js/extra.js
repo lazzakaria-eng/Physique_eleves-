@@ -1,8 +1,8 @@
 /* Réglages du site + contenu complet des chapitres (formules LaTeX, expérience, exercices corrigés) */
 'use strict';
 
-// ▼ Remplacer MON_COMPTE par le nom du compte Instagram
-const INSTAGRAM_URL = 'https://instagram.com/MON_COMPTE';
+// Lien du bouton Instagram (pied de page)
+const INSTAGRAM_URL = 'https://instagram.com/zakarialazrak';
 
 // EXTRA[id de la leçon] = { tex: [formules LaTeX, même ordre que dans data.js], exp: {titre, materiel, etapes}, exos: [{q, a}] }
 const EXTRA = {

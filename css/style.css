@@ -87,6 +87,7 @@ main { max-width: 1060px; margin: 0 auto; padding: 0 16px 48px; }
 .shelf:nth-of-type(2) .book { border-inline-start-color: var(--s-e); }
 .shelf:nth-of-type(3) .book { border-inline-start-color: var(--s-c); }
 .shelf:nth-of-type(4) .book { border-inline-start-color: var(--s-d); }
+.shelf:nth-of-type(5) .book { border-inline-start-color: var(--s-b); }
 .empty { color: var(--mute); }
 
 /* leçon */

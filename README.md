@@ -1,6 +1,6 @@
-# Bibliothèque de Physique — مكتبة الفيزياء
+# Bibliothèque de Physique-Chimie — مكتبة الفيزياء والكيمياء
 
-Site de référence pour les élèves (Zakaria Lazrak — Physique & Chimie) : **50 leçons** de physique
+Site de référence pour les élèves (Zakaria Lazrak — Physique & Chimie) : **79 chapitres** de physique et de chimie (50 + 29)
 pour le **Tronc Commun**, la **1ʳᵉ Bac Sciences Mathématiques** et la **2ᵉ Bac Sciences Physiques**.
 
 Chaque chapitre contient :
@@ -18,7 +18,7 @@ Interface en français (arabe disponible), mode clair / sombre, adaptée au tél
 
 ## Réglages
 
-- **Instagram** : remplacer `MON_COMPTE` dans `js/extra.js` (`INSTAGRAM_URL`) et dans `index.html`.
+- **Instagram** : le lien du bouton est dans `js/extra.js` (`INSTAGRAM_URL`) et dans `index.html`.
 
 ## Publication avec GitHub Pages
 
@@ -34,8 +34,8 @@ Le fichier `.nojekyll` désactive Jekyll ; tous les chemins sont relatifs.
 ## Structure
 
 - `index.html`, `css/style.css` — page et styles
-- `js/data.js` — chapitres (titres, explications, relations)
+- `js/data.js`, `js/data-chimie.js` — chapitres de physique et de chimie (titres, explications, relations)
 - `js/extra.js` — lien Instagram, formules LaTeX, expériences et exercices corrigés
-- `js/sims.js` — simulations (paramètres + dessin sur canvas)
+- `js/sims.js`, `js/sims-chimie.js` — simulations (paramètres + dessin sur canvas)
 - `js/app.js` — navigation, recherche, affichage
 - `assets/` — logo, MathJax (copie locale, licence Apache 2.0)

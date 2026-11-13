@@ -15,13 +15,16 @@
   const t = (fr, ar) => lang === 'ar' ? ar : fr;
   const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
   // mini-notation : x_{ab} / x_a → indice ; x^{ab} / x^a → exposant
-  const mk = s => esc(s)
+  const mk = s => esc(s.replace(/^§/, ''))
     .replace(/_\{([^}]*)\}/g, '<sub>$1</sub>').replace(/\^\{([^}]*)\}/g, '<sup>$1</sup>')
     .replace(/_([A-Za-z0-9ΔℓΩ])/g, '<sub>$1</sub>').replace(/\^([A-Za-z0-9])/g, '<sup>$1</sup>');
 
   // conversion mini-notation → LaTeX (pour MathJax)
   function toTex(s) {
-    s = s.replace(/[A-Za-zÀ-ÿ]{3,}|\b(et|si|eV|Pa|Hz|km|Bq)\b/g, (w, _, i, str) => /^(sin|cos|tan|ln)$/.test(w) ? '\\' + w : (str[i - 1] === '{' ? '' : '\\,') + '\\text{' + w + '}' + (str[i + w.length] === ' ' && str[i - 1] !== '{' ? '\\ ' : ''))
+    if (s[0] === '§') return '\\mathrm{' + s.slice(1).replace(/([_^])([A-Za-z0-9+-])/g, '$1{$2}').replace(/−/g, '{-}').replace(/′/g, "'")
+      .replace(/ \+ /g, ' + ').replace(/ ; /g, '\\quad;\\quad ').replace(/ \/ /g, '\\,/\\,').replace(/ \|\| /g, '\\;\\|\\;').replace(/ \| /g, '\\;|\\;').replace(/ /g, '\\ ')
+      .replace(/→/g, '\\longrightarrow{}').replace(/⇌/g, '\\rightleftharpoons{}') + '}';
+    s = s.replace(/[A-Za-zÀ-ÿ]{3,}|\b(et|si|eV|Pa|Hz|km|Bq|pH|pK|ou|mol)\b/g, (w, _, i, str) => /^(sin|cos|tan|ln|log|min)$/.test(w) ? '\\' + w : (str[i - 1] === '{' ? '' : '\\,') + '\\text{' + w + '}' + (str[i + w.length] === ' ' && str[i + w.length + 1] !== ' ' && str[i - 1] !== '{' ? '~' : ''))
       .replace(/θ̈/g, '\\ddot{θ}').replace(/θ̇/g, '\\dot{θ}');
     for (let i; (i = s.indexOf('√(')) >= 0;) {
       let d = 0, j = i + 1;
@@ -73,7 +76,7 @@
       <section class="hero">
         <img src="assets/logo.jpg" alt="Zakaria Lazrak — Physique &amp; Chimie" width="150" height="150">
         <div>
-          <h1>${t('Bibliothèque de Physique', 'مكتبة الفيزياء')}</h1>
+          <h1>${t('Bibliothèque de Physique-Chimie', 'مكتبة الفيزياء والكيمياء')}</h1>
           <p>${t('Toutes les leçons en un seul endroit : une explication courte, une expérience en simulation et le résumé des relations.',
       'جميع الدروس في مكان واحد : شرح قصير، تجربة بالمحاكاة وملخص العلاقات لكل درس.')}</p>
           <input id="q" type="search" value="${esc(query)}" placeholder="${t('Chercher une leçon ou une relation…', 'ابحث عن درس أو علاقة…')}" aria-label="${t('Recherche', 'بحث')}">
@@ -189,8 +192,8 @@
     $('#insta').href = INSTAGRAM_URL;
     $('#foot').textContent = t('Zakaria Lazrak — Professeur de Physique-Chimie · Programme marocain : Tronc Commun, 1ʳᵉ Bac, 2ᵉ Bac', 'Zakaria Lazrak — أستاذ الفيزياء والكيمياء · المقرر المغربي : الجذع المشترك، الأولى باك، الثانية باك');
     const m = location.hash.match(/^#\/l\/([\w-]+)/), l = m && ALL.find(x => x.id === m[1]);
-    if (l) { lesson(l); document.title = t(l.fr, l.ar) + ' — ' + t('Bibliothèque de Physique', 'مكتبة الفيزياء'); window.scrollTo(0, 0); }
-    else { home(); document.title = t('Bibliothèque de Physique | Zakaria Lazrak', 'مكتبة الفيزياء | Zakaria Lazrak'); }
+    if (l) { lesson(l); document.title = t(l.fr, l.ar) + ' — ' + t('Bibliothèque de Physique-Chimie', 'مكتبة الفيزياء والكيمياء'); window.scrollTo(0, 0); }
+    else { home(); document.title = t('Bibliothèque de Physique-Chimie | Zakaria Lazrak', 'مكتبة الفيزياء والكيمياء | Zakaria Lazrak'); }
   }
   $('#lang').addEventListener('click', () => { lang = lang === 'ar' ? 'fr' : 'ar'; store.set('lang', lang); route(); });
   $('#theme').addEventListener('click', () => {
