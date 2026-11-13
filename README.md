@@ -5,9 +5,9 @@ pour le **Tronc Commun**, la **1ʳᵉ Bac Sciences Mathématiques** et la **2ᵉ
 
 Chaque chapitre contient :
 
-1. une explication simple (étape par étape pour les chapitres complets) ;
-2. le résumé des formules essentielles (MathJax) ;
-3. une simulation interactive (canvas JavaScript, avec curseurs) ;
+1. un résumé du cours : une explication courte et les points « à retenir » ;
+2. les formules essentielles (MathJax) ;
+3. une ou plusieurs simulations interactives (canvas JavaScript, avec curseurs) ;
 4. une expérience virtuelle avec un protocole court ;
 5. un mini-quiz de 5 questions corrigées (et des exercices corrigés).
 
@@ -35,7 +35,8 @@ Le fichier `.nojekyll` désactive Jekyll ; tous les chemins sont relatifs.
 
 - `index.html`, `css/style.css` — page et styles
 - `js/data.js`, `js/data-chimie.js` — chapitres de physique et de chimie (titres, explications, relations)
-- `js/extra.js` — lien Instagram, formules LaTeX, expériences et exercices corrigés
+- `js/extra.js` — lien Instagram, formules LaTeX, expériences, quiz et exercices corrigés
+- `js/resume.js` — points « à retenir », simulations supplémentaires par chapitre, noms des simulations
 - `js/sims.js`, `js/sims-chimie.js` — simulations (paramètres + dessin sur canvas)
 - `js/app.js` — navigation, recherche, affichage
 - `assets/` — logo, MathJax (copie locale, licence Apache 2.0)
