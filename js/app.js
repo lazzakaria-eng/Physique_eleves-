@@ -64,9 +64,11 @@
     check: svg('<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>'),
     search: svg('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>'),
     arrow: svg('<path d="M5 12h14M13 6l6 6-6 6"/>'),
+    file: svg('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>'),
   };
   const domKey = d => /Chimie/.test(d.fr) ? 'chim' : /lectricit/.test(d.fr) ? 'elec' : /Optique/.test(d.fr) ? 'opt' : /Ondes/.test(d.fr) ? 'onde' : /nucl/.test(d.fr) ? 'nuc' : 'meca';
   const simsOf = l => [l.sim].concat(MORE_SIMS[l.id] || []);
+  const seriesOf = l => (SERIES[l.id] || []).filter(x => Array.isArray(x) && x[0] && /^(https:\/\/|series\/)[^\s"'<>]+$/.test(x[1] || ''));
   const simName = n => SIM_NAMES[n] ? t(SIM_NAMES[n][0], SIM_NAMES[n][1]) : n;
 
   /* ---------- bibliothèque ---------- */
@@ -79,7 +81,7 @@
         <span class="ttl">${esc(t(l.fr, l.ar))}</span>
         <span class="meta">${ns} ${ns > 1 ? t('simulations', 'محاكاة') : t('simulation', 'محاكاة')} · ${l.f.length} ${t('formules', 'علاقات')}</span>
       </span>
-      ${EXTRA[l.id] ? `<span class="full">${t('Complet', 'كامل')}</span>` : ''}
+      ${EXTRA[l.id] ? `<span class="full">${t('Complet', 'كامل')}</span>` : seriesOf(l).length ? `<span class="full ser">${seriesOf(l).length} ${t('séries', 'سلاسل')}</span>` : ''}
     </a>`;
   }
 
@@ -133,11 +135,11 @@
 
   /* ---------- chapitre ---------- */
   function lesson(l) {
-    const i = ALL.indexOf(l), prev = ALL[i - 1], next = ALL[i + 1], X = EXTRA[l.id], k = domKey(l.dom), sims = simsOf(l), keys = RESUME[l.id] || [];
+    const i = ALL.indexOf(l), prev = ALL[i - 1], next = ALL[i + 1], X = EXTRA[l.id], k = domKey(l.dom), sims = simsOf(l), keys = RESUME[l.id] || [], ser = seriesOf(l);
     const nav = (x, dir) => x ? `<a class="pn ${dir}" href="#/l/${x.id}"><small>${dir === 'prev' ? t('Précédent', 'السابق') : t('Suivant', 'التالي')} · ${esc(x.lv.tag)}</small>${esc(t(x.fr, x.ar))}</a>` : '<span></span>';
     const steps = X && X.cours && lang !== 'ar';
     const jump = [['s-cours', t('Cours', 'الدرس')], ['s-form', t('Formules', 'العلاقات')], ['s-sim', t('Simulations', 'المحاكاة')]]
-      .concat(X ? [['s-exp', 'Expérience'], ['s-quiz', 'Quiz'], ['s-exo', 'Exercices']] : []);
+      .concat(X ? [['s-exp', 'Expérience'], ['s-quiz', 'Quiz'], ['s-exo', 'Exercices']] : [], [['s-series', t('Séries', 'السلاسل')]]);
     $('#app').innerHTML = `
       <article class="lesson k-${k}">
         <header class="lhead">
@@ -177,6 +179,10 @@
           ${X.exos.map((e, n) => `<div class="exo"><p><b>Exercice ${n + 1}.</b> ${e.q}</p>
             <details><summary>Voir la correction</summary><div class="sol">${e.a}</div></details></div>`).join('')}</section>`
         : `<p class="soon">${t('Expérience virtuelle et mini-quiz : bientôt disponibles pour ce chapitre.', 'التجربة الافتراضية والاختبار القصير : قريبا لهذا الدرس.')}</p>`}
+
+        <section class="card" id="s-series"><h2><span>${X ? 7 : 4}</span>${t('Séries d’exercices', 'سلاسل التمارين')}</h2>
+          ${ser.length ? `<div class="series">${ser.map(x => `<a class="serie" href="${esc(x[1])}" target="_blank" rel="noopener">${IC.file}<span>${esc(x[0])}</span>${IC.arrow}</a>`).join('')}</div>`
+        : `<p class="noser">${IC.file}<span>${t('Les séries d’exercices de ce chapitre seront ajoutées ici par le professeur.', 'سلاسل تمارين هذا الدرس سيضيفها الأستاذ هنا.')}</span></p>`}</section>
 
         <nav class="pnav">${nav(prev, 'prev')}${nav(next, 'next')}</nav>
       </article>`;

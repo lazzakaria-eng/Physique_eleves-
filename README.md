@@ -16,6 +16,19 @@ Les parties 4 et 5 sont rédigées pour deux chapitres pour l'instant : **Le mou
 
 Interface en français (arabe disponible), mode clair / sombre, adaptée au téléphone.
 
+## Ajouter une série d'exercices
+
+Chaque chapitre a une section « Séries d'exercices ». Pour y ajouter une série :
+
+1. déposer le PDF dans le dossier `series/` (ou utiliser un lien Google Drive) ;
+2. ouvrir `js/series.js`, trouver le chapitre et ajouter une ligne entre ses crochets :
+
+```js
+'tc-mouvement': [
+  ['Série 1 — Le mouvement', 'series/tc-mouvement-serie1.pdf'],
+],
+```
+
 ## Réglages
 
 - **Instagram** : le lien du bouton est dans `js/extra.js` (`INSTAGRAM_URL`) et dans `index.html`.
