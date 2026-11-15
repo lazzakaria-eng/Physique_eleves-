@@ -24,6 +24,11 @@
   .exo { background: var(--card); border: 1px solid var(--line); border-left: 6px solid var(--c); border-radius: 18px; padding: 16px 18px; margin-top: 16px; box-shadow: 0 5px 0 var(--line); break-inside: avoid; }
   .exo h2 { margin: 0 0 8px; font-size: 1.08rem; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
   .q { overflow-x: auto; }
+  .fig { margin: 10px 0 0; text-align: center; overflow-x: auto; }
+  .fig svg { max-width: 100%; height: auto; }
+  .tab { border-collapse: collapse; margin: 4px 0 10px; font-size: .9rem; }
+  .tab th, .tab td { border: 1px solid #b8c4d8; padding: 4px 8px; text-align: center; }
+  .tab th { background: #eef3fb; }
   details { margin-top: 12px; }
   summary { cursor: pointer; font-weight: 700; color: var(--brand); width: fit-content; }
   .s { margin-top: 10px; padding: 12px 14px; border-radius: 12px; background: #eaf7f1; overflow-x: auto; }
@@ -70,6 +75,7 @@
 <script src="../js/exos-tc.js"></script>
 <script src="../js/exos-1bac.js"></script>
 <script src="../js/exos-2bac.js"></script>
+<script src="../js/exos-plus.js"></script>
 <script>
   (function () {
     var id = (location.search.match(/[?&]c=([\w-]+)/) || [])[1] || '';
@@ -89,7 +95,7 @@
     var sorted = list.slice().sort(function (a, b) { return a.d - b.d; });
     document.getElementById('list').innerHTML = sorted.length ? sorted.map(function (e, n) {
       return '<section class="exo" style="--c:' + col[e.d] + '"><h2>Exercice ' + (n + 1) + ' — ' + esc(e.t) + ' <span class="tag d' + e.d + '">' + lab[e.d] + '</span></h2>' +
-        '<div class="q">' + e.q + '</div><details><summary>Voir la correction</summary><div class="s">' + e.s + '</div></details></section>';
+        '<div class="q">' + e.q + '</div>' + (e.fig ? '<figure class="fig">' + e.fig + '</figure>' : '') + '<details><summary>Voir la correction</summary><div class="s">' + e.s + '</div></details></section>';
     }).join('') : '<p>Aucune série pour ce chapitre pour l’instant.</p>';
     var open = false;
     document.getElementById('all').addEventListener('click', function () {

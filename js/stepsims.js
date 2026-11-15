@@ -72,9 +72,14 @@ const SIM_KEYS = {
   pile: ['pile', 'pont salin', 'anode', 'cathode', 'usee'],
   electrolyse: ['electrolyse', 'forcee', 'impose le sens', 'depot', 'accumulateur'],
   ester: ['ester', 'esterification', 'hydrolyse', 'catalyseur', 'rendement', 'excès'],
+  decantation: ['ampoule a decanter', 'decantation', 'solvant extracteur', 'non miscible', 'phase organique'],
+  hydrodistillation: ['hydrodistillation', 'huile essentielle', 'huiles essentielles', 'vapeur d'],
+  relativite: ['relatif', 'relative', 'referentiel', 'corps de reference'],
   ester_ctrl: ['anhydride', 'saponification', 'savon', 'catalyse'],
 };
 const STEP_SIMS = {
+  'tc-mouvement': { 1: 'relativite' },
+  'tcc-extraction': { 1: 'decantation', 2: 'decantation', 3: 'hydrodistillation', 4: 'ccm', 5: 'ccm' },
   '2b-energie': { 1: 'oscillateur', 2: 'oscillateur', 5: 'pendule' },
 };
 

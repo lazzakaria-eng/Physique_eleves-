@@ -191,7 +191,10 @@
         ${P('cours', `<div class="card">
           <div class="brief"><span class="bub">${IC.bulb}</span><div><b>${t('En bref', 'باختصار')}</b><p>${esc(t(l.exFr, l.exAr))}</p></div></div>
           ${steps.length ? `<h2 class="ptitle">${t('Le cours en', 'الدرس في')} ${steps.length} ${t('étapes', 'خطوات')}</h2>
-          <ol class="tl" dir="ltr" lang="fr">${steps.map((s, n) => `<li><span class="tln"></span><div><div class="stx">${s}</div>${stepSims[n] ? `<button class="seeexp" type="button" data-sim="${stepSims[n]}">${IC.play}<span>${t('Voir l’expérience', 'شاهد التجربة')} : ${esc(simName(stepSims[n]))}</span></button><div class="stepsim sim" hidden></div>` : ''}</div></li>`).join('')}</ol>` : ''}</div>`)}
+          <ol class="tl" dir="ltr" lang="fr">${steps.map((s, n) => `<li><span class="tln"></span><div><div class="stx">${s}</div>${stepSims[n] ? `<button class="seeexp" type="button" data-sim="${stepSims[n]}">${IC.play}<span>${t('Voir l’expérience', 'شاهد التجربة')} : ${esc(simName(stepSims[n]))}</span></button><div class="stepsim sim" hidden></div>` : ''}</div></li>`).join('')}</ol>` : ''}
+          ${(DETAILS[l.id] || []).length ? `<h2 class="ptitle">${t('Pour bien comprendre', 'لفهم أعمق')}</h2>
+          ${DETAILS[l.id].map(d => `<details class="detail" open><summary>${esc(d.t)}</summary><div class="dbody" dir="ltr" lang="fr">${d.h}
+            ${d.sim && SIMS[d.sim] ? `<button class="seeexp" type="button" data-sim="${d.sim}">${IC.play}<span>${t('Voir l’expérience', 'شاهد التجربة')} : ${esc(simName(d.sim))}</span></button><div class="stepsim sim" hidden></div>` : ''}</div></details>`).join('')}` : ''}</div>`)}
 
         ${P('fiche', `<div class="card"><h2 class="ptitle">${t('Résumé du cours', 'ملخص الدرس')}</h2>
           <div class="pdfs"><a class="pdfb" href="resumes/pdf/${l.id}.pdf" download>${IC.sheet}<span><b>${t('Résumé PDF', 'الملخص PDF')}</b><small>${t('une page, à imprimer', 'صفحة واحدة للطبع')}</small></span></a>

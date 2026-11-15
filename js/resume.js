@@ -92,9 +92,9 @@ const RESUME = {
 
 // Simulations supplémentaires (en plus de la simulation principale du chapitre)
 const MORE_SIMS = {
-  'tc-gravitation': ['satellite'], 'tc-actions': ['incline', 'ressort'], 'tc-mouvement': ['rotation'], 'tc-inertie': ['newton'], 'tc-2forces': ['densite'],
+  'tc-gravitation': ['satellite'], 'tc-actions': ['incline', 'ressort'], 'tc-mouvement': ['relativite', 'rotation'], 'tc-inertie': ['newton'], 'tc-2forces': ['densite'],
   'tc-courant': ['assoc'], 'tc-tension': ['oscilloscope'], 'tc-association': ['caract'], 'tc-actif': ['bilan'],
-  'tcc-especes': ['ccm'], 'tcc-extraction': ['densite'], 'tcc-mole': ['gaz'],
+  'tcc-especes': ['ccm'], 'tcc-extraction': ['decantation', 'hydrodistillation'], 'tcc-mole': ['gaz'],
   '1b-travail': ['energie'], '1b-ec': ['newton'], '1b-epp': ['pendule', 'projectile'], '1b-interne': ['gaz', 'calorimetrie'],
   '1b-transfert': ['generateur'], '1b-global': ['bilan'], '1b-champb': ['solenoide'], '1b-champb-courant': ['boussole'],
   '1b-visibilite': ['miroir'], '1b-lentille': ['loupe'], '1b-instruments': ['lentille'],
@@ -127,5 +127,5 @@ const SIM_NAMES = {
   electrolyte: ['Concentration des ions', 'تراكيز الأيونات'], conductimetrie: ['Courbe d’étalonnage', 'منحنى التدريج'], dosage_cond: ['Dosage conductimétrique', 'المعايرة بقياس المواصلة'],
   organique: ['Nomenclature', 'التسمية'], groupes: ['Familles organiques', 'المجموعات العضوية'], cinetique: ['Suivi cinétique', 'التتبع الحركي'], acide_faible: ['Acide faible dans l’eau', 'حمض ضعيف في الماء'],
   predominance: ['Diagramme de prédominance', 'مخطط الهيمنة'], titrage: ['Dosage pH-métrique', 'المعايرة بقياس pH'], quotient: ['Quotient de réaction', 'خارج التفاعل'], pile: ['Pile Daniell', 'عمود دانييل'],
-  electrolyse: ['Électrolyse', 'التحليل الكهربائي'], ester: ['Estérification', 'الأسترة'], ester_ctrl: ['Synthèse avec un anhydride', 'التصنيع بأندريد'],
+  electrolyse: ['Électrolyse', 'التحليل الكهربائي'], decantation: ['Ampoule à décanter', 'أنبوب التصفيق'], hydrodistillation: ['Hydrodistillation', 'التقطير المائي'], relativite: ['Relativité du mouvement', 'نسبية الحركة'], ester: ['Estérification', 'الأسترة'], ester_ctrl: ['Synthèse avec un anhydride', 'التصنيع بأندريد'],
 };
