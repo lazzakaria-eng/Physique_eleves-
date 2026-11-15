@@ -13,30 +13,6 @@
   let stopSim = null;
 
   const t = (fr, ar) => lang === 'ar' ? ar : fr;
-  const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
-  // mini-notation : x_{ab} / x_a → indice ; x^{ab} / x^a → exposant
-  const mk = s => esc(s.replace(/^§/, ''))
-    .replace(/_\{([^}]*)\}/g, '<sub>$1</sub>').replace(/\^\{([^}]*)\}/g, '<sup>$1</sup>')
-    .replace(/_([A-Za-z0-9ΔℓΩ])/g, '<sub>$1</sub>').replace(/\^([A-Za-z0-9])/g, '<sup>$1</sup>');
-
-  // conversion mini-notation → LaTeX (pour MathJax)
-  function toTex(s) {
-    if (s[0] === '§') return '\\mathrm{' + s.slice(1).replace(/([_^])([A-Za-z0-9+-])/g, '$1{$2}').replace(/−/g, '{-}').replace(/′/g, "'")
-      .replace(/ \+ /g, ' + ').replace(/ ; /g, '\\quad;\\quad ').replace(/ \/ /g, '\\,/\\,').replace(/ \|\| /g, '\\;\\|\\;').replace(/ \| /g, '\\;|\\;').replace(/ /g, '\\ ')
-      .replace(/→/g, '\\longrightarrow{}').replace(/⇌/g, '\\rightleftharpoons{}') + '}';
-    s = s.replace(/[A-Za-zÀ-ÿ]{3,}|\b(et|si|eV|Pa|Hz|km|Bq|pH|pK|ou|mol)\b/g, (w, _, i, str) => /^(sin|cos|tan|ln|log|min)$/.test(w) ? '\\' + w : (str[i - 1] === '{' ? '' : '\\,') + '\\text{' + w + '}' + (str[i + w.length] === ' ' && str[i + w.length + 1] !== ' ' && str[i - 1] !== '{' ? '~' : ''))
-      .replace(/θ̈/g, '\\ddot{θ}').replace(/θ̇/g, '\\dot{θ}');
-    for (let i; (i = s.indexOf('√(')) >= 0;) {
-      let d = 0, j = i + 1;
-      for (; j < s.length; j++) { if (s[j] === '(') d++; else if (s[j] === ')' && --d === 0) break; }
-      s = s.slice(0, i) + '\\sqrt{' + s.slice(i + 2, j) + '}' + s.slice(j + 1);
-    }
-    return s.replace(/√(\w+)/g, '\\sqrt{$1}')
-      .replace(/(\d),(\d)/g, '$1{,}$2').replace(/(\d) (\d{3})/g, '$1\\,$2')
-      .replace(/·/g, '\\cdot ').replace(/×/g, '\\times ').replace(/½/g, '\\tfrac{1}{2}').replace(/′/g, "'")
-      .replace(/ℓ/g, '\\ell{}').replace(/ℰ/g, '\\mathcal{E}').replace(/−/g, '-').replace(/%/g, '\\%')
-      .replace(/ {2,}/g, '\\quad ').replace(/ ; /g, '\;;\\quad ');
-  }
   function typeset(root) {
     root = root || $('.panel:not([hidden])') || $('#app');
     if (!root || !(window.MathJax && MathJax.typesetPromise)) return;
@@ -194,7 +170,7 @@
     const steps = X && X.cours && lang !== 'ar' ? X.cours : keys.map(mk);
     const stepSims = steps.map((s, n) => simForStep(l.id, n + 1, s, sims)), nExp = stepSims.filter(Boolean).length;
     const tabs = [['cours', t('Cours', 'الدرس'), 'book']]
-      .concat(fic.length ? [['fiche', t('Fiche résumé', 'الملخص'), 'sheet']] : [], [['form', t('Formules', 'العلاقات'), 'sigma'], ['sim', t('Simulation', 'المحاكاة'), 'sliders']],
+      .concat([['fiche', t('Résumé', 'الملخص'), 'sheet']], [['form', t('Formules', 'العلاقات'), 'sigma'], ['sim', t('Simulation', 'المحاكاة'), 'sliders']],
         X ? [['quiz', t('Quiz & exercices', 'اختبار وتمارين'), 'check']] : [], [['series', t('Séries', 'السلاسل'), 'file']]);
     if (!tabs.some(x => x[0] === tab)) tab = 'cours';
     const nav = (x, dir) => x ? `<a class="pn ${dir}" href="#/l/${x.id}"><small>${dir === 'prev' ? t('Chapitre précédent', 'الدرس السابق') : t('Chapitre suivant', 'الدرس التالي')} · ${esc(x.lv.tag)}</small>${esc(t(x.fr, x.ar))}</a>` : '<span></span>';
@@ -207,7 +183,7 @@
           <div class="lh-row"><span class="cube3d" aria-hidden="true"><span class="cb">${[1, 2, 3, 4, 5, 6].map(n => `<i class="f${n}">${IC[k]}</i>`).join('')}</span></span><div>
             <h1>${esc(t(l.fr, l.ar))}</h1>
             <p class="alt" dir="${lang === 'ar' ? 'ltr' : 'rtl'}">${esc(t(l.ar, l.fr))}</p></div></div>
-          <div class="lchips"><span>${steps.length} ${t('étapes', 'خطوات')}</span>${nExp ? `<span>${nExp} ${t('expérience', 'تجربة')}${nExp > 1 && lang !== 'ar' ? 's' : ''} ${t('dans le cours', 'في الدرس')}</span>` : ''}${fic.length ? `<span>${fic.length} ${t('fiche', 'ملخص')}${fic.length > 1 ? 's' : ''}</span>` : ''}<span>${l.f.length} ${t('formules', 'علاقات')}</span><span>${sims.length} ${t('simulation', 'محاكاة')}${sims.length > 1 && lang !== 'ar' ? 's' : ''}</span>${X ? '<span>Quiz</span>' : ''}${EXOS[l.id] ? `<span>${t('Série corrigée', 'سلسلة مصححة')}</span>` : ''}</div>
+          <div class="lchips"><span>${steps.length} ${t('étapes', 'خطوات')}</span>${nExp ? `<span>${nExp} ${t('expérience', 'تجربة')}${nExp > 1 && lang !== 'ar' ? 's' : ''} ${t('dans le cours', 'في الدرس')}</span>` : ''}<span>${t('Résumé PDF', 'ملخص PDF')}</span><span>${l.f.length} ${t('formules', 'علاقات')}</span><span>${sims.length} ${t('simulation', 'محاكاة')}${sims.length > 1 && lang !== 'ar' ? 's' : ''}</span>${X ? '<span>Quiz</span>' : ''}${EXOS[l.id] ? `<span>${t('Série corrigée', 'سلسلة مصححة')}</span>` : ''}</div>
         </header>
 
         <nav class="tabs3d" role="tablist">${tabs.map(x => `<button type="button" role="tab" data-t="${x[0]}">${IC[x[2]]}<span>${x[1]}</span></button>`).join('')}</nav>
@@ -217,10 +193,13 @@
           ${steps.length ? `<h2 class="ptitle">${t('Le cours en', 'الدرس في')} ${steps.length} ${t('étapes', 'خطوات')}</h2>
           <ol class="tl" dir="ltr" lang="fr">${steps.map((s, n) => `<li><span class="tln"></span><div><div class="stx">${s}</div>${stepSims[n] ? `<button class="seeexp" type="button" data-sim="${stepSims[n]}">${IC.play}<span>${t('Voir l’expérience', 'شاهد التجربة')} : ${esc(simName(stepSims[n]))}</span></button><div class="stepsim sim" hidden></div>` : ''}</div></li>`).join('')}</ol>` : ''}</div>`)}
 
-        ${fic.length ? P('fiche', `<div class="card"><h2 class="ptitle">${t('Fiche résumé du professeur', 'ملخص الأستاذ')}</h2>
+        ${P('fiche', `<div class="card"><h2 class="ptitle">${t('Résumé du cours', 'ملخص الدرس')}</h2>
+          <div class="pdfs"><a class="pdfb" href="resumes/pdf/${l.id}.pdf" download>${IC.sheet}<span><b>${t('Résumé PDF', 'الملخص PDF')}</b><small>${t('une page, à imprimer', 'صفحة واحدة للطبع')}</small></span></a>
+            <a class="pdfb cor" href="resumes/resume.html?c=${l.id}">${IC.book}<span><b>${t('Voir le résumé', 'شاهد الملخص')}</b><small>${t('en ligne', 'على الموقع')}</small></span></a></div></div>
+        ${fic.length ? `<div class="card"><h2 class="ptitle">${t('Fiche résumé du professeur', 'ملخص الأستاذ')}</h2>
           <p class="hint">${t('Toute la leçon sur une page. Touche la fiche pour l’agrandir ou la télécharger.', 'الدرس كاملا في صفحة. المس الملخص لتكبيره أو تحميله.')}</p>
           ${fic.map((f, n) => `<figure class="fiche"><button type="button" class="fopen" data-f="${FICHES.indexOf(f)}"><img src="${f.src}" alt="${esc(f.titre)}" loading="lazy" width="2400" height="1697"></button>
-            <figcaption><span>${esc(f.titre)}</span><a class="lb-btn" href="${f.src}" download>${t('Télécharger', 'تحميل')}</a></figcaption></figure>`).join('')}</div>`) : ''}
+            <figcaption><span>${esc(f.titre)}</span><a class="lb-btn" href="${f.src}" download>${t('Télécharger', 'تحميل')}</a></figcaption></figure>`).join('')}</div>` : ''}`)}
 
         ${P('form', `<div class="card"><h2 class="ptitle">${t('Formules essentielles', 'العلاقات الأساسية')}</h2>
           <div class="formulas">${l.f.map((x, n) => `<div class="fm"><div class="eq" dir="ltr" data-tex="${esc(X && X.tex[n] ? X.tex[n] : toTex(x[0]))}">${mk(x[0])}</div><div class="mean">${esc(t(x[1], x[2]))}</div></div>`).join('')}</div></div>`)}
