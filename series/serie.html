@@ -37,6 +37,7 @@
     .exo { box-shadow: none; }
     .tag, header.head { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     body:not(.avec) details { display: none; }
+    .legend { margin-top: 10px; }
     body.avec details > .s { display: block; }
   }
 </style>
@@ -46,8 +47,9 @@
   <nav class="bar">
     <a id="back" class="alt" href="../index.html">← Retour au chapitre</a>
     <button id="all" class="alt" type="button">Afficher toutes les corrections</button>
-    <button id="p1" type="button">Imprimer l’énoncé (PDF)</button>
-    <button id="p2" type="button">Imprimer avec corrections</button>
+    <a id="d1" href="#" download>⬇ PDF énoncé</a>
+    <a id="d2" href="#" download>⬇ PDF avec corrections</a>
+    <button id="p1" class="alt" type="button">Imprimer</button>
   </nav>
   <header class="head">
     <img src="../assets/logo.jpg" alt="Zakaria Lazrak — Physique &amp; Chimie">
@@ -76,6 +78,8 @@
       document.getElementById('ttl').textContent = 'Série d’exercices — ' + lesson.fr;
       document.getElementById('lvl').textContent = level.fr + ' · ' + list.length + ' exercices corrigés';
       document.getElementById('back').href = '../index.html#/l/' + id + '/series';
+      document.getElementById('d1').href = 'pdf/' + id + '.pdf';
+      document.getElementById('d2').href = 'pdf/' + id + '-corrige.pdf';
       document.title = 'Série — ' + lesson.fr + ' | Zakaria Lazrak';
     }
     var sorted = list.slice().sort(function (a, b) { return a.d - b.d; });
@@ -90,10 +94,8 @@
       this.textContent = open ? 'Masquer les corrections' : 'Afficher toutes les corrections';
     });
     document.getElementById('p1').addEventListener('click', function () { document.body.classList.remove('avec'); window.print(); });
-    document.getElementById('p2').addEventListener('click', function () {
-      document.body.classList.add('avec'); document.querySelectorAll('details').forEach(function (d) { d.open = true; });
-      setTimeout(function () { window.print(); }, 300);
-    });
+    if (/[?&]cor=1/.test(location.search)) { open = true; document.body.classList.add('avec'); document.querySelectorAll('details').forEach(function (d) { d.open = true; }); }
+    if (/[?&]pdf=1/.test(location.search)) document.body.classList.add('pdf');
   })();
   window.MathJax = { tex: { inlineMath: [['\\(', '\\)']] }, svg: { fontCache: 'global' } };
 </script>

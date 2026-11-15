@@ -247,7 +247,9 @@
         ${P('series', `<div class="card"><h2 class="ptitle">${t('Séries d’exercices', 'سلاسل التمارين')}</h2>
           ${EXOS[l.id] ? `<a class="bigserie" href="series/serie.html?c=${l.id}"><span class="bub">${IC.file}</span><span><b>${t('Série d’exercices corrigés', 'سلسلة تمارين مصححة')}</b>
             <small>${EXOS[l.id].length} ${t('exercices, du plus facile au plus difficile', 'تمارين، من الأسهل إلى الأصعب')}</small>
-            <span class="stars"><i class="d1">★</i><i class="d2">★★</i><i class="d3">★★★</i></span></span>${IC.arrow}</a>` : ''}
+            <span class="stars"><i class="d1">★</i><i class="d2">★★</i><i class="d3">★★★</i></span></span>${IC.arrow}</a>
+          <div class="pdfs"><a class="pdfb" href="series/pdf/${l.id}.pdf" download>${IC.file}<span><b>PDF ${t('énoncé', 'التمارين')}</b><small>${t('à imprimer', 'للطبع')}</small></span></a>
+            <a class="pdfb cor" href="series/pdf/${l.id}-corrige.pdf" download>${IC.check}<span><b>PDF ${t('corrigé', 'مع التصحيح')}</b><small>${t('énoncé + corrections', 'التمارين + التصحيح')}</small></span></a></div>` : ''}
           ${ser.length ? `<div class="series">${ser.map(x => `<a class="serie" href="${esc(x[1])}" target="_blank" rel="noopener">${IC.file}<span>${esc(x[0])}</span>${IC.arrow}</a>`).join('')}</div>`
         : EXOS[l.id] ? '' : `<p class="noser">${IC.file}<span>${t('Les séries d’exercices de ce chapitre seront ajoutées ici par le professeur.', 'سلاسل تمارين هذا الدرس سيضيفها الأستاذ هنا.')}</span></p>`}
           ${X ? '' : `<p class="soon">${t('Expérience virtuelle et mini-quiz : bientôt disponibles pour ce chapitre.', 'التجربة الافتراضية والاختبار القصير : قريبا لهذا الدرس.')}</p>`}</div>`)}

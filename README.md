@@ -21,6 +21,8 @@ Interface en français (arabe disponible), mode clair / sombre, adaptée au tél
 `js/exos.js` contient des séries d'exercices corrigés (du plus facile au plus difficile) ; chacune s'ouvre dans
 `series/serie.html?c=<id du chapitre>`, avec le logo du professeur, et s'imprime en PDF (énoncé seul ou avec corrections).
 Le lien apparaît automatiquement dans l'onglet « Séries » du chapitre.
+Les PDF (énoncé et corrigé) sont dans `series/pdf/`. Après avoir modifié `js/exos.js`, les régénérer :
+lancer `python3 -m http.server 8765` dans le dossier du site, puis `node tools/make_pdfs.js` (nécessite Playwright).
 
 ## Ajouter une série d'exercices
 

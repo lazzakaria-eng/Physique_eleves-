@@ -416,3 +416,12 @@ body::after { width: 200px; height: 200px; left: -70px; top: 72%; background: ra
 .stars i { font-style: normal; font-size: .72rem; font-weight: 700; color: #fff; border-radius: 999px; padding: 1px 8px; }
 .stars .d1 { background: #12946a; } .stars .d2 { background: #d98200; } .stars .d3 { background: #d93a4a; }
 [dir="rtl"] .bigserie > svg { transform: scaleX(-1); }
+
+.pdfs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: -4px 0 14px; }
+.pdfb { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; color: #fff; background: linear-gradient(180deg, #ff6b78, #d93a4a); box-shadow: 0 5px 0 #9a2230, 0 10px 18px rgba(217, 58, 74, .22); transition: transform .12s ease; }
+.pdfb.cor { background: linear-gradient(180deg, #36c796, #12946a); box-shadow: 0 5px 0 #0b6a4b, 0 10px 18px rgba(18, 148, 106, .22); }
+.pdfb:active { transform: translateY(3px); }
+.pdfb svg { width: 24px; height: 24px; flex: none; }
+.pdfb span { display: grid; line-height: 1.25; }
+.pdfb small { opacity: .9; font-size: .78rem; }
+@media (max-width: 420px) { .pdfs { grid-template-columns: 1fr; } }
