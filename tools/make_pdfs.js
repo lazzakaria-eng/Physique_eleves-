@@ -8,8 +8,9 @@ const path = require('path');
 const fs = require('fs');
 
 (async () => {
-  const src = fs.readFileSync(path.join(__dirname, '..', 'js', 'exos.js'), 'utf8');
-  const ids = [...src.matchAll(/^  '([\w-]+)': \[/gm)].map(m => m[1]);
+  const src = ['exos.js', 'exos-tc.js', 'exos-1bac.js', 'exos-2bac.js'].map(f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8')).join('\n');
+  const all = [...src.matchAll(/^  '([\w-]+)': \[/gm)].map(m => m[1]);
+  const ids = process.argv.length > 2 ? process.argv.slice(2) : all;
   const out = path.join(__dirname, '..', 'series', 'pdf');
   fs.mkdirSync(out, { recursive: true });
   const browser = await chromium.launch();
