@@ -37,13 +37,13 @@
       .replace(/ℓ/g, '\\ell{}').replace(/ℰ/g, '\\mathcal{E}').replace(/−/g, '-').replace(/%/g, '\\%')
       .replace(/ {2,}/g, '\\quad ').replace(/ ; /g, '\;;\\quad ');
   }
-  function typeset() {
-    if (!(window.MathJax && MathJax.typesetPromise)) return;
-    document.querySelectorAll('[data-tex]').forEach(el => { el.textContent = '\\(' + el.dataset.tex + '\\)'; el.removeAttribute('data-tex'); el.classList.add('mj'); });
-    MathJax.typesetClear && MathJax.typesetClear();
-    MathJax.typesetPromise([$('#app')]).catch(e => console.error(e));
+  function typeset(root) {
+    root = root || $('.panel:not([hidden])') || $('#app');
+    if (!root || !(window.MathJax && MathJax.typesetPromise)) return;
+    root.querySelectorAll('[data-tex]').forEach(el => { el.textContent = '\\(' + el.dataset.tex + '\\)'; el.removeAttribute('data-tex'); el.classList.add('mj'); });
+    MathJax.typesetPromise([root]).catch(e => console.error(e));
   }
-  window.__typeset = typeset;
+  window.__typeset = () => typeset();
 
   const ALL = [];
   LEVELS.forEach(lv => lv.domains.forEach(d => d.lessons.forEach((l, i) => ALL.push(Object.assign(l, { lv, dom: d })))));
@@ -63,6 +63,9 @@
     sliders: svg('<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>'),
     check: svg('<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>'),
     search: svg('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>'),
+    bulb: svg('<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/>'),
+    sheet: svg('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11M12 13h6M12 16h4"/>'),
+    cap: svg('<path d="m2 9 10-5 10 5-10 5z"/><path d="M6 11v5c3 2 9 2 12 0v-5M22 9v6"/>'),
     arrow: svg('<path d="M5 12h14M13 6l6 6-6 6"/>'),
     file: svg('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>'),
   };
@@ -97,103 +100,174 @@
       <div class="books">${d.lessons.map(l => bookCard(l)).join('')}</div></section>`).join('');
   }
 
+  function stat(ic, n, lb) { return `<div class="stat tilt"><span class="bub">${IC[ic]}</span><b>${n}</b><span>${lb}</span></div>`; }
+
   function home() {
-    const feats = [
-      ['book', t('Cours résumé', 'ملخص الدرس'), t('L’essentiel de chaque chapitre, point par point.', 'أهم ما في كل درس، نقطة بنقطة.')],
-      ['sigma', t('Formules', 'العلاقات'), t('Toutes les relations à connaître, bien présentées.', 'جميع العلاقات التي يجب معرفتها.')],
-      ['sliders', t('Simulations', 'المحاكاة'), t('Change les grandeurs et observe l’expérience.', 'غيّر المقادير ولاحظ التجربة.')],
-      ['check', t('Quiz corrigés', 'اختبارات مصححة'), t('Teste-toi et vois la correction tout de suite.', 'اختبر نفسك وشاهد التصحيح فورا.')],
+    const nf = ALL.reduce((s, l) => s + l.f.length, 0);
+    const lvInfo = {
+      tc: [t('Les bases : mouvement, forces, électricité et chimie.', 'الأساسيات : الحركة، القوى، الكهرباء والكيمياء.'), 'meca'],
+      '1bac': [t('Énergie, champs, optique et chimie des solutions.', 'الطاقة، المجالات، البصريات وكيمياء المحاليل.'), 'elec'],
+      '2bac': [t('Ondes, nucléaire, électricité, mécanique et chimie du Bac.', 'الموجات، النووي، الكهرباء، الميكانيك وكيمياء الباك.'), 'nuc'],
+    };
+    const journey = [
+      ['book', t('Lis le cours', 'اقرأ الدرس'), t('Expliqué étape par étape', 'مشروح خطوة بخطوة')],
+      ['sheet', t('Révise la fiche', 'راجع الملخص'), t('Tout l’essentiel sur une page', 'كل الأساسيات في صفحة')],
+      ['sliders', t('Expérimente', 'جرّب'), t('Simulations interactives', 'محاكاة تفاعلية')],
+      ['check', t('Teste-toi', 'اختبر نفسك'), t('Quiz et séries corrigés', 'اختبارات وسلاسل مصححة')],
     ];
     $('#app').innerHTML = `
       <section class="hero">
-        <div>
-          <p class="who" dir="ltr">Zakaria Lazrak — Professeur de Physique-Chimie</p>
-          <h1>${t('Bibliothèque de Physique-Chimie', 'مكتبة الفيزياء والكيمياء')}</h1>
-          <p class="lead">${t('Tout le programme du Tronc Commun au Bac : le cours résumé, les formules, des simulations pour expérimenter et des quiz pour s’entraîner.',
-      'المقرر كاملا من الجذع المشترك إلى الباكالوريا : ملخص الدرس، العلاقات، محاكاة للتجريب واختبارات للتمرن.')}</p>
-          <label class="search">${IC.search}<input id="q" type="search" value="${esc(query)}" placeholder="${t('Chercher un chapitre, une notion, une formule…', 'ابحث عن درس أو مفهوم أو علاقة…')}" aria-label="${t('Recherche', 'بحث')}"></label>
-          <div class="hero-cta">
-            <button class="cta" id="go" type="button">${t('Voir les chapitres', 'تصفح الدروس')} ${IC.arrow}</button>
-            <span class="stats">${ALL.length} ${t('chapitres', 'درسا')} · ${Object.keys(SIMS).length} ${t('simulations', 'محاكاة')}</span>
+        <div class="hero-in">
+          <div class="hero-txt">
+            <p class="who" dir="ltr">Zakaria Lazrak — Professeur de Physique-Chimie</p>
+            <h1>${t('La Physique-Chimie,<br><em>enfin simple.</em>', 'الفيزياء والكيمياء،<br><em>بطريقة سهلة.</em>')}</h1>
+            <p class="lead">${t('Cours expliqués pas à pas, fiches résumés, formules, simulations 3D-interactives et quiz : tout le programme du Tronc Commun au Bac.',
+      'دروس مشروحة خطوة بخطوة، ملخصات، علاقات، محاكاة تفاعلية واختبارات : المقرر كاملا من الجذع المشترك إلى الباك.')}</p>
+            <label class="search">${IC.search}<input id="q" type="search" value="${esc(query)}" placeholder="${t('Chercher un chapitre, une notion, une formule…', 'ابحث عن درس أو مفهوم أو علاقة…')}" aria-label="${t('Recherche', 'بحث')}"></label>
+            <div class="hero-cta">
+              <button class="cta" id="go" type="button">${t('Découvrir les cours', 'اكتشف الدروس')} ${IC.arrow}</button>
+              <button class="cta2" id="gof" type="button">${IC.sheet} ${t('Fiches résumés 2BAC', 'ملخصات الثانية باك')}</button>
+            </div>
+          </div>
+          <div class="hero-3d" aria-hidden="true">
+            <div class="atom3d"><div class="orb o1"><i></i></div><div class="orb o2"><i></i></div><div class="orb o3"><i></i></div><div class="nuc"></div></div>
+            <span class="chip3d c1" dir="ltr">E = mc²</span><span class="chip3d c2" dir="ltr">λ = v·T</span><span class="chip3d c3" dir="ltr">ΣF = m·a</span><span class="chip3d c4" dir="ltr">pH = −log[H₃O⁺]</span>
           </div>
         </div>
-        <div class="hero-art"><img src="assets/logo.jpg" alt="Zakaria Lazrak — Physique &amp; Chimie" width="250" height="250"></div>
+        <svg class="wave" viewBox="0 0 1440 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 40c180 40 360 50 540 30S900-10 1080 10s270 50 360 40v40H0z"/></svg>
       </section>
-      <section class="feats">${feats.map(f => `<div class="feat"><i>${IC[f[0]]}</i><b>${f[1]}</b><span>${f[2]}</span></div>`).join('')}</section>
+
+      <section class="stats">
+        ${stat('book', ALL.length, t('chapitres', 'درسا'))}${stat('sliders', Object.keys(SIMS).length, t('simulations', 'محاكاة'))}${stat('sheet', FICHES.length, t('fiches résumés', 'ملخصا'))}${stat('sigma', nf, t('formules', 'علاقة'))}${stat('cap', 3, t('niveaux', 'مستويات'))}
+      </section>
+
       <h2 class="sec" id="niveaux">${t('Choisis ton niveau', 'اختر مستواك')}</h2>
-      <nav class="levels" role="tablist">${LEVELS.map(lv => `<button class="lvl lv-${lv.id}" role="tab" data-lv="${lv.id}" aria-selected="${lv.id === level}">
-        <b dir="ltr">${esc(lv.tag)}</b><span>${esc(t(lv.fr, lv.ar))}</span><small>${lv.count} ${t('chapitres', 'درسا')}</small></button>`).join('')}</nav>
-      <div id="shelves">${shelves()}</div>`;
+      <nav class="levels" role="tablist">${LEVELS.map(lv => `<button class="lvl tilt lv-${lv.id}" role="tab" data-lv="${lv.id}" aria-selected="${lv.id === level}">
+        <span class="bub">${IC[lvInfo[lv.id][1]]}</span><b dir="ltr">${esc(lv.tag)}</b><span class="lvn">${esc(t(lv.fr, lv.ar))}</span>
+        <span class="lvd">${lvInfo[lv.id][0]}</span><span class="pill">${lv.count} ${t('chapitres', 'درسا')} ${IC.arrow}</span></button>`).join('')}
+        <button class="lvl tilt lv-fiche" type="button" id="gof2"><span class="bub">${IC.sheet}</span><b>${t('Fiches', 'ملخصات')}</b><span class="lvn">${t('Résumés de cours 2BAC', 'ملخصات الدروس 2 باك')}</span>
+        <span class="lvd">${t('Toutes les fiches du professeur, à réviser et télécharger.', 'جميع ملخصات الأستاذ للمراجعة والتحميل.')}</span><span class="pill">${FICHES.length} ${t('fiches', 'ملخصا')} ${IC.arrow}</span></button></nav>
+
+      <h2 class="sec">${t('Comment réviser un chapitre ?', 'كيف أراجع درسا ؟')}</h2>
+      <ol class="journey">${journey.map((j, n) => `<li class="tilt"><span class="jn">${n + 1}</span><span class="bub">${IC[j[0]]}</span><b>${j[1]}</b><span>${j[2]}</span></li>`).join('')}</ol>
+
+      <div id="shelves">${shelves()}</div>
+
+      <section class="fiches" id="fiches">
+        <h2 class="sec">${t('Fiches résumés — 2ᵉ Bac', 'ملخصات الدروس — الثانية باك')}</h2>
+        <p class="hint">${t('Clique sur une fiche pour l’ouvrir avec son chapitre, ou l’agrandir et la télécharger.', 'اضغط على ملخص لفتحه مع درسه، أو لتكبيره وتحميله.')}</p>
+        <div class="fgrid">${FICHES.map((f, n) => `<button class="fcard tilt" type="button" data-f="${n}"><img src="${f.mini}" alt="" loading="lazy" width="640" height="452"><span><small>Page ${f.n}</small>${esc(f.titre)}</span></button>`).join('')}</div>
+      </section>`;
     $('#q').addEventListener('input', e => { query = e.target.value; $('#shelves').innerHTML = shelves(); });
     $('#go').addEventListener('click', () => $('#niveaux').scrollIntoView({ behavior: 'smooth', block: 'start' }));
-    document.querySelectorAll('.lvl').forEach(b => b.addEventListener('click', () => {
+    ['#gof', '#gof2'].forEach(s => $(s).addEventListener('click', () => $('#fiches').scrollIntoView({ behavior: 'smooth', block: 'start' })));
+    document.querySelectorAll('.lvl[data-lv]').forEach(b => b.addEventListener('click', () => {
       level = b.dataset.lv; store.set('level', level); query = ''; $('#q').value = '';
-      document.querySelectorAll('.lvl').forEach(x => x.setAttribute('aria-selected', x === b));
+      document.querySelectorAll('.lvl[data-lv]').forEach(x => x.setAttribute('aria-selected', x === b));
       $('#shelves').innerHTML = shelves();
+      $('#shelves').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }));
+    document.querySelectorAll('.fcard').forEach(b => b.addEventListener('click', () => {
+      const f = FICHES[+b.dataset.f];
+      if (f.ch.length) location.hash = '#/l/' + f.ch[0] + '/fiche'; else lightbox(f);
     }));
   }
 
+  /* ---------- fiche en grand ---------- */
+  function lightbox(f) {
+    const d = document.createElement('div');
+    d.className = 'lb'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true'); d.setAttribute('aria-label', f.titre);
+    d.innerHTML = `<div class="lb-bar"><b>${esc(f.titre)}</b><a class="lb-btn" href="${f.src}" download>${t('Télécharger', 'تحميل')}</a><button class="lb-btn lb-x" type="button" aria-label="${t('Fermer', 'إغلاق')}">✕</button></div>
+      <div class="lb-scroll"><img src="${f.src}" alt="${esc(f.titre)}"></div><p class="lb-tip">${t('Touche l’image pour zoomer.', 'المس الصورة للتكبير.')}</p>`;
+    const close = () => { d.remove(); document.removeEventListener('keydown', key); document.body.classList.remove('noscroll'); };
+    const key = e => { if (e.key === 'Escape') close(); };
+    d.addEventListener('click', e => { if (e.target === d || e.target.closest('.lb-x')) close(); else if (e.target.tagName === 'IMG') e.target.classList.toggle('big'); });
+    document.addEventListener('keydown', key);
+    document.body.appendChild(d); document.body.classList.add('noscroll'); $('.lb-x', d).focus();
+  }
+
   /* ---------- chapitre ---------- */
-  function lesson(l) {
+  function lesson(l, tab) {
     const i = ALL.indexOf(l), prev = ALL[i - 1], next = ALL[i + 1], X = EXTRA[l.id], k = domKey(l.dom), sims = simsOf(l), keys = RESUME[l.id] || [], ser = seriesOf(l);
-    const nav = (x, dir) => x ? `<a class="pn ${dir}" href="#/l/${x.id}"><small>${dir === 'prev' ? t('Précédent', 'السابق') : t('Suivant', 'التالي')} · ${esc(x.lv.tag)}</small>${esc(t(x.fr, x.ar))}</a>` : '<span></span>';
-    const steps = X && X.cours && lang !== 'ar';
-    const jump = [['s-cours', t('Cours', 'الدرس')], ['s-form', t('Formules', 'العلاقات')], ['s-sim', t('Simulations', 'المحاكاة')]]
-      .concat(X ? [['s-exp', 'Expérience'], ['s-quiz', 'Quiz'], ['s-exo', 'Exercices']] : [], [['s-series', t('Séries', 'السلاسل')]]);
+    const fic = FICHES.filter(f => f.ch.includes(l.id));
+    const steps = X && X.cours && lang !== 'ar' ? X.cours : keys.map(mk);
+    const tabs = [['cours', t('Cours', 'الدرس'), 'book']]
+      .concat(fic.length ? [['fiche', t('Fiche résumé', 'الملخص'), 'sheet']] : [], [['form', t('Formules', 'العلاقات'), 'sigma'], ['sim', t('Simulation', 'المحاكاة'), 'sliders']],
+        X ? [['quiz', t('Quiz & exercices', 'اختبار وتمارين'), 'check']] : [], [['series', t('Séries', 'السلاسل'), 'file']]);
+    if (!tabs.some(x => x[0] === tab)) tab = 'cours';
+    const nav = (x, dir) => x ? `<a class="pn ${dir}" href="#/l/${x.id}"><small>${dir === 'prev' ? t('Chapitre précédent', 'الدرس السابق') : t('Chapitre suivant', 'الدرس التالي')} · ${esc(x.lv.tag)}</small>${esc(t(x.fr, x.ar))}</a>` : '<span></span>';
+    const nextBtn = id => { const n = tabs.findIndex(x => x[0] === id) + 1; return tabs[n] ? `<button class="nextp" type="button" data-to="${tabs[n][0]}">${t('Étape suivante', 'الخطوة التالية')} : ${tabs[n][1]} ${IC.arrow}</button>` : `<nav class="pnav">${nav(prev, 'prev')}${nav(next, 'next')}</nav>`; };
+    const P = (id, body, attrs = '') => `<section class="panel" data-p="${id}" hidden ${attrs}>${body}${nextBtn(id)}</section>`;
     $('#app').innerHTML = `
       <article class="lesson k-${k}">
         <header class="lhead">
-          <p class="crumb"><a href="#/">${t('Bibliothèque', 'المكتبة')}</a> › <span dir="ltr">${esc(l.lv.tag)}</span> › ${esc(t(l.dom.fr, l.dom.ar))}</p>
-          <div class="lh-row"><span class="bic">${IC[k]}</span><div>
+          <p class="crumb"><a href="#/">${t('Accueil', 'الرئيسية')}</a> › <span dir="ltr">${esc(l.lv.tag)}</span> › ${esc(t(l.dom.fr, l.dom.ar))}</p>
+          <div class="lh-row"><span class="bub big">${IC[k]}</span><div>
             <h1>${esc(t(l.fr, l.ar))}</h1>
             <p class="alt" dir="${lang === 'ar' ? 'ltr' : 'rtl'}">${esc(t(l.ar, l.fr))}</p></div></div>
-          <nav class="jump" aria-label="${t('Sections', 'الأقسام')}">${jump.map(j => `<button type="button" data-go="${j[0]}">${j[1]}</button>`).join('')}</nav>
+          <div class="lchips"><span>${steps.length} ${t('étapes', 'خطوات')}</span>${fic.length ? `<span>${fic.length} ${t('fiche', 'ملخص')}${fic.length > 1 ? 's' : ''}</span>` : ''}<span>${l.f.length} ${t('formules', 'علاقات')}</span><span>${sims.length} ${t('simulation', 'محاكاة')}${sims.length > 1 && lang !== 'ar' ? 's' : ''}</span>${X ? '<span>Quiz</span>' : ''}</div>
         </header>
 
-        <section class="card" id="s-cours"><h2><span>1</span>${t('Résumé du cours', 'ملخص الدرس')}</h2>
-          <p class="ex">${esc(t(l.exFr, l.exAr))}</p>
-          ${steps ? `<h3>Étape par étape</h3><ol class="steps cours">${X.cours.map(e => `<li>${e}</li>`).join('')}</ol>` : ''}
-          ${keys.length ? `<h3>${t('À retenir', 'يجب أن أتذكر')}</h3><ul class="keys" dir="ltr" lang="fr">${keys.map(e => `<li>${mk(e)}</li>`).join('')}</ul>` : ''}</section>
+        <nav class="tabs3d" role="tablist">${tabs.map(x => `<button type="button" role="tab" data-t="${x[0]}">${IC[x[2]]}<span>${x[1]}</span></button>`).join('')}</nav>
 
-        <section class="card" id="s-form"><h2><span>2</span>${t('Formules essentielles', 'العلاقات الأساسية')}</h2>
-          <div class="formulas">${l.f.map((x, n) => `<div class="fm"><div class="eq" dir="ltr" data-tex="${esc(X && X.tex[n] ? X.tex[n] : toTex(x[0]))}">${mk(x[0])}</div><div class="mean">${esc(t(x[1], x[2]))}</div></div>`).join('')}</div></section>
+        ${P('cours', `<div class="card">
+          <div class="brief"><span class="bub">${IC.bulb}</span><div><b>${t('En bref', 'باختصار')}</b><p>${esc(t(l.exFr, l.exAr))}</p></div></div>
+          ${steps.length ? `<h2 class="ptitle">${t('Le cours en', 'الدرس في')} ${steps.length} ${t('étapes', 'خطوات')}</h2>
+          <ol class="tl" dir="ltr" lang="fr">${steps.map(s => `<li><span class="tln"></span><div>${s}</div></li>`).join('')}</ol>` : ''}</div>`)}
 
-        <section class="card" id="s-sim"><h2><span>3</span>${sims.length > 1 ? t('Simulations interactives', 'محاكاة تفاعلية') + ' (' + sims.length + ')' : t('Simulation interactive', 'محاكاة تفاعلية')}</h2>
-          <p class="hint">${t('Déplace les curseurs et observe le résultat.', 'غيّر المقادير ولاحظ النتيجة.')}</p>
+        ${fic.length ? P('fiche', `<div class="card"><h2 class="ptitle">${t('Fiche résumé du professeur', 'ملخص الأستاذ')}</h2>
+          <p class="hint">${t('Toute la leçon sur une page. Touche la fiche pour l’agrandir ou la télécharger.', 'الدرس كاملا في صفحة. المس الملخص لتكبيره أو تحميله.')}</p>
+          ${fic.map((f, n) => `<figure class="fiche"><button type="button" class="fopen" data-f="${FICHES.indexOf(f)}"><img src="${f.src}" alt="${esc(f.titre)}" loading="lazy" width="2400" height="1697"></button>
+            <figcaption><span>${esc(f.titre)}</span><a class="lb-btn" href="${f.src}" download>${t('Télécharger', 'تحميل')}</a></figcaption></figure>`).join('')}</div>`) : ''}
+
+        ${P('form', `<div class="card"><h2 class="ptitle">${t('Formules essentielles', 'العلاقات الأساسية')}</h2>
+          <div class="formulas">${l.f.map((x, n) => `<div class="fm"><div class="eq" dir="ltr" data-tex="${esc(X && X.tex[n] ? X.tex[n] : toTex(x[0]))}">${mk(x[0])}</div><div class="mean">${esc(t(x[1], x[2]))}</div></div>`).join('')}</div></div>`)}
+
+        ${P('sim', `<div class="card"><h2 class="ptitle">${sims.length > 1 ? t('Simulations interactives', 'محاكاة تفاعلية') : t('Simulation interactive', 'محاكاة تفاعلية')}</h2>
+          <p class="hint">${t('Déplace les curseurs et observe ce qui change.', 'غيّر المقادير ولاحظ ما يتغير.')}</p>
           ${sims.length > 1 ? `<div class="simtabs" role="tablist">${sims.map((n, j) => `<button type="button" role="tab" data-sim="${n}" aria-selected="${j === 0}">${esc(simName(n))}</button>`).join('')}</div>` : ''}
-          <div id="sim" class="sim" dir="ltr"></div></section>
+          <div id="sim" class="sim" dir="ltr"></div></div>`)}
 
-        ${X ? `<section class="card" id="s-exp" dir="ltr" lang="fr"><h2><span>4</span>Expérience virtuelle — protocole</h2>
+        ${X ? P('quiz', `<div class="card" dir="ltr" lang="fr"><h2 class="ptitle">Expérience virtuelle — protocole</h2>
           <p class="exp-t">${esc(X.exp.titre)}</p>
           <p class="hint"><b>Matériel :</b> ${esc(X.exp.materiel)}</p>
-          <ol class="steps">${X.exp.etapes.map(e => `<li>${e}</li>`).join('')}</ol></section>
-
-        <section class="card" id="s-quiz" dir="ltr" lang="fr"><h2><span>5</span>Mini-quiz</h2>
+          <ol class="steps">${X.exp.etapes.map(e => `<li>${e}</li>`).join('')}</ol></div>
+        <div class="card" dir="ltr" lang="fr"><h2 class="ptitle">Mini-quiz</h2>
           <p class="hint">5 questions : choisis une réponse, la correction s’affiche tout de suite.</p>
           ${X.quiz.map((q, n) => `<div class="qz" data-r="${q.r}"><p><b>${n + 1}.</b> ${q.q}</p>
             <div class="opts">${q.o.map((o, j) => `<button type="button" data-j="${j}">${o}</button>`).join('')}</div>
             <p class="expl" hidden>${q.e}</p></div>`).join('')}
-          <p class="score" id="score" aria-live="polite"></p></section>
-
-        <section class="card" id="s-exo" dir="ltr" lang="fr"><h2><span>6</span>Exercices corrigés</h2>
+          <p class="score" id="score" aria-live="polite"></p></div>
+        <div class="card" dir="ltr" lang="fr"><h2 class="ptitle">Exercices corrigés</h2>
           ${X.exos.map((e, n) => `<div class="exo"><p><b>Exercice ${n + 1}.</b> ${e.q}</p>
-            <details><summary>Voir la correction</summary><div class="sol">${e.a}</div></details></div>`).join('')}</section>`
-        : `<p class="soon">${t('Expérience virtuelle et mini-quiz : bientôt disponibles pour ce chapitre.', 'التجربة الافتراضية والاختبار القصير : قريبا لهذا الدرس.')}</p>`}
+            <details><summary>Voir la correction</summary><div class="sol">${e.a}</div></details></div>`).join('')}</div>`) : ''}
 
-        <section class="card" id="s-series"><h2><span>${X ? 7 : 4}</span>${t('Séries d’exercices', 'سلاسل التمارين')}</h2>
+        ${P('series', `<div class="card"><h2 class="ptitle">${t('Séries d’exercices', 'سلاسل التمارين')}</h2>
           ${ser.length ? `<div class="series">${ser.map(x => `<a class="serie" href="${esc(x[1])}" target="_blank" rel="noopener">${IC.file}<span>${esc(x[0])}</span>${IC.arrow}</a>`).join('')}</div>`
-        : `<p class="noser">${IC.file}<span>${t('Les séries d’exercices de ce chapitre seront ajoutées ici par le professeur.', 'سلاسل تمارين هذا الدرس سيضيفها الأستاذ هنا.')}</span></p>`}</section>
-
-        <nav class="pnav">${nav(prev, 'prev')}${nav(next, 'next')}</nav>
+        : `<p class="noser">${IC.file}<span>${t('Les séries d’exercices de ce chapitre seront ajoutées ici par le professeur.', 'سلاسل تمارين هذا الدرس سيضيفها الأستاذ هنا.')}</span></p>`}
+          ${X ? '' : `<p class="soon">${t('Expérience virtuelle et mini-quiz : bientôt disponibles pour ce chapitre.', 'التجربة الافتراضية والاختبار القصير : قريبا لهذا الدرس.')}</p>`}</div>`)}
       </article>`;
     level = l.lv.id; store.set('level', level);
-    mountSim($('#sim'), sims[0]);
+
+    let simOn = '';
+    function show(id, scroll) {
+      document.querySelectorAll('.tabs3d button').forEach(b => b.setAttribute('aria-selected', b.dataset.t === id));
+      document.querySelectorAll('.panel').forEach(p => { p.hidden = p.dataset.p !== id; });
+      if (id === 'sim') { const cur = $('.simtabs [aria-selected="true"]'); simOn = cur ? cur.dataset.sim : sims[0]; mountSim($('#sim'), simOn); }
+      else if (stopSim) { stopSim(); stopSim = null; }
+      typeset($(`.panel[data-p="${id}"]`));
+      history.replaceState(null, '', '#/l/' + l.id + (id === 'cours' ? '' : '/' + id));
+      const b = $(`.tabs3d [data-t="${id}"]`); if (b && b.scrollIntoView) b.scrollIntoView({ block: 'nearest', inline: 'center' });
+      if (scroll) $('.tabs3d').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    document.querySelectorAll('.tabs3d button').forEach(b => b.addEventListener('click', () => show(b.dataset.t)));
+    document.querySelectorAll('.nextp').forEach(b => b.addEventListener('click', () => show(b.dataset.to, true)));
     document.querySelectorAll('.simtabs button').forEach(b => b.addEventListener('click', () => {
       document.querySelectorAll('.simtabs button').forEach(x => x.setAttribute('aria-selected', x === b));
       if (stopSim) stopSim();
       mountSim($('#sim'), b.dataset.sim);
     }));
-    document.querySelectorAll('.jump button').forEach(b => b.addEventListener('click', () => document.getElementById(b.dataset.go).scrollIntoView({ behavior: 'smooth', block: 'start' })));
+    document.querySelectorAll('.fopen').forEach(b => b.addEventListener('click', () => lightbox(FICHES[+b.dataset.f])));
     let good = 0, done = 0;
     document.querySelectorAll('.qz').forEach(qz => qz.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
       if (qz.dataset.done) return; qz.dataset.done = 1; done++;
@@ -203,7 +277,7 @@
       qz.querySelector('.expl').hidden = false;
       $('#score').textContent = 'Score : ' + good + ' / ' + done + (done === 5 ? (good === 5 ? ' — Excellent !' : good >= 3 ? ' — Bien, revois les questions manquées.' : ' — Relis le cours puis réessaie.') : '');
     })));
-    typeset();
+    show(tab);
   }
 
   /* ---------- simulation ---------- */
@@ -269,8 +343,9 @@
     $('#theme').setAttribute('aria-label', dark ? t('Mode clair', 'الوضع الفاتح') : t('Mode sombre', 'الوضع الداكن'));
     $('#insta').href = INSTAGRAM_URL; $('#insta-top').href = INSTAGRAM_URL;
     $('#foot').textContent = t('Zakaria Lazrak — Professeur de Physique-Chimie · Programme marocain (BIOF) : Tronc Commun, 1ʳᵉ Bac, 2ᵉ Bac', 'Zakaria Lazrak — أستاذ الفيزياء والكيمياء · المقرر المغربي : الجذع المشترك، الأولى باك، الثانية باك');
-    const m = location.hash.match(/^#\/l\/([\w-]+)/), l = m && ALL.find(x => x.id === m[1]);
-    if (l) { lesson(l); document.title = t(l.fr, l.ar) + ' — ' + t('Bibliothèque de Physique-Chimie', 'مكتبة الفيزياء والكيمياء'); window.scrollTo(0, 0); }
+    if (window.MathJax && MathJax.typesetClear) MathJax.typesetClear();
+    const m = location.hash.match(/^#\/l\/([\w-]+)(?:\/(\w+))?/), l = m && ALL.find(x => x.id === m[1]);
+    if (l) { lesson(l, m[2]); document.title = t(l.fr, l.ar) + ' — ' + t('Bibliothèque de Physique-Chimie', 'مكتبة الفيزياء والكيمياء'); window.scrollTo(0, 0); }
     else { home(); document.title = t('Bibliothèque de Physique-Chimie | Zakaria Lazrak', 'مكتبة الفيزياء والكيمياء | Zakaria Lazrak'); }
   }
   $('#lang').addEventListener('click', () => { lang = lang === 'ar' ? 'fr' : 'ar'; store.set('lang', lang); route(); });
@@ -279,5 +354,18 @@
     theme = dark ? 'light' : 'dark'; store.set('theme', theme); route();
   });
   window.addEventListener('hashchange', route);
+  // effet 3D : les cartes s'inclinent sous la souris
+  if (window.matchMedia && matchMedia('(pointer: fine)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    let cur = null;
+    document.addEventListener('pointermove', e => {
+      const el = e.target.closest ? e.target.closest('.tilt') : null;
+      if (cur && cur !== el) { cur.classList.remove('on'); cur.style.removeProperty('--rx'); cur.style.removeProperty('--ry'); }
+      cur = el; if (!el) return;
+      const r = el.getBoundingClientRect();
+      el.classList.add('on');
+      el.style.setProperty('--ry', (((e.clientX - r.left) / r.width - 0.5) * 14).toFixed(2) + 'deg');
+      el.style.setProperty('--rx', ((0.5 - (e.clientY - r.top) / r.height) * 12).toFixed(2) + 'deg');
+    });
+  }
   route();
 })();
