@@ -207,7 +207,7 @@
           <div class="lh-row"><span class="cube3d" aria-hidden="true"><span class="cb">${[1, 2, 3, 4, 5, 6].map(n => `<i class="f${n}">${IC[k]}</i>`).join('')}</span></span><div>
             <h1>${esc(t(l.fr, l.ar))}</h1>
             <p class="alt" dir="${lang === 'ar' ? 'ltr' : 'rtl'}">${esc(t(l.ar, l.fr))}</p></div></div>
-          <div class="lchips"><span>${steps.length} ${t('étapes', 'خطوات')}</span>${nExp ? `<span>${nExp} ${t('expérience', 'تجربة')}${nExp > 1 && lang !== 'ar' ? 's' : ''} ${t('dans le cours', 'في الدرس')}</span>` : ''}${fic.length ? `<span>${fic.length} ${t('fiche', 'ملخص')}${fic.length > 1 ? 's' : ''}</span>` : ''}<span>${l.f.length} ${t('formules', 'علاقات')}</span><span>${sims.length} ${t('simulation', 'محاكاة')}${sims.length > 1 && lang !== 'ar' ? 's' : ''}</span>${X ? '<span>Quiz</span>' : ''}</div>
+          <div class="lchips"><span>${steps.length} ${t('étapes', 'خطوات')}</span>${nExp ? `<span>${nExp} ${t('expérience', 'تجربة')}${nExp > 1 && lang !== 'ar' ? 's' : ''} ${t('dans le cours', 'في الدرس')}</span>` : ''}${fic.length ? `<span>${fic.length} ${t('fiche', 'ملخص')}${fic.length > 1 ? 's' : ''}</span>` : ''}<span>${l.f.length} ${t('formules', 'علاقات')}</span><span>${sims.length} ${t('simulation', 'محاكاة')}${sims.length > 1 && lang !== 'ar' ? 's' : ''}</span>${X ? '<span>Quiz</span>' : ''}${EXOS[l.id] ? `<span>${t('Série corrigée', 'سلسلة مصححة')}</span>` : ''}</div>
         </header>
 
         <nav class="tabs3d" role="tablist">${tabs.map(x => `<button type="button" role="tab" data-t="${x[0]}">${IC[x[2]]}<span>${x[1]}</span></button>`).join('')}</nav>
@@ -245,8 +245,11 @@
             <details><summary>Voir la correction</summary><div class="sol">${e.a}</div></details></div>`).join('')}</div>`) : ''}
 
         ${P('series', `<div class="card"><h2 class="ptitle">${t('Séries d’exercices', 'سلاسل التمارين')}</h2>
+          ${EXOS[l.id] ? `<a class="bigserie" href="series/serie.html?c=${l.id}"><span class="bub">${IC.file}</span><span><b>${t('Série d’exercices corrigés', 'سلسلة تمارين مصححة')}</b>
+            <small>${EXOS[l.id].length} ${t('exercices, du plus facile au plus difficile', 'تمارين، من الأسهل إلى الأصعب')}</small>
+            <span class="stars"><i class="d1">★</i><i class="d2">★★</i><i class="d3">★★★</i></span></span>${IC.arrow}</a>` : ''}
           ${ser.length ? `<div class="series">${ser.map(x => `<a class="serie" href="${esc(x[1])}" target="_blank" rel="noopener">${IC.file}<span>${esc(x[0])}</span>${IC.arrow}</a>`).join('')}</div>`
-        : `<p class="noser">${IC.file}<span>${t('Les séries d’exercices de ce chapitre seront ajoutées ici par le professeur.', 'سلاسل تمارين هذا الدرس سيضيفها الأستاذ هنا.')}</span></p>`}
+        : EXOS[l.id] ? '' : `<p class="noser">${IC.file}<span>${t('Les séries d’exercices de ce chapitre seront ajoutées ici par le professeur.', 'سلاسل تمارين هذا الدرس سيضيفها الأستاذ هنا.')}</span></p>`}
           ${X ? '' : `<p class="soon">${t('Expérience virtuelle et mini-quiz : bientôt disponibles pour ce chapitre.', 'التجربة الافتراضية والاختبار القصير : قريبا لهذا الدرس.')}</p>`}</div>`)}
       </article>`;
     level = l.lv.id; store.set('level', level);

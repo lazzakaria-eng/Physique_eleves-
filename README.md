@@ -16,6 +16,12 @@ Les parties 4 et 5 sont rédigées pour deux chapitres pour l'instant : **Le mou
 
 Interface en français (arabe disponible), mode clair / sombre, adaptée au téléphone.
 
+## Séries d'exercices corrigés (rédigées)
+
+`js/exos.js` contient des séries d'exercices corrigés (du plus facile au plus difficile) ; chacune s'ouvre dans
+`series/serie.html?c=<id du chapitre>`, avec le logo du professeur, et s'imprime en PDF (énoncé seul ou avec corrections).
+Le lien apparaît automatiquement dans l'onglet « Séries » du chapitre.
+
 ## Ajouter une série d'exercices
 
 Chaque chapitre a une section « Séries d'exercices ». Pour y ajouter une série :
