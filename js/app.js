@@ -66,6 +66,7 @@
     bulb: svg('<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/>'),
     sheet: svg('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11M12 13h6M12 16h4"/>'),
     cap: svg('<path d="m2 9 10-5 10 5-10 5z"/><path d="M6 11v5c3 2 9 2 12 0v-5M22 9v6"/>'),
+    play: svg('<circle cx="12" cy="12" r="9"/><path d="m10 8 6 4-6 4z" fill="currentColor"/>'),
     arrow: svg('<path d="M5 12h14M13 6l6 6-6 6"/>'),
     file: svg('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>'),
   };
@@ -191,6 +192,7 @@
     const i = ALL.indexOf(l), prev = ALL[i - 1], next = ALL[i + 1], X = EXTRA[l.id], k = domKey(l.dom), sims = simsOf(l), keys = RESUME[l.id] || [], ser = seriesOf(l);
     const fic = FICHES.filter(f => f.ch.includes(l.id));
     const steps = X && X.cours && lang !== 'ar' ? X.cours : keys.map(mk);
+    const stepSims = steps.map((s, n) => simForStep(l.id, n + 1, s, sims)), nExp = stepSims.filter(Boolean).length;
     const tabs = [['cours', t('Cours', 'الدرس'), 'book']]
       .concat(fic.length ? [['fiche', t('Fiche résumé', 'الملخص'), 'sheet']] : [], [['form', t('Formules', 'العلاقات'), 'sigma'], ['sim', t('Simulation', 'المحاكاة'), 'sliders']],
         X ? [['quiz', t('Quiz & exercices', 'اختبار وتمارين'), 'check']] : [], [['series', t('Séries', 'السلاسل'), 'file']]);
@@ -202,10 +204,10 @@
       <article class="lesson k-${k}">
         <header class="lhead">
           <p class="crumb"><a href="#/">${t('Accueil', 'الرئيسية')}</a> › <span dir="ltr">${esc(l.lv.tag)}</span> › ${esc(t(l.dom.fr, l.dom.ar))}</p>
-          <div class="lh-row"><span class="bub big">${IC[k]}</span><div>
+          <div class="lh-row"><span class="cube3d" aria-hidden="true"><span class="cb">${[1, 2, 3, 4, 5, 6].map(n => `<i class="f${n}">${IC[k]}</i>`).join('')}</span></span><div>
             <h1>${esc(t(l.fr, l.ar))}</h1>
             <p class="alt" dir="${lang === 'ar' ? 'ltr' : 'rtl'}">${esc(t(l.ar, l.fr))}</p></div></div>
-          <div class="lchips"><span>${steps.length} ${t('étapes', 'خطوات')}</span>${fic.length ? `<span>${fic.length} ${t('fiche', 'ملخص')}${fic.length > 1 ? 's' : ''}</span>` : ''}<span>${l.f.length} ${t('formules', 'علاقات')}</span><span>${sims.length} ${t('simulation', 'محاكاة')}${sims.length > 1 && lang !== 'ar' ? 's' : ''}</span>${X ? '<span>Quiz</span>' : ''}</div>
+          <div class="lchips"><span>${steps.length} ${t('étapes', 'خطوات')}</span>${nExp ? `<span>${nExp} ${t('expérience', 'تجربة')}${nExp > 1 && lang !== 'ar' ? 's' : ''} ${t('dans le cours', 'في الدرس')}</span>` : ''}${fic.length ? `<span>${fic.length} ${t('fiche', 'ملخص')}${fic.length > 1 ? 's' : ''}</span>` : ''}<span>${l.f.length} ${t('formules', 'علاقات')}</span><span>${sims.length} ${t('simulation', 'محاكاة')}${sims.length > 1 && lang !== 'ar' ? 's' : ''}</span>${X ? '<span>Quiz</span>' : ''}</div>
         </header>
 
         <nav class="tabs3d" role="tablist">${tabs.map(x => `<button type="button" role="tab" data-t="${x[0]}">${IC[x[2]]}<span>${x[1]}</span></button>`).join('')}</nav>
@@ -213,7 +215,7 @@
         ${P('cours', `<div class="card">
           <div class="brief"><span class="bub">${IC.bulb}</span><div><b>${t('En bref', 'باختصار')}</b><p>${esc(t(l.exFr, l.exAr))}</p></div></div>
           ${steps.length ? `<h2 class="ptitle">${t('Le cours en', 'الدرس في')} ${steps.length} ${t('étapes', 'خطوات')}</h2>
-          <ol class="tl" dir="ltr" lang="fr">${steps.map(s => `<li><span class="tln"></span><div>${s}</div></li>`).join('')}</ol>` : ''}</div>`)}
+          <ol class="tl" dir="ltr" lang="fr">${steps.map((s, n) => `<li><span class="tln"></span><div><div class="stx">${s}</div>${stepSims[n] ? `<button class="seeexp" type="button" data-sim="${stepSims[n]}">${IC.play}<span>${t('Voir l’expérience', 'شاهد التجربة')} : ${esc(simName(stepSims[n]))}</span></button><div class="stepsim sim" hidden></div>` : ''}</div></li>`).join('')}</ol>` : ''}</div>`)}
 
         ${fic.length ? P('fiche', `<div class="card"><h2 class="ptitle">${t('Fiche résumé du professeur', 'ملخص الأستاذ')}</h2>
           <p class="hint">${t('Toute la leçon sur une page. Touche la fiche pour l’agrandir ou la télécharger.', 'الدرس كاملا في صفحة. المس الملخص لتكبيره أو تحميله.')}</p>
@@ -250,11 +252,24 @@
     level = l.lv.id; store.set('level', level);
 
     let simOn = '';
+    function closeSteps() {
+      document.querySelectorAll('.stepsim').forEach(c => { c.hidden = true; c.innerHTML = ''; });
+      document.querySelectorAll('.seeexp').forEach(b => { b.classList.remove('open'); b.lastChild.textContent = t('Voir l’expérience', 'شاهد التجربة') + ' : ' + simName(b.dataset.sim); });
+    }
+    document.querySelectorAll('.seeexp').forEach(b => b.addEventListener('click', () => {
+      const box = b.nextElementSibling, open = !box.hidden;
+      if (stopSim) { stopSim(); stopSim = null; }
+      closeSteps();
+      if (open) return;
+      box.hidden = false; b.classList.add('open'); b.lastChild.textContent = t('Fermer l’expérience', 'أغلق التجربة');
+      mountSim(box, b.dataset.sim);
+    }));
     function show(id, scroll) {
+      if (stopSim) { stopSim(); stopSim = null; }
+      closeSteps();
       document.querySelectorAll('.tabs3d button').forEach(b => b.setAttribute('aria-selected', b.dataset.t === id));
       document.querySelectorAll('.panel').forEach(p => { p.hidden = p.dataset.p !== id; });
       if (id === 'sim') { const cur = $('.simtabs [aria-selected="true"]'); simOn = cur ? cur.dataset.sim : sims[0]; mountSim($('#sim'), simOn); }
-      else if (stopSim) { stopSim(); stopSim = null; }
       typeset($(`.panel[data-p="${id}"]`));
       history.replaceState(null, '', '#/l/' + l.id + (id === 'cours' ? '' : '/' + id));
       const b = $(`.tabs3d [data-t="${id}"]`); if (b && b.scrollIntoView) b.scrollIntoView({ block: 'nearest', inline: 'center' });
@@ -287,7 +302,9 @@
     SIM_LANG = lang;
     const W = 640, H = 360, v = {};
     const lab = x => Array.isArray(x) ? x[lang === 'ar' ? 1 : 0] : x;
-    host.innerHTML = `<div class="stage"><canvas width="${W}" height="${H}"></canvas>${sim.anim ? `<button class="replay" type="button">↻ ${t('Rejouer', 'إعادة')}</button>` : ''}</div>
+    const rng = sim.p.filter(p => !Array.isArray(p[2]));
+    host.innerHTML = `<div class="stage"><canvas width="${W}" height="${H}"></canvas><span class="autolab" hidden></span>${sim.anim ? `<button class="replay" type="button">↻ ${t('Rejouer', 'إعادة')}</button>` : ''}</div>
+      ${rng.length ? `<button class="autoplay" type="button" aria-pressed="false">${IC.play}<span>${t('Regarder l’expérience', 'شاهد التجربة')}</span></button>` : ''}
       <div class="ctl">${sim.p.map(p => {
       const sel = Array.isArray(p[2]);
       v[p[0]] = sel ? p[3] : p[5];
@@ -299,7 +316,21 @@
     const cv = $('canvas', host), ctx = cv.getContext('2d'), out = $('.out', host);
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     cv.width = W * dpr; cv.height = H * dpr;
-    let t0 = performance.now(), raf = 0, alive = true, lastOut = '';
+    let t0 = performance.now(), raf = 0, alive = true, lastOut = '', auto = false, autoT0 = 0, lastIdx = -1;
+    const autolab = $('.autolab', host), autobtn = $('.autoplay', host);
+    function setVal(p, x) {
+      x = +(Math.round((x - p[2]) / p[4]) * p[4] + p[2]).toFixed(6); x = Math.min(p[3], Math.max(p[2], x));
+      v[p[0]] = x;
+      const inp = host.querySelector(`input[data-id="${p[0]}"]`); if (inp) inp.value = x;
+      const o = host.querySelector(`[data-o="${p[0]}"]`); if (o) o.textContent = fmtVal(x);
+    }
+    function setAuto(on) {
+      auto = on; autobtn.setAttribute('aria-pressed', on);
+      autobtn.lastChild.textContent = on ? t('Arrêter', 'إيقاف') : t('Regarder l’expérience', 'شاهد التجربة');
+      autolab.hidden = !on;
+      if (on) { autoT0 = performance.now(); lastIdx = -1; if (!sim.anim) frame(); }
+      else if (lastIdx >= 0) { setVal(rng[lastIdx], rng[lastIdx][5]); lastIdx = -1; if (!sim.anim) frame(); }
+    }
 
     function colors() {
       const cs = getComputedStyle(document.documentElement), g = k => cs.getPropertyValue(k).trim();
@@ -310,16 +341,23 @@
       const c = makeG(ctx, W, H, colors());
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.direction = 'ltr';
       ctx.clearRect(0, 0, W, H); ctx.setLineDash([]); ctx.globalAlpha = 1;
+      if (auto) {
+        const el = (performance.now() - autoT0) / 1000, per = 7, idx = Math.floor(el / per) % rng.length, p = rng[idx];
+        if (idx !== lastIdx) { if (lastIdx >= 0) setVal(rng[lastIdx], rng[lastIdx][5]); lastIdx = idx; autolab.innerHTML = '▶ ' + t('On fait varier', 'نغير') + ' ' + mk(lab(p[1])); }
+        setVal(p, p[2] + (p[3] - p[2]) * (0.5 - 0.5 * Math.cos(2 * Math.PI * (el % per) / per)));
+      }
       let res;
       try { res = sim.draw(c, v, (performance.now() - t0) / 1000) || []; }
       catch (e) { res = ['⚠ ' + e.message]; console.error(e); }
       const html = res.map(r => `<li>${mk(r)}</li>`).join('');
       if (html !== lastOut) { out.innerHTML = html; lastOut = html; }
-      if (sim.anim) raf = requestAnimationFrame(frame);
+      if (sim.anim || auto) raf = requestAnimationFrame(frame);
     }
     function fmtVal(x) { return String(+(+x).toFixed(4)).replace('.', ','); }
+    if (autobtn) autobtn.addEventListener('click', () => setAuto(!auto));
     host.addEventListener('input', e => {
       const id = e.target.dataset.id; if (!id) return;
+      if (auto) setAuto(false);
       v[id] = +e.target.value;
       const o = host.querySelector(`[data-o="${id}"]`); if (o) o.textContent = fmtVal(v[id]);
       t0 = performance.now(); if (!sim.anim) frame();
