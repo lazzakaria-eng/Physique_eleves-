@@ -12,7 +12,7 @@
       'densite', [
       ['ρ = m / V', 'Masse volumique', 'الكتلة الحجمية'],
       ['d = ρ / ρ_{eau}', 'Densité d’un liquide ou d’un solide (sans unité)', 'كثافة سائل أو صلب (بدون وحدة)'],
-      ['ρ_{eau} = 1 g/cm³ = 1000 kg/m³', 'Masse volumique de l’eau', 'الكتلة الحجمية للماء'],
+      ['ρ_{eau} = 1 g·cm^{-3} = 1000 kg·m^{-3}', 'Masse volumique de l’eau', 'الكتلة الحجمية للماء'],
     ]),
     L('tcc-extraction', 'Extraction, séparation et identification des espèces chimiques', 'استخراج وفصل الأنواع الكيميائية والكشف عنها',
       'On extrait une espèce chimique avec un solvant dans lequel elle est très soluble, ou par hydrodistillation. La chromatographie sépare les constituants d’un mélange et permet de les identifier en comparant leurs rapports frontaux.',

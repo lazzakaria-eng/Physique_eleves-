@@ -294,8 +294,8 @@ const LEVELS = [
             'Une lentille convergente fait converger un faisceau parallèle en son foyer image F′. Selon la position de l’objet, l’image est réelle et renversée, ou virtuelle, droite et agrandie (loupe).',
             'تجمع العدسة المجمعة حزمة متوازية في بؤرتها الصورة F′. حسب موضع الجسم تكون الصورة حقيقية ومقلوبة، أو وهمية ومعتدلة ومكبرة (المكبرة).',
             'lentille', [
-            ['C = 1 / f ′', 'Vergence (δ), f ′ en mètres', 'قوة العدسة (δ)، f ′ بالمتر'],
-            ['1/OA′ − 1/OA = 1/f ′', 'Relation de conjugaison (grandeurs algébriques)', 'علاقة الترافق (مقادير جبرية)'],
+            ['C = 1 / f′', 'Vergence (δ), f ′ en mètres', 'قوة العدسة (δ)، f ′ بالمتر'],
+            ['1/OA′ − 1/OA = 1/f′', 'Relation de conjugaison (grandeurs algébriques)', 'علاقة الترافق (مقادير جبرية)'],
             ['γ = A′B′ / AB = OA′ / OA', 'Grandissement', 'التكبير'],
             ['C = C_1 + C_2', 'Lentilles minces accolées', 'عدستان رقيقتان ملتصقتان'],
           ]),
@@ -305,8 +305,8 @@ const LEVELS = [
             'loupe', [
             ['P = α′ / AB', 'Puissance (δ) : α′ angle sous lequel on voit l’image', 'القدرة (δ) : α′ القطر الظاهري للصورة'],
             ['G = α′ / α', 'Grossissement (α : angle à l’œil nu à 25 cm)', 'التكبير الزاوي (α : بالعين المجردة على 25 cm)'],
-            ['P_i = 1 / f ′ ;  G = 0,25 / f ′', 'Loupe, image à l’infini', 'المكبرة، الصورة في اللانهاية'],
-            ['P_i = Δ / (f ′_1·f ′_2)', 'Microscope (Δ : intervalle optique F′₁F₂)', 'المجهر (Δ : الفاصل البصري F′₁F₂)'],
+            ['P_i = 1 / f′ ;  G = 0,25 / f′', 'Loupe, image à l’infini', 'المكبرة، الصورة في اللانهاية'],
+            ['P_i = Δ / (f′_1·f′_2)', 'Microscope (Δ : intervalle optique F′₁F₂)', 'المجهر (Δ : الفاصل البصري F′₁F₂)'],
             ['G = |γ_1|·G_2', 'Microscope : objectif × oculaire', 'المجهر : الشيئية × العينية'],
           ]),
         ]
@@ -371,7 +371,7 @@ const LEVELS = [
             ['E_ℓ = Δm·c²', 'Énergie de liaison', 'طاقة الربط'],
             ['ℰ = E_ℓ / A', 'Énergie de liaison par nucléon (stabilité)', 'طاقة الربط بالنسبة لنوية (الاستقرار)'],
             ['ΔE = [Σm(produits) − Σm(réactifs)]·c²', 'Bilan énergétique d’une réaction nucléaire', 'الحصيلة الطاقية لتفاعل نووي'],
-            ['1 u = 931,5 MeV/c²', 'Unité de masse atomique', 'وحدة الكتلة الذرية'],
+            ['1 u = 931,5 MeV∕c²', 'Unité de masse atomique', 'وحدة الكتلة الذرية'],
           ]),
         ]
       },
@@ -388,7 +388,8 @@ const LEVELS = [
             ['u_C = E·e^{−t/τ}', 'Décharge', 'التفريغ'],
             ['τ = R·C', 'Constante de temps', 'ثابتة الزمن'],
             ['E_e = ½·C·u_C²', 'Énergie électrique emmagasinée', 'الطاقة الكهربائية المخزونة'],
-            ['C_{éq} = C_1 + C_2  (//) ;  1/C_{éq} = 1/C_1 + 1/C_2  (série)', 'Association de condensateurs', 'تجميع المكثفات'],
+            ['C_{éq} = C_1 + C_2', 'Condensateurs en parallèle', 'مكثفات على التوازي'],
+            ['1/C_{éq} = 1/C_1 + 1/C_2', 'Condensateurs en série', 'مكثفات على التوالي'],
           ]),
           L('2b-rl', 'Dipôle RL', 'ثنائي القطب RL',
             'Une bobine s’oppose aux variations du courant qui la traverse : le courant s’établit et s’annule progressivement. Elle emmagasine de l’énergie magnétique.',
@@ -450,7 +451,7 @@ const LEVELS = [
             'Dans un référentiel galiléen, la somme des forces appliquées à un solide est égale au produit de sa masse par l’accélération de son centre d’inertie. Toute action s’accompagne d’une réaction égale et opposée.',
             'في مرجع غاليلي، مجموع القوى المطبقة على جسم صلب يساوي جداء كتلته وتسارع مركز قصوره. كل تأثير يصاحبه تأثير مضاد يساويه ويعاكسه.',
             'newton', [
-            ['v = dOG/dt ;  a = dv/dt', 'Vecteurs vitesse et accélération', 'متجهتا السرعة والتسارع'],
+            ['v = d(OG)/dt ;  a = dv/dt', 'Vecteurs vitesse et accélération', 'متجهتا السرعة والتسارع'],
             ['ΣF_{ext} = m·a_G', 'Deuxième loi de Newton', 'القانون الثاني لنيوتن'],
             ['ΣF_{ext} = 0  ⇔  v_G = constante', 'Première loi (principe d’inertie)', 'القانون الأول (مبدأ القصور)'],
             ['F_{A/B} = − F_{B/A}', 'Troisième loi (actions réciproques)', 'القانون الثالث (التأثيرات البينية)'],

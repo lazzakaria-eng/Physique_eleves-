@@ -126,7 +126,7 @@ Object.assign(EXOS, {
       s: TX`\(C = \dfrac{1}{f'} = \dfrac{1}{0{,}20} = 5\ \delta\).` },
     { d: 2, t: 'Image réelle', q: TX`Un objet AB de 2 cm est placé à 30 cm devant une lentille de distance focale 10 cm.<br>Déterminer la position, la taille et la nature de l’image.`,
       s: TX`\(\dfrac{1}{OA'} = \dfrac{1}{10} - \dfrac{1}{30}\) donc \(OA' = 15\ \text{cm}\) ; \(\gamma = \dfrac{15}{-30} = -0{,}5\) ; \(A'B' = -1\ \text{cm}\) : réelle, renversée, deux fois plus petite.` },
-    { d: 3, t: 'Effet loupe et lentilles accolées', q: TX`1) L’objet est maintenant à 5 cm de la même lentille (\(f' = 10\ \text{cm}\)). Déterminer l’image.<br>2) On accole une lentille de 10 δ à la lentille de 5 δ : vergence et distance focale de l’ensemble ?`,
+    { d: 3, t: 'Effet loupe et lentilles accolées', q: TX`1) L’objet est maintenant à 5 cm de la même lentille (\(f' = 10\ \text{cm}\)). Déterminer l’image.<br>2) On accole à cette lentille (\(C = 10\ \delta\)) une lentille de 5 δ : vergence et distance focale de l’ensemble ?`,
       s: TX`1) \(\dfrac{1}{OA'} = \dfrac{1}{10} - \dfrac{1}{5}\) donc \(OA' = -10\ \text{cm}\) ; \(\gamma = 2\) : virtuelle, droite, deux fois plus grande.<br>2) \(C = 15\ \delta\) ; \(f' \approx 6{,}7\ \text{cm}\).` },
   ],
   '1b-instruments': [
@@ -188,7 +188,7 @@ Object.assign(EXOS, {
   '1bc-dosages': [
     { d: 1, t: 'Dosage acide – base', q: TX`On dose 20 mL d’acide chlorhydrique par la soude à 0,1 mol/L ; l’équivalence est obtenue pour 15 mL.<br>Calculer la concentration de l’acide.`,
       s: TX`\(C_A V_A = C_B V_E\) : \(C_A = \dfrac{0{,}1\times15}{20} = 0{,}075\ \text{mol/L}\).` },
-    { d: 2, t: 'Dosage d’oxydoréduction', q: TX`10 mL d’une solution de \(\text{Fe}^{2+}\) sont dosés par \(\text{MnO}_4^-\) à 0,02 mol/L ; \(V_E = 12{,}5\ \text{mL}\) (équation de l’exercice précédent).<br>Calculer \([\text{Fe}^{2+}]\). Comment repère-t-on l’équivalence ?`,
+    { d: 2, t: 'Dosage d’oxydoréduction', q: TX`10 mL d’une solution de \(\text{Fe}^{2+}\) sont dosés par \(\text{MnO}_4^-\) à 0,02 mol/L ; \(V_E = 12{,}5\ \text{mL}\). Équation : \(\text{MnO}_4^- + 8\,\text{H}^+ + 5\,\text{Fe}^{2+} \longrightarrow \text{Mn}^{2+} + 5\,\text{Fe}^{3+} + 4\,\text{H}_2\text{O}\).<br>Calculer \([\text{Fe}^{2+}]\). Comment repère-t-on l’équivalence ?`,
       s: TX`À l’équivalence \(n(\text{Fe}^{2+}) = 5\,n(\text{MnO}_4^-) = 5\times0{,}02\times12{,}5\times10^{-3} = 1{,}25\times10^{-3}\ \text{mol}\) ; \(C = 0{,}125\ \text{mol/L}\). La couleur violette persiste dès qu’on dépasse l’équivalence.` },
     { d: 3, t: 'Dosage d’un vinaigre', q: TX`Un vinaigre est dilué 10 fois. 10 mL de la solution diluée sont dosés par la soude à 0,1 mol/L : \(V_E = 13{,}5\ \text{mL}\).<br>1) Calculer la concentration de la solution diluée puis du vinaigre.<br>2) Calculer la masse d’acide éthanoïque (\(M = 60\ \text{g/mol}\)) par litre de vinaigre.`,
       s: TX`1) \(C_d = \dfrac{0{,}1\times13{,}5}{10} = 0{,}135\ \text{mol/L}\) ; vinaigre : 1,35 mol/L.<br>2) \(1{,}35\times60 = 81\ \text{g/L}\) (environ 8 % en masse).` },

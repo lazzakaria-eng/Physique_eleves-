@@ -40,7 +40,12 @@
     .sheet { margin: 0; max-width: none; box-shadow: none; padding: 0; }
     .cols { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .box, .ttl, .box h2 { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .box > div { font-size: .8rem; }
+    .box > div { font-size: .76rem; padding: 8px 10px; }
+    .fm { margin-bottom: 4px; }
+    .fm small { font-size: .7rem; margin-bottom: 1px; }
+    .eq { padding: 2px 10px; }
+    li { margin-bottom: 4px; }
+    .top img { width: 70px; height: 70px; }
     .ttl h1 { font-size: 1.6rem; }
     .cols { margin-top: 12px; gap: 12px; }
   }
@@ -90,7 +95,16 @@
       '<section class="box"><h2>3- Formules à connaître</h2><div>' + c3 + '</div></section>';
     document.getElementById('pr').addEventListener('click', function () { window.print(); });
   })();
-  window.MathJax = { tex: { inlineMath: [['\\(', '\\)']] }, svg: { fontCache: 'global' } };
+  window.MathJax = { tex: { inlineMath: [['\\(', '\\)']] }, svg: { fontCache: 'global' },
+    startup: { pageReady: function () { return MathJax.startup.defaultPageReady().then(fit); } } };
+  // réduit une formule trop large pour qu'elle tienne dans sa colonne
+  function fit() {
+    document.querySelectorAll('.eq').forEach(function (e) {
+      var m = e.querySelector('mjx-container'); if (!m) return;
+      for (var f = 100; e.scrollWidth > e.clientWidth + 1 && f > 55; f -= 5) m.style.setProperty('font-size', f - 5 + '%', 'important');
+    });
+  }
+  window.addEventListener('beforeprint', fit);
 </script>
 <script src="../assets/mathjax/tex-svg.js" async></script>
 </body>
