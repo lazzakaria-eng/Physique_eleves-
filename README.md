@@ -18,9 +18,11 @@ Interface en français (arabe disponible), mode clair / sombre, adaptée au tél
 
 ## Séries d'exercices corrigés (rédigées)
 
-`js/exos.js` contient des séries d'exercices corrigés (du plus facile au plus difficile) ; chacune s'ouvre dans
+`js/exos.js`, `js/exos-tc.js`, `js/exos-1bac.js` et `js/exos-2bac.js` contiennent les séries (une par chapitre, 79 au total) d'exercices corrigés (du plus facile au plus difficile) ; chacune s'ouvre dans
 `series/serie.html?c=<id du chapitre>`, avec le logo du professeur, et s'imprime en PDF (énoncé seul ou avec corrections).
 Le lien apparaît automatiquement dans l'onglet « Séries » du chapitre.
+Les PDF (énoncé et corrigé) sont dans `series/pdf/`, les résumés PDF dans `resumes/pdf/` (`node tools/make_resumes.js`). Après avoir modifié `js/exos.js`, les régénérer :
+lancer `python3 -m http.server 8765` dans le dossier du site, puis `node tools/make_pdfs.js` (nécessite Playwright).
 
 ## Ajouter une série d'exercices
 

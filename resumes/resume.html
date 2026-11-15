@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Résumé de cours | Zakaria Lazrak</title>
+<link rel="icon" href="../assets/icon.jpg">
+<style>
+  :root { --c: #233e6e; --ink: #14213d; --mute: #5b6577; --line: #dfe6f2; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #eef2f8; color: var(--ink); font-family: system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif; line-height: 1.5; }
+  .bar { max-width: 1120px; margin: 0 auto; padding: 14px 16px 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .bar a, .bar button { font: inherit; font-weight: 700; font-size: .88rem; cursor: pointer; border: 0; border-radius: 999px; padding: 8px 16px; color: #fff; background: var(--c); text-decoration: none; }
+  .bar .alt { color: var(--ink); background: #fff; border: 1px solid var(--line); }
+  .sheet { max-width: 1120px; margin: 14px auto 30px; background: #fff; padding: 22px 26px 16px; box-shadow: 0 10px 30px rgba(13, 20, 36, .12); }
+  .top { display: flex; align-items: center; gap: 16px; }
+  .top img { width: 84px; height: 84px; object-fit: cover; flex: none; }
+  .ttl { flex: 1; color: #fff; background: var(--c); border-radius: 14px; padding: 10px 18px; text-align: center; }
+  .ttl h1 { margin: 0; font-size: clamp(1.3rem, 3vw, 2rem); font-style: italic; line-height: 1.15; }
+  .ttl p { margin: 2px 0 0; font-size: .85rem; opacity: .9; }
+  .cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 16px; align-items: start; }
+  .box { border: 1.5px solid var(--c); }
+  .box h2 { margin: 0; padding: 6px 12px; font-size: .98rem; color: #fff; background: var(--c); }
+  .box > div { padding: 10px 12px; font-size: .9rem; }
+  .box p { margin: 0 0 8px; }
+  ul { margin: 0; padding-left: 18px; }
+  li { margin-bottom: 6px; }
+  li::marker { color: var(--c); }
+  ol { margin: 8px 0 0; padding-left: 20px; }
+  .fm { margin-bottom: 10px; }
+  .fm small { display: block; color: var(--mute); font-size: .8rem; margin-bottom: 3px; }
+  .eq { display: inline-block; max-width: 100%; overflow-x: auto; border: 1.5px solid var(--c); border-radius: 10px; padding: 4px 12px; background: #f4f7fc; }
+  .foot { display: flex; justify-content: space-between; gap: 10px; margin-top: 16px; padding-top: 8px; border-top: 2px solid var(--c); font-size: .75rem; color: var(--mute); }
+  mjx-container { font-size: 102% !important; }
+  @media (max-width: 860px) { .cols { grid-template-columns: 1fr; } .sheet { padding: 14px; } .top img { width: 60px; height: 60px; } }
+  @page { size: A4 landscape; margin: 8mm; }
+  @media print {
+    body { background: #fff; }
+    .bar { display: none; }
+    .sheet { margin: 0; max-width: none; box-shadow: none; padding: 0; }
+    .cols { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .box, .ttl, .box h2 { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .box > div { font-size: .8rem; }
+    .ttl h1 { font-size: 1.6rem; }
+    .cols { margin-top: 12px; gap: 12px; }
+  }
+</style>
+</head>
+<body>
+<nav class="bar">
+  <a id="back" class="alt" href="../index.html">← Retour au chapitre</a>
+  <a id="dl" href="#" download>⬇ Télécharger le PDF</a>
+  <button id="pr" class="alt" type="button">Imprimer</button>
+</nav>
+<article class="sheet">
+  <header class="top">
+    <img src="../assets/logo.jpg" alt="Zakaria Lazrak — Physique &amp; Chimie">
+    <div class="ttl"><h1 id="ttl">Résumé de cours</h1><p id="lvl"></p></div>
+  </header>
+  <div class="cols" id="cols"></div>
+  <footer class="foot"><span>© Zakaria Lazrak · Professeur de Physique-Chimie</span><span id="fl">Résumé de cours · Physique-Chimie</span></footer>
+</article>
+<script src="../js/data.js"></script>
+<script src="../js/data-chimie.js"></script>
+<script src="../js/extra.js"></script>
+<script src="../js/resume.js"></script>
+<script src="../js/tex.js"></script>
+<script>
+  (function () {
+    var id = (location.search.match(/[?&]c=([\w-]+)/) || [])[1] || '';
+    var l = null, lv = null, dom = null;
+    LEVELS.forEach(function (v) { v.domains.forEach(function (d) { d.lessons.forEach(function (x) { if (x.id === id) { l = x; lv = v; dom = d; } }); }); });
+    if (!l) { document.getElementById('cols').innerHTML = '<p>Chapitre introuvable.</p>'; return; }
+    var colors = { meca: '#233e6e', elec: '#2e75b6', opt: '#d9692a', onde: '#1b8a8f', nuc: '#6d4c9f', chim: '#2f8f5b' };
+    var key = /Chimie/.test(dom.fr) ? 'chim' : /lectricit/.test(dom.fr) ? 'elec' : /Optique/.test(dom.fr) ? 'opt' : /Ondes/.test(dom.fr) ? 'onde' : /nucl/.test(dom.fr) ? 'nuc' : 'meca';
+    document.documentElement.style.setProperty('--c', colors[key]);
+    var X = EXTRA[id], keys = RESUME[id] || [];
+    document.getElementById('ttl').textContent = l.fr;
+    document.getElementById('lvl').textContent = lv.fr + ' · ' + dom.fr;
+    document.getElementById('fl').textContent = 'Résumé de cours · Physique-Chimie · ' + lv.tag;
+    document.getElementById('back').href = '../index.html#/l/' + id + '/fiche';
+    document.getElementById('dl').href = 'pdf/' + id + '.pdf';
+    document.title = 'Résumé — ' + l.fr + ' | Zakaria Lazrak';
+    var c1 = '<p>' + esc(l.exFr) + '</p>';
+    var c2 = '<ul>' + keys.map(function (s) { return '<li>' + mk(s) + '</li>'; }).join('') + '</ul>';
+    var c3 = l.f.map(function (f, n) { var tx = X && X.tex[n] ? X.tex[n] : toTex(f[0]); return '<div class="fm"><small>' + esc(f[1]) + '</small><span class="eq">\\(' + tx + '\\)</span></div>'; }).join('');
+    document.getElementById('cols').innerHTML =
+      '<section class="box"><h2>1- L’essentiel</h2><div>' + c1 + '</div></section>' +
+      '<section class="box"><h2>2- À retenir</h2><div>' + c2 + '</div></section>' +
+      '<section class="box"><h2>3- Formules à connaître</h2><div>' + c3 + '</div></section>';
+    document.getElementById('pr').addEventListener('click', function () { window.print(); });
+  })();
+  window.MathJax = { tex: { inlineMath: [['\\(', '\\)']] }, svg: { fontCache: 'global' } };
+</script>
+<script src="../assets/mathjax/tex-svg.js" async></script>
+</body>
+</html>
