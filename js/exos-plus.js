@@ -13,7 +13,7 @@ const cfig = ({ w = 460, h = 250, x1, y0 = 0, y1, xs, ys, xl, yl, f, ext = () =>
   let g = '';
   for (let x = 0; x <= x1 + 1e-9; x += xs) g += `<line x1="${X(x)}" y1="${T}" x2="${X(x)}" y2="${B}" stroke="#9fb0c8" stroke-width=".6"/><text x="${X(x)}" y="${B + 15}" text-anchor="middle" font-size="11">${fmtx(+x.toFixed(6))}</text>`;
   for (let y = y0; y <= y1 + 1e-9; y += ys) g += `<line x1="${L}" y1="${Y(y)}" x2="${R}" y2="${Y(y)}" stroke="#9fb0c8" stroke-width=".6"/><text x="${L - 6}" y="${Y(y) + 4}" text-anchor="end" font-size="11">${fmty(+y.toFixed(6))}</text>`;
-  const pts = Array.from({ length: 121 }, (_, i) => { const x = x1 * i / 120; return X(x).toFixed(1) + ',' + Y(f(x)).toFixed(1); }).join(' ');
+  const pts = Array.from({ length: 121 }, (_, i) => { const x = x1 * i / 120; return X(x).toFixed(1) + ',' + Y(Math.max(y0, Math.min(y1, f(x)))).toFixed(1); }).join(' ');
   return SVG(w, h, g + `<line x1="${L}" y1="${B}" x2="${R}" y2="${B}" stroke="#5b6577" stroke-width="1.5"/><line x1="${L}" y1="${B}" x2="${L}" y2="${T}" stroke="#5b6577" stroke-width="1.5"/>
     <polyline points="${pts}" fill="none" stroke="#1f6fe0" stroke-width="2.6"/><text x="${R}" y="${h - 6}" text-anchor="end" font-weight="bold">${xl}</text><text x="6" y="13" font-weight="bold">${yl}</text>` + ext(X, Y));
 };

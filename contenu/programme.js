@@ -72,5 +72,7 @@ const SEULEMENT = {
 const VERIFIES = [];
 
 // Chapitres qui ont un fichier de contenu complet contenu/<niveau>/<identifiant>.js
-const FICHIERS_CONTENU = ['tc-mouvement', '2b-radioactivite'];
+const FICHIERS_CONTENU = [
+  'tc-gravitation', 'tc-actions', 'tc-mouvement', 'tc-inertie', 'tc-2forces', 'tc-3forces', 'tc-moment', 'tc-courant', 'tc-tension', 'tc-association', 'tc-passifs', 'tc-actif', 'tc-transistor', 'tc-aop', 'tcc-especes', 'tcc-extraction', 'tcc-synthese', 'tcc-atome', 'tcc-molecules', 'tcc-classification', 'tcc-mole', 'tcc-concentration', 'tcc-transformation', '2b-radioactivite',
+];
 var CONTENU = window.CONTENU || {};

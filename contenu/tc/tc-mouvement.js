@@ -33,7 +33,7 @@
           html: TX`<p><b>Vitesse moyenne</b> : \(v_m = \dfrac{d}{\Delta t}\) (d : distance parcourue en m, \(\Delta t\) : durée en s, \(v_m\) en m/s ; \(1\ \text{m/s} = 3{,}6\ \text{km/h}\)).</p>
 <p><b>Vitesse instantanée</b> à la position \(M_i\) d’un enregistrement de durée \(\tau\) entre deux points : \(v_i = \dfrac{M_{i-1}M_{i+1}}{2\tau}\).</p>
 <p><b>Vecteur vitesse</b> \(\vec v_i\) : origine \(M_i\) ; direction <b>tangente</b> à la trajectoire ; sens du mouvement ; longueur proportionnelle à \(v_i\) (on choisit une échelle).</p>`
-            + fig(520, 110, `${arrow}<path d="M20 90 Q 200 -10 500 70" fill="none" stroke="#2e75b6" stroke-width="2.5"/><circle cx="200" cy="44" r="5" fill="#14213d"/><text x="190" y="70">M<tspan baseline-shift="sub" font-size="9">i</tspan></text><line x1="200" y1="44" x2="300" y2="34" stroke="#d93a4a" stroke-width="3" marker-end="url(#mv-ar)"/><text x="306" y="30" fill="#d93a4a" font-weight="bold">v⃗ (tangent)</text>`),
+            + fig(520, 110, `${arrow}<path d="M20 90 Q 200 -10 500 70" fill="none" stroke="#2e75b6" stroke-width="2.5"/><circle cx="200" cy="44" r="5" fill="#14213d"/><text x="190" y="70">M<tspan baseline-shift="sub" font-size="9">i</tspan></text><line x1="200" y1="44" x2="300" y2="34" stroke="#d93a4a" stroke-width="3" marker-end="url(#mv-ar)"/><text x="306" y="30" fill="#d93a4a" font-weight="bold">v (tangent)</text>`),
         },
         {
           titre: '5. Nature du mouvement',
