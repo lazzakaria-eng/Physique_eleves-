@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Résumé de cours | Zakaria Lazrak</title>
 <link rel="icon" href="../assets/icon.jpg">
+<link rel="stylesheet" href="../assets/katex/katex.min.css">
 <style>
   :root { --c: #233e6e; --ink: #14213d; --mute: #5b6577; --line: #dfe6f2; }
   * { box-sizing: border-box; }
@@ -31,7 +32,7 @@
   .fm small { display: block; color: var(--mute); font-size: .8rem; margin-bottom: 3px; }
   .eq { display: inline-block; max-width: 100%; overflow-x: auto; border: 1.5px solid var(--c); border-radius: 10px; padding: 4px 12px; background: #f4f7fc; }
   .foot { display: flex; justify-content: space-between; gap: 10px; margin-top: 16px; padding-top: 8px; border-top: 2px solid var(--c); font-size: .75rem; color: var(--mute); }
-  mjx-container { font-size: 102% !important; }
+  .katex { font-size: 1.02em; }
   @media (max-width: 860px) { .cols { grid-template-columns: 1fr; } .sheet { padding: 14px; } .top img { width: 60px; height: 60px; } }
   @page { size: A4 landscape; margin: 8mm; }
   @media print {
@@ -83,7 +84,7 @@
     document.getElementById('ttl').textContent = l.fr;
     document.getElementById('lvl').textContent = lv.fr + ' · ' + dom.fr;
     document.getElementById('fl').textContent = 'Résumé de cours · Physique-Chimie · ' + lv.tag;
-    document.getElementById('back').href = '../index.html#/l/' + id + '/fiche';
+    document.getElementById('back').href = '../index.html#/chapitre/' + id;
     document.getElementById('dl').href = 'pdf/' + id + '.pdf';
     document.title = 'Résumé — ' + l.fr + ' | Zakaria Lazrak';
     var c1 = '<p>' + esc(l.exFr) + '</p>';
@@ -95,17 +96,22 @@
       '<section class="box"><h2>3- Formules à connaître</h2><div>' + c3 + '</div></section>';
     document.getElementById('pr').addEventListener('click', function () { window.print(); });
   })();
-  window.MathJax = { tex: { inlineMath: [['\\(', '\\)']] }, svg: { fontCache: 'global' },
-    startup: { pageReady: function () { return MathJax.startup.defaultPageReady().then(fit); } } };
   // réduit une formule trop large pour qu'elle tienne dans sa colonne
   function fit() {
     document.querySelectorAll('.eq').forEach(function (e) {
-      var m = e.querySelector('mjx-container'); if (!m) return;
-      for (var f = 100; e.scrollWidth > e.clientWidth + 1 && f > 55; f -= 5) m.style.setProperty('font-size', f - 5 + '%', 'important');
+      var m = e.querySelector('.katex'); if (!m) return;
+      for (var f = 100; e.scrollWidth > e.clientWidth + 1 && f > 55; f -= 5) m.style.setProperty('font-size', (f - 5) / 100 + 'em', 'important');
     });
   }
   window.addEventListener('beforeprint', fit);
 </script>
-<script src="../assets/mathjax/tex-svg.js" async></script>
+<script src="../assets/katex/katex.min.js"></script>
+<script src="../assets/katex/auto-render.min.js"></script>
+<script>
+  // formules avec KaTeX ; window.__ready = true quand tout est prêt (utilisé par tools/*.js pour les PDF)
+  renderMathInElement(document.body, { delimiters: [{ left: '\\(', right: '\\)', display: false }, { left: '\\[', right: '\\]', display: true }], throwOnError: false, strict: false });
+  fit();
+  window.__ready = true;
+</script>
 </body>
 </html>

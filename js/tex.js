@@ -1,4 +1,4 @@
-/* Outils partagés : échappement HTML, mini-notation (indices/exposants) et conversion en LaTeX pour MathJax */
+/* Outils partagés : échappement HTML, mini-notation (indices/exposants) et conversion en LaTeX pour KaTeX */
 'use strict';
 const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 // mini-notation : x_{ab} / x_a → indice ; x^{ab} / x^a → exposant
@@ -6,7 +6,7 @@ const mk = s => esc(s.replace(/^§/, ''))
   .replace(/_\{([^}]*)\}/g, '<sub>$1</sub>').replace(/\^\{([^}]*)\}/g, '<sup>$1</sup>')
   .replace(/_([A-Za-z0-9ΔℓΩ])/g, '<sub>$1</sub>').replace(/\^([A-Za-z0-9])/g, '<sup>$1</sup>');
 
-// conversion mini-notation → LaTeX (pour MathJax)
+// conversion mini-notation → LaTeX (pour KaTeX)
 function toTex(s) {
   if (s[0] === '§') return '\\mathrm{' + s.slice(1).replace(/([_^])([A-Za-z0-9+-])/g, '$1{$2}').replace(/−/g, '{-}').replace(/′/g, "'")
     .replace(/ \+ /g, ' + ').replace(/ ; /g, '\\quad;\\quad ').replace(/ \/ /g, '\\,/\\,').replace(/ \|\| /g, '\\;\\|\\;').replace(/ \| /g, '\\;|\\;').replace(/ /g, '\\ ')

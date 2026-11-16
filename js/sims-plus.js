@@ -164,3 +164,20 @@ S('relativite', [['x', ['Expérience', 'التجربة'], [['passager qui marche
     T_('Durée de la chute : ', 'مدة السقوط : ') + fmt(tf) + ' s ;  ' + T_('le train avance de ', 'يتقدم القطار بـ ') + fmt(v.vt * tf) + ' m'];
 });
 function T_(fr, ar) { return SIM_LANG === 'ar' ? ar : fr; }
+
+// Modèle des dés : chaque dé est un « noyau » ; à chaque lancer, il se « désintègre » avec la probabilité p.
+const DES_U = Array.from({ length: 400 }, (_, i) => { const x = Math.sin((i + 1) * 12.9898) * 43758.5453; return x - Math.floor(x); });
+S('des', [['N0', ['N_0 (nombre de dés)', 'N_0 (عدد النرد)'], 50, 400, 10, 200], ['p', ['p (probabilité par lancer)', 'p (الاحتمال في كل رمية)'], 0.05, 0.5, 0.01, 0.17]], 1, (c, v, t) => {
+  const N0 = v.N0, p = v.p, nmax = 20, k = Math.min(nmax, Math.floor(t / 0.7));
+  const life = i => Math.max(1, Math.ceil(Math.log(1 - DES_U[i] * 0.999999) / Math.log(1 - p)));
+  const count = n => { let s = 0; for (let i = 0; i < N0; i++) if (life(i) > n) s++; return s; };
+  const side = Math.ceil(Math.sqrt(N0)), cell = Math.min(13, 250 / side);
+  for (let i = 0; i < N0; i++) c.circ(24 + (i % side) * cell + cell / 2, 40 + Math.floor(i / side) * cell + cell / 2, cell * 0.36, life(i) > k ? c.b : c.grid);
+  c.axes(0, nmax, 0, N0, T_('lancer n', 'الرمية n'), 'N', [300, 30, 620, 310]);
+  c.curve(n => N0 * Math.pow(1 - p, n), c.a, 2.5);
+  for (let n = 0; n <= k; n++) c.pt(n, count(n), c.b, 4);
+  const th = Math.log(2) / -Math.log(1 - p);
+  return [T_('Lancer n° ', 'الرمية رقم ') + k + ' :  N = ' + count(k) + ' / ' + N0, T_('Modèle : N = N_0·(1 − p)^n = ', 'النموذج : N = N_0·(1 − p)^n = ') + fmt(N0 * Math.pow(1 - p, k)),
+    T_('« Demi-vie » : t_{1/2} = ln 2 / (−ln(1 − p)) ≈ ', '« عمر النصف » : t_{1/2} = ln 2 / (−ln(1 − p)) ≈ ') + fmt(th) + T_(' lancers', ' رمية'),
+    T_('Chaque dé est imprévisible, mais la population suit une loi exponentielle.', 'كل نرد لا يمكن توقعه، لكن المجموعة تتبع قانونا أسيا.')];
+});

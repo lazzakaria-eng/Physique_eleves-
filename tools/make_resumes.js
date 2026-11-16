@@ -19,8 +19,8 @@ const fs = require('fs');
   await page.emulateMedia({ media: 'print' });
   for (const id of ids) {
     await page.goto(`http://127.0.0.1:8765/resumes/resume.html?c=${id}`);
-    await page.waitForFunction(() => window.MathJax && MathJax.startup && MathJax.startup.promise);
-    await page.evaluate(() => MathJax.startup.promise);
+    await page.waitForFunction(() => window.__ready === true);
+    await page.evaluate(() => document.fonts.ready);
     await page.waitForTimeout(200);
     const file = path.join(out, id + '.pdf');
     await page.pdf({ path: file, printBackground: true, preferCSSPageSize: true });
