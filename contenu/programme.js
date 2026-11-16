@@ -72,5 +72,5 @@ const SEULEMENT = {
 const VERIFIES = [];
 
 // Chapitres qui ont un fichier de contenu complet contenu/<niveau>/<identifiant>.js
-const FICHIERS_CONTENU = [];
+const FICHIERS_CONTENU = ['tc-mouvement', '2b-radioactivite'];
 var CONTENU = window.CONTENU || {};

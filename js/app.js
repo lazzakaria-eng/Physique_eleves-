@@ -88,7 +88,7 @@
   function chapter(l) {
     const C = CONTENU[l.id] || {}, X = EXTRA[l.id] || {}, R = C.resume || {}, E = C.experiences || {};
     const sims = E.sims || [l.sim].concat(MORE_SIMS[l.id] || []);
-    const etapes = R.etapes || (X.cours && lang !== 'ar' ? X.cours : null);
+    const etapes = R.etapes || (!R.sections && X.cours && lang !== 'ar' ? X.cours : null);
     return {
       C, intro: R.intro || esc(t(l.exFr, l.exAr)),
       sections: R.sections || [],

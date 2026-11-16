@@ -228,7 +228,7 @@ mjx-container svg { display: inline; }
 .ptitle { margin: 0 0 12px; font-size: 1.18rem; }
 .brief { display: flex; gap: 14px; align-items: flex-start; padding: 16px; border-radius: 18px; background: linear-gradient(135deg, color-mix(in srgb, var(--k) 14%, var(--card)), var(--card)); border: 1px solid color-mix(in srgb, var(--k) 25%, var(--line)); margin-bottom: 20px; }
 .brief .bub { --k: var(--s-d); }
-.brief b { display: block; color: var(--k); font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; }
+.brief > div > b { display: block; color: var(--k); font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; }
 .brief p { margin: 2px 0 0; font-size: 1.04rem; }
 /* frise des étapes */
 .tl { list-style: none; margin: 0; padding: 0; counter-reset: tl; display: grid; gap: 12px; position: relative; }

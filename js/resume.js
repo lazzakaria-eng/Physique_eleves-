@@ -116,7 +116,7 @@ const SIM_NAMES = {
   champE: ['Particule dans un champ électrique', 'دقيقة في مجال كهربائي'], boussole: ['Aiguille aimantée et solénoïde', 'الإبرة الممغنطة والملف اللولبي'], solenoide: ['Champ d’un solénoïde', 'مجال ملف لولبي'],
   laplace: ['Rails de Laplace', 'سكتا لابلاص'], refraction: ['Réflexion et réfraction', 'الانعكاس والانكسار'], miroir: ['Miroir plan', 'المرآة المستوية'], lentille: ['Lentille convergente', 'العدسة المجمعة'],
   loupe: ['La loupe', 'المكبرة'], bilan: ['Bilan de puissance', 'الحصيلة الطاقية'], onde_pulse: ['Onde le long d’une corde', 'موجة طول حبل'], onde_per: ['Onde périodique', 'موجة دورية'],
-  diffraction: ['Diffraction par une fente', 'الحيود بشق'], decroissance: ['Décroissance radioactive', 'التناقص الإشعاعي'], liaison: ['Courbe d’Aston', 'منحنى أسطون'],
+  diffraction: ['Diffraction par une fente', 'الحيود بشق'], decroissance: ['Décroissance radioactive', 'التناقص الإشعاعي'], des: ['Modèle des dés', 'نموذج النرد'], liaison: ['Courbe d’Aston', 'منحنى أسطون'],
   rc: ['Charge et décharge', 'الشحن والتفريغ'], rl: ['Établissement et rupture du courant', 'إقامة وانقطاع التيار'], rlc: ['Oscillations libres', 'التذبذبات الحرة'], rlcf: ['Résonance d’intensité', 'رنين الشدة'],
   modulation: ['Modulation d’amplitude', 'تضمين الوسع'], newton: ['Deuxième loi de Newton', 'القانون الثاني لنيوتن'], chute: ['Chute avec frottement', 'السقوط باحتكاك'],
   projectile: ['Mouvement d’un projectile', 'حركة قذيفة'], lorentz: ['Particule dans un champ magnétique', 'دقيقة في مجال مغنطيسي'], satellite: ['Satellite en orbite', 'قمر في مداره'],
