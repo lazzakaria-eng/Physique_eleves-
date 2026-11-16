@@ -8,7 +8,7 @@ const path = require('path');
 const fs = require('fs');
 
 (async () => {
-  const src = ['exos.js', 'exos-tc.js', 'exos-1bac.js', 'exos-2bac.js', 'exos-plus.js', 'exos-tc2.js', 'exos-1bac2.js'].map(f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8')).join('\n');
+  const src = ['exos.js', 'exos-tc.js', 'exos-1bac.js', 'exos-2bac.js', 'exos-plus.js', 'exos-tc2.js', 'exos-1bac2.js', 'exos-2bac2.js'].map(f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8')).join('\n');
   const all = [...new Set([...src.matchAll(/^  '([\w-]+)': \[/gm)].map(m => m[1]))];
   const ids = process.argv.length > 2 ? process.argv.slice(2) : all;
   const out = path.join(__dirname, '..', 'series', 'pdf');
