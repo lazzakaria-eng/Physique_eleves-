@@ -39,7 +39,7 @@
   // Chargement des fichiers du site avec le numéro de version lu dans version.txt :
   // après une mise à jour, les élèves reçoivent tout de suite les nouveaux fichiers (pas d'ancienne copie en cache).
   (function () {
-    var files = ['assets/katex/katex.min.js', 'assets/katex/auto-render.min.js', 'contenu/programme.js', 'contenu/outils.js', 'js/sims.js', 'js/sims-chimie.js', 'js/sims-plus.js', 'js/data.js', 'js/data-chimie.js', 'js/extra.js', 'js/resume.js', 'js/series.js', 'js/fiches.js', 'js/stepsims.js', 'js/exos.js', 'js/exos-tc.js', 'js/exos-1bac.js', 'js/exos-2bac.js', 'js/exos-plus.js', 'js/exos-tc2.js', 'js/details.js', 'js/tex.js', 'js/app.js'];
+    var files = ['assets/katex/katex.min.js', 'assets/katex/auto-render.min.js', 'contenu/programme.js', 'contenu/outils.js', 'js/sims.js', 'js/sims-chimie.js', 'js/sims-plus.js', 'js/data.js', 'js/data-chimie.js', 'js/extra.js', 'js/resume.js', 'js/series.js', 'js/fiches.js', 'js/stepsims.js', 'js/exos.js', 'js/exos-tc.js', 'js/exos-1bac.js', 'js/exos-2bac.js', 'js/exos-plus.js', 'js/exos-tc2.js', 'js/exos-1bac2.js', 'js/details.js', 'js/tex.js', 'js/app.js'];
     var show = function () { document.body.style.visibility = 'visible'; };
     function load(v) {
       window.__V = v; var q = v ? '?v=' + encodeURIComponent(v) : '';

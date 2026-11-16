@@ -518,3 +518,5 @@ mark { background: color-mix(in srgb, var(--gold) 70%, transparent); color: inhe
 .lesson .pnav { margin-top: 18px; }
 @media (max-width: 900px) { .grid3 { grid-template-columns: 1fr; } .levels.big3 { grid-template-columns: 1fr; } .levels.big3 .lvl { min-height: 0; } }
 @media (max-width: 720px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .lvhead { padding: 18px 16px; } }
+.box, .rsec p, .brief p { overflow-x: auto; overflow-y: hidden; }
+.ctl label { min-width: 0; } .ctl select { max-width: 100%; min-width: 0; }
