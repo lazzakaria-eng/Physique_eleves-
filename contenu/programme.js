@@ -72,5 +72,9 @@ const SEULEMENT = {
 const VERIFIES = [];
 
 // Chapitres qui ont un fichier de contenu complet contenu/<niveau>/<identifiant>.js
-const FICHIERS_CONTENU = ['tc-mouvement', '2b-radioactivite'];
+const FICHIERS_CONTENU = [
+  'tc-gravitation', 'tc-actions', 'tc-mouvement', 'tc-inertie', 'tc-2forces', 'tc-3forces', 'tc-moment', 'tc-courant', 'tc-tension', 'tc-association', 'tc-passifs', 'tc-actif', 'tc-transistor', 'tc-aop', 'tcc-especes', 'tcc-extraction', 'tcc-synthese', 'tcc-atome', 'tcc-molecules', 'tcc-classification', 'tcc-mole', 'tcc-concentration', 'tcc-transformation', '2b-radioactivite',
+  '1b-rotation', '1b-travail', '1b-ec', '1b-epp', '1b-interne', '1b-thermique', '1b-champe', '1b-epe', '1b-transfert', '1b-global', '1b-champb', '1b-champb-courant', '1b-laplace', '1b-visibilite', '1b-miroir', '1b-lentille', '1b-instruments', '1bc-grandeurs', '1bc-electrolytes', '1bc-suivi', '1bc-conductimetrie', '1bc-acidobase', '1bc-redox', '1bc-dosages', '1bc-squelettes', '1bc-groupes',
+  '2b-ondes', '2b-ondes-per', '2b-lumiere', '2b-noyaux', '2b-rc', '2b-rl', '2b-rlc', '2b-rlc-force', '2b-ondes-em', '2b-modulation', '2b-newton', '2b-chute', '2b-plans', '2b-satellites', '2b-rotation', '2b-oscillants', '2b-energie', '2b-atome', '2bc-lentes', '2bc-vitesse', '2bc-deuxsens', '2bc-equilibre', '2bc-acidebase', '2bc-dosage', '2bc-spontanee', '2bc-piles', '2bc-electrolyse', '2bc-ester', '2bc-controle',
+];
 var CONTENU = window.CONTENU || {};
