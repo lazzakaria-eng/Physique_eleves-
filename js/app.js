@@ -1,31 +1,53 @@
-/* Application : routage, bibliothèque, page de leçon, montage des simulations */
+/* Application : accueil, niveaux et filières, page chapitre (4 onglets), recherche globale, simulations */
 'use strict';
 (() => {
   const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
   const store = {
     get(k, d) { try { return localStorage.getItem(k) || d; } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* stockage indisponible */ } },
   };
+  const V = window.__V || '';
   let lang = store.get('lang', 'fr');
   let theme = store.get('theme', '');
-  let level = store.get('level', 'tc');
-  let query = '';
   let stopSim = null;
-
   const t = (fr, ar) => lang === 'ar' ? ar : fr;
+
+  /* ---------- formules (KaTeX) ---------- */
+  const KX = { throwOnError: false, strict: false };
   function typeset(root) {
-    root = root || $('.panel:not([hidden])') || $('#app');
-    if (!root || !(window.MathJax && MathJax.typesetPromise)) return;
-    root.querySelectorAll('[data-tex]').forEach(el => { el.textContent = '\\(' + el.dataset.tex + '\\)'; el.removeAttribute('data-tex'); el.classList.add('mj'); });
-    MathJax.typesetPromise([root]).catch(e => console.error(e));
+    root = root || $('#app');
+    if (!root || !window.katex) return;
+    $$('[data-tex]', root).forEach(el => { try { katex.render(el.dataset.tex, el, KX); } catch (e) { console.error(e); } el.removeAttribute('data-tex'); el.classList.add('mj'); });
+    if (window.renderMathInElement) renderMathInElement(root, Object.assign({ delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }], ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option', 'input'] }, KX));
   }
-  window.__typeset = () => typeset();
 
+  /* ---------- programme : niveaux, filières, matières, unités ---------- */
+  const BY = {};
+  LEVELS.forEach(lv => lv.domains.forEach(d => d.lessons.forEach(l => { BY[l.id] = Object.assign(l, { lv, dom: d }); })));
+  const NIV = {};
   const ALL = [];
-  LEVELS.forEach(lv => lv.domains.forEach(d => d.lessons.forEach((l, i) => ALL.push(Object.assign(l, { lv, dom: d })))));
-  LEVELS.forEach(lv => { let n = 0; lv.domains.forEach(d => d.lessons.forEach(l => { l.num = ++n; })); lv.count = n; });
+  PROGRAMME.forEach(n => {
+    NIV[n.id] = n; n.list = [];
+    [['physique', 'Physique', 'الفيزياء'], ['chimie', 'Chimie', 'الكيمياء']].forEach(([m, fr, ar]) => {
+      let k = 0;
+      n[m].forEach((u, ui) => u.ch.forEach(id => {
+        const l = BY[id]; if (!l) { console.warn('Chapitre inconnu dans programme.js :', id); return; }
+        Object.assign(l, { niv: n, mat: m, matFr: fr, matAr: ar, unite: u, ui: ui + 1, num: ++k, fil: SEULEMENT[id] || null });
+        n.list.push(l); ALL.push(l);
+      }));
+    });
+  });
+  const inFil = (l, f) => !f || !l.fil || l.fil.includes(f);
+  const filOf = n => {
+    if (!n.filieres.length) return '';
+    const f = store.get('fil-' + n.id, ''); return n.filieres.some(x => x.id === f) ? f : n.filieres[0].id;
+  };
+  const filName = (n, f) => { const x = n.filieres.find(y => y.id === f); return x ? x.court : ''; };
+  const tagOf = l => l.niv.court + (l.fil ? ' · ' + l.fil.map(f => filName(l.niv, f)).join('/') : '');
+  const verified = id => VERIFIES.includes(id);
 
-  /* ---------- icônes et domaines ---------- */
+  /* ---------- icônes ---------- */
   const svg = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
   const IC = {
     meca: svg('<path d="M3 19c3-9 8-13 14-13"/><path d="M13 5h5v5"/><circle cx="5" cy="19" r="2"/>'),
@@ -45,66 +67,93 @@
     play: svg('<circle cx="12" cy="12" r="9"/><path d="m10 8 6 4-6 4z" fill="currentColor"/>'),
     arrow: svg('<path d="M5 12h14M13 6l6 6-6 6"/>'),
     file: svg('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>'),
+    flask: svg('<path d="M9 3h6M10 3v6L4.5 18.5A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-2.5L14 9V3"/><circle cx="10" cy="15" r="1" fill="currentColor"/><circle cx="14" cy="17" r="1" fill="currentColor"/>'),
+    warn: svg('<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17v.5"/>'),
+    star: svg('<path d="m12 3 2.8 5.8 6.2.9-4.5 4.4 1 6.2L12 17.4 6.5 20.3l1-6.2L3 9.7l6.2-.9z"/>'),
+    atom: svg('<circle cx="12" cy="12" r="1.6" fill="currentColor"/><ellipse cx="12" cy="12" rx="10" ry="4"/><ellipse cx="12" cy="12" rx="4" ry="10"/>'),
   };
-  const domKey = d => /Chimie/.test(d.fr) ? 'chim' : /lectricit/.test(d.fr) ? 'elec' : /Optique/.test(d.fr) ? 'opt' : /Ondes/.test(d.fr) ? 'onde' : /nucl/.test(d.fr) ? 'nuc' : 'meca';
-  const simsOf = l => [l.sim].concat(MORE_SIMS[l.id] || []);
-  const seriesOf = l => (SERIES[l.id] || []).filter(x => Array.isArray(x) && x[0] && /^(https:\/\/|series\/)[^\s"'<>]+$/.test(x[1] || ''));
+  const domKey = l => l.mat === 'chimie' ? 'chim' : /lectri|magn/.test(l.unite.titre) ? 'elec' : /Optique/.test(l.unite.titre) ? 'opt' : /Ondes/.test(l.unite.titre) ? 'onde' : /nucl/.test(l.unite.titre) ? 'nuc' : 'meca';
   const simName = n => SIM_NAMES[n] ? t(SIM_NAMES[n][0], SIM_NAMES[n][1]) : n;
 
-  /* ---------- bibliothèque ---------- */
-  function bookCard(l, showLevel) {
-    const ns = simsOf(l).length;
-    return `<a class="book k-${domKey(l.dom)}" href="#/l/${l.id}">
-      <span class="bic">${IC[domKey(l.dom)]}</span>
+  /* ---------- contenu d'un chapitre (fichier contenu/<niveau>/<id>.js s'il existe, sinon données du site) ---------- */
+  const loading = {};
+  function loadContenu(l) {
+    if (CONTENU[l.id] || !FICHIERS_CONTENU.includes(l.id)) return Promise.resolve();
+    return loading[l.id] || (loading[l.id] = new Promise(res => {
+      const s = document.createElement('script');
+      s.src = 'contenu/' + l.niv.id + '/' + l.id + '.js' + (V ? '?v=' + encodeURIComponent(V) : '');
+      s.onload = s.onerror = () => res(); document.body.appendChild(s);
+    }));
+  }
+  function chapter(l) {
+    const C = CONTENU[l.id] || {}, X = EXTRA[l.id] || {}, R = C.resume || {}, E = C.experiences || {};
+    const sims = E.sims || [l.sim].concat(MORE_SIMS[l.id] || []);
+    const etapes = R.etapes || (X.cours && lang !== 'ar' ? X.cours : null);
+    return {
+      C, intro: R.intro || esc(t(l.exFr, l.exAr)),
+      sections: R.sections || [],
+      etapes,
+      details: R.details || DETAILS[l.id] || [],
+      formules: R.formules || l.f.map((f, n) => ({ tex: X.tex && X.tex[n] ? X.tex[n] : toTex(f[0]), raw: f[0], sens: t(f[1], f[2]) })),
+      retenir: R.retenir || (RESUME[l.id] || []).map(mk),
+      retenirTl: !R.retenir && !etapes,
+      erreurs: R.erreurs || [],
+      sims,
+      protocole: E.protocole || (X.exp ? { titre: X.exp.titre, materiel: X.exp.materiel, etapes: X.exp.etapes } : null),
+      observations: E.observations || null, conclusion: E.conclusion || null,
+      exos: C.series || EXOS[l.id] || [],
+      quiz: C.quiz || X.quiz || [],
+    };
+  }
+
+  /* ---------- documents du professeur (pdf/documents.json) ---------- */
+  let DOCS = null;
+  const docsReady = fetch('pdf/documents.json' + (V ? '?v=' + encodeURIComponent(V) : ''), { cache: 'no-cache' })
+    .then(r => r.ok ? r.json() : { documents: [] }).catch(() => ({ documents: [] }))
+    .then(j => {
+      DOCS = (Array.isArray(j) ? j : j.documents || []).filter(d => d && d.titre && d.fichier && NIV[d.niveau]).map(d => {
+        const f = String(d.fichier).trim();
+        const href = /^https:\/\/[^\s"'<>]+$/.test(f) ? f : /^[^\s"'<>:\\]+$/.test(f) && !/(^|\/)\.\.(\/|$)/.test(f) ? (f.includes('/') ? 'pdf/' + f : 'pdf/' + d.niveau + '/' + f) : '';
+        return Object.assign({}, d, { href: encodeURI(href).replace(/%25/g, '%') });
+      }).filter(d => d.href);
+      return DOCS;
+    });
+  const docList = docs => docs.length ? `<div class="docs">${docs.map(d => `<a class="doc" href="${esc(d.href)}" target="_blank" rel="noopener">${IC.file}<span><b>${esc(d.titre)}</b><small>${esc([d.type, BY[d.chapitre] ? BY[d.chapitre].fr : ''].filter(Boolean).join(' · '))}</small></span>${IC.arrow}</a>`).join('')}</div>` : '';
+  function fillDocs(sel, pick, empty) {
+    docsReady.then(() => { const box = $(sel); if (!box) return; const d = DOCS.filter(pick); box.innerHTML = docList(d) || empty || ''; if (!d.length && !empty) box.hidden = true; });
+  }
+  const teacherSeries = l => (SERIES[l.id] || []).filter(x => Array.isArray(x) && x[0] && /^(https:\/\/|series\/|pdf\/)[^\s"'<>]+$/.test(x[1] || ''));
+
+  /* ---------- éléments communs ---------- */
+  function bookCard(l, extra) {
+    const k = domKey(l), ch = chapter(l);
+    return `<a class="book k-${k}" href="#/chapitre/${l.id}">
+      <span class="bic">${IC[k]}</span>
       <span class="btx">
-        <span class="num">${showLevel ? esc(l.lv.tag) + ' · ' : ''}${String(l.num).padStart(2, '0')}</span>
+        <span class="num">${extra ? esc(tagOf(l)) + ' · ' : ''}${esc(t(l.matFr, l.matAr))} · ${String(l.num).padStart(2, '0')}</span>
         <span class="ttl">${esc(t(l.fr, l.ar))}</span>
-        <span class="meta">${ns} ${ns > 1 ? t('simulations', 'محاكاة') : t('simulation', 'محاكاة')} · ${l.f.length} ${t('formules', 'علاقات')}</span>
+        ${extra ? `<span class="hit">${extra}</span>` : `<span class="meta">${ch.sims.length} sim. · ${ch.formules.length} ${t('formules', 'علاقات')} · ${ch.exos.length} ${t('exercices', 'تمارين')}</span>`}
       </span>
-      ${EXTRA[l.id] ? `<span class="full">${t('Complet', 'كامل')}</span>` : seriesOf(l).length ? `<span class="full ser">${seriesOf(l).length} ${t('séries', 'سلاسل')}</span>` : ''}
+      ${verified(l.id) ? `<span class="full">${t('Vérifié', 'مراجع')}</span>` : CONTENU[l.id] || FICHIERS_CONTENU.includes(l.id) ? `<span class="full">${t('Complet', 'كامل')}</span>` : ''}
     </a>`;
   }
+  const searchBox = (q, id) => `<label class="search">${IC.search}<input id="${id}" type="search" value="${esc(q || '')}" placeholder="${t('Chercher un chapitre, une formule, un mot-clé…', 'ابحث عن درس أو علاقة أو كلمة…')}" aria-label="${t('Recherche', 'بحث')}" autocomplete="off"></label>`;
+  const goSearch = q => { location.hash = '#/recherche/' + encodeURIComponent(q); };
+  const crumb = parts => `<p class="crumb"><a href="#/">${t('Accueil', 'الرئيسية')}</a>${parts.map(p => ' › ' + p).join('')}</p>`;
 
-  function shelves() {
-    const q = query.trim().toLowerCase();
-    if (q) {
-      const hits = ALL.filter(l => (l.fr + ' ' + l.ar + ' ' + l.exFr + ' ' + l.exAr + ' ' + l.f.map(x => x[1] + ' ' + x[2]).join(' ') + ' ' + (RESUME[l.id] || []).join(' ')).toLowerCase().includes(q));
-      return `<section class="shelf"><h2>${t('Résultats', 'نتائج البحث')} <small>${hits.length}</small></h2>
-        ${hits.length ? `<div class="books">${hits.map(l => bookCard(l, true)).join('')}</div>` : `<p class="empty">${t('Aucun chapitre trouvé.', 'لم يتم العثور على أي درس.')}</p>`}</section>`;
-    }
-    const lv = LEVELS.find(x => x.id === level) || LEVELS[0];
-    return lv.domains.map(d => `<section class="shelf k-${domKey(d)}"><h2><span class="bic">${IC[domKey(d)]}</span>${esc(t(d.fr, d.ar))} <small>${d.lessons.length}</small></h2>
-      <div class="books">${d.lessons.map(l => bookCard(l)).join('')}</div></section>`).join('');
-  }
-
-  function stat(ic, n, lb) { return `<div class="stat tilt"><span class="bub">${IC[ic]}</span><b>${n}</b><span>${lb}</span></div>`; }
-
+  /* ---------- accueil ---------- */
   function home() {
-    const nf = ALL.reduce((s, l) => s + l.f.length, 0);
-    const lvInfo = {
-      tc: [t('Les bases : mouvement, forces, électricité et chimie.', 'الأساسيات : الحركة، القوى، الكهرباء والكيمياء.'), 'meca'],
-      '1bac': [t('Énergie, champs, optique et chimie des solutions.', 'الطاقة، المجالات، البصريات وكيمياء المحاليل.'), 'elec'],
-      '2bac': [t('Ondes, nucléaire, électricité, mécanique et chimie du Bac.', 'الموجات، النووي، الكهرباء، الميكانيك وكيمياء الباك.'), 'nuc'],
-    };
-    const journey = [
-      ['book', t('Lis le cours', 'اقرأ الدرس'), t('Expliqué étape par étape', 'مشروح خطوة بخطوة')],
-      ['sheet', t('Révise la fiche', 'راجع الملخص'), t('Tout l’essentiel sur une page', 'كل الأساسيات في صفحة')],
-      ['sliders', t('Expérimente', 'جرّب'), t('Simulations interactives', 'محاكاة تفاعلية')],
-      ['check', t('Teste-toi', 'اختبر نفسك'), t('Quiz et séries corrigés', 'اختبارات وسلاسل مصححة')],
-    ];
+    const nf = ALL.reduce((s, l) => s + l.f.length, 0), ne = ALL.reduce((s, l) => s + chapter(l).exos.length, 0);
+    const lvIc = { tc: 'meca', '1bac': 'elec', '2bac': 'nuc' };
     $('#app').innerHTML = `
       <section class="hero">
         <div class="hero-in">
           <div class="hero-txt">
-            <p class="who" dir="ltr">Zakaria Lazrak — Professeur de Physique-Chimie</p>
+            <p class="who" dir="ltr">Prof. Zakaria Lazrak — Physique-Chimie</p>
             <h1>${t('La Physique-Chimie,<br><em>enfin simple.</em>', 'الفيزياء والكيمياء،<br><em>بطريقة سهلة.</em>')}</h1>
-            <p class="lead">${t('Cours expliqués pas à pas, fiches résumés, formules, simulations 3D-interactives et quiz : tout le programme du Tronc Commun au Bac.',
-      'دروس مشروحة خطوة بخطوة، ملخصات، علاقات، محاكاة تفاعلية واختبارات : المقرر كاملا من الجذع المشترك إلى الباك.')}</p>
-            <label class="search">${IC.search}<input id="q" type="search" value="${esc(query)}" placeholder="${t('Chercher un chapitre, une notion, une formule…', 'ابحث عن درس أو مفهوم أو علاقة…')}" aria-label="${t('Recherche', 'بحث')}"></label>
-            <div class="hero-cta">
-              <button class="cta" id="go" type="button">${t('Découvrir les cours', 'اكتشف الدروس')} ${IC.arrow}</button>
-              <button class="cta2" id="gof" type="button">${IC.sheet} ${t('Fiches résumés 2BAC', 'ملخصات الثانية باك')}</button>
-            </div>
+            <p class="lead">${t('Toute la bibliothèque du programme marocain (BIOF) : résumés de cours, expériences interactives, séries d’exercices corrigées et quiz, du Tronc Commun au 2ᵉ Bac.',
+      'مكتبة المقرر المغربي كاملة : ملخصات الدروس، تجارب تفاعلية، سلاسل تمارين مصححة واختبارات، من الجذع المشترك إلى الثانية باك.')}</p>
+            ${searchBox('', 'q')}
           </div>
           <div class="hero-3d" aria-hidden="true">
             <div class="atom3d"><div class="orb o1"><i></i></div><div class="orb o2"><i></i></div><div class="orb o3"><i></i></div><div class="nuc"></div></div>
@@ -115,39 +164,84 @@
       </section>
 
       <section class="stats">
-        ${stat('book', ALL.length, t('chapitres', 'درسا'))}${stat('sliders', Object.keys(SIMS).length, t('simulations', 'محاكاة'))}${stat('sheet', FICHES.length, t('fiches résumés', 'ملخصا'))}${stat('sigma', nf, t('formules', 'علاقة'))}${stat('cap', 3, t('niveaux', 'مستويات'))}
+        ${stat('book', ALL.length, t('chapitres', 'درسا'))}${stat('sliders', Object.keys(SIMS).length, t('simulations', 'محاكاة'))}${stat('file', ne, t('exercices corrigés', 'تمرينا مصححا'))}${stat('sigma', nf, t('formules', 'علاقة'))}
       </section>
 
-      <h2 class="sec" id="niveaux">${t('Choisis ton niveau', 'اختر مستواك')}</h2>
-      <nav class="levels" role="tablist">${LEVELS.map(lv => `<button class="lvl tilt lv-${lv.id}" role="tab" data-lv="${lv.id}" aria-selected="${lv.id === level}">
-        <span class="bub">${IC[lvInfo[lv.id][1]]}</span><b dir="ltr">${esc(lv.tag)}</b><span class="lvn">${esc(t(lv.fr, lv.ar))}</span>
-        <span class="lvd">${lvInfo[lv.id][0]}</span><span class="pill">${lv.count} ${t('chapitres', 'درسا')} ${IC.arrow}</span></button>`).join('')}
-        <button class="lvl tilt lv-fiche" type="button" id="gof2"><span class="bub">${IC.sheet}</span><b>${t('Fiches', 'ملخصات')}</b><span class="lvn">${t('Résumés de cours 2BAC', 'ملخصات الدروس 2 باك')}</span>
-        <span class="lvd">${t('Toutes les fiches du professeur, à réviser et télécharger.', 'جميع ملخصات الأستاذ للمراجعة والتحميل.')}</span><span class="pill">${FICHES.length} ${t('fiches', 'ملخصا')} ${IC.arrow}</span></button></nav>
+      <h2 class="sec">${t('Choisis ton niveau', 'اختر مستواك')}</h2>
+      <nav class="levels big3">${PROGRAMME.map(n => `<a class="lvl tilt lv-${n.id}" href="#/niveau/${n.id}">
+        <span class="bub big">${IC[lvIc[n.id]]}</span><b>${esc(t(n.titre, n.ar))}</b>
+        <span class="lvd">${esc(n.desc)}</span>
+        ${n.filieres.length ? `<span class="fils">${n.filieres.map(f => `<i>${esc(f.court)}</i>`).join('')}</span>` : '<span class="fils"><i>' + t('Toutes filières', 'جميع الشعب') + '</i></span>'}
+        <span class="pill">${n.list.filter(l => l.mat === 'physique').length} ${t('chap. de physique', 'دروس فيزياء')} · ${n.list.filter(l => l.mat === 'chimie').length} ${t('de chimie', 'كيمياء')} ${IC.arrow}</span></a>`).join('')}</nav>
+
 
       <h2 class="sec">${t('Comment réviser un chapitre ?', 'كيف أراجع درسا ؟')}</h2>
-      <ol class="journey">${journey.map((j, n) => `<li class="tilt"><span class="jn">${n + 1}</span><span class="bub">${IC[j[0]]}</span><b>${j[1]}</b><span>${j[2]}</span></li>`).join('')}</ol>
-
-      <div id="shelves">${shelves()}</div>
+      <ol class="journey">${[['sheet', t('Résumé du cours', 'ملخص الدرس'), t('Définitions, lois, formules', 'تعاريف، قوانين، علاقات')],
+        ['flask', t('Expériences', 'التجارب'), t('Simulations à curseurs', 'محاكاة تفاعلية')],
+        ['file', t('Séries d’exercices', 'سلاسل التمارين'), t('Du facile au type Bac', 'من السهل إلى نموذج الباك')],
+        ['check', t('Quiz', 'اختبار'), t('Corrigé automatiquement', 'تصحيح تلقائي')]].map((j, n) => `<li class="tilt"><span class="jn">${n + 1}</span><span class="bub">${IC[j[0]]}</span><b>${j[1]}</b><span>${j[2]}</span></li>`).join('')}</ol>
 
       <section class="fiches" id="fiches">
-        <h2 class="sec">${t('Fiches résumés — 2ᵉ Bac', 'ملخصات الدروس — الثانية باك')}</h2>
-        <p class="hint">${t('Clique sur une fiche pour l’ouvrir avec son chapitre, ou l’agrandir et la télécharger.', 'اضغط على ملخص لفتحه مع درسه، أو لتكبيره وتحميله.')}</p>
+        <h2 class="sec">${t('Fiches résumés du professeur — 2ᵉ Bac', 'ملخصات الأستاذ — الثانية باك')}</h2>
         <div class="fgrid">${FICHES.map((f, n) => `<button class="fcard tilt" type="button" data-f="${n}"><img src="${f.mini}" alt="" loading="lazy" width="640" height="452"><span><small>Page ${f.n}</small>${esc(f.titre)}</span></button>`).join('')}</div>
       </section>`;
-    $('#q').addEventListener('input', e => { query = e.target.value; $('#shelves').innerHTML = shelves(); });
-    $('#go').addEventListener('click', () => $('#niveaux').scrollIntoView({ behavior: 'smooth', block: 'start' }));
-    ['#gof', '#gof2'].forEach(s => $(s).addEventListener('click', () => $('#fiches').scrollIntoView({ behavior: 'smooth', block: 'start' })));
-    document.querySelectorAll('.lvl[data-lv]').forEach(b => b.addEventListener('click', () => {
-      level = b.dataset.lv; store.set('level', level); query = ''; $('#q').value = '';
-      document.querySelectorAll('.lvl[data-lv]').forEach(x => x.setAttribute('aria-selected', x === b));
-      $('#shelves').innerHTML = shelves();
-      $('#shelves').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const q = $('#q'); q.addEventListener('input', () => { if (q.value.trim()) goSearch(q.value); });
+    $$('.fcard').forEach(b => b.addEventListener('click', () => {
+      const f = FICHES[+b.dataset.f]; if (f.ch.length) location.hash = '#/chapitre/' + f.ch[0] + '/resume'; else lightbox(f);
     }));
-    document.querySelectorAll('.fcard').forEach(b => b.addEventListener('click', () => {
-      const f = FICHES[+b.dataset.f];
-      if (f.ch.length) location.hash = '#/l/' + f.ch[0] + '/fiche'; else lightbox(f);
-    }));
+  }
+  function stat(ic, n, lb) { return `<div class="stat tilt"><span class="bub">${IC[ic]}</span><b>${n}</b><span>${lb}</span></div>`; }
+
+  /* ---------- page d'un niveau ---------- */
+  function niveau(n, f) {
+    if (n.filieres.length && !n.filieres.some(x => x.id === f)) f = filOf(n);
+    if (f) store.set('fil-' + n.id, f);
+    const fx = n.filieres.find(x => x.id === f);
+    const mat = (m, fr, ar, ic) => `<section class="matiere k-${m === 'chimie' ? 'chim' : 'meca'}"><h2 class="mtitle"><span class="bub">${IC[ic]}</span>${t(fr, ar)}</h2>
+      ${n[m].map((u, i) => { const ls = u.ch.map(id => BY[id]).filter(l => l && inFil(l, f)); return ls.length ? `<div class="unite"><h3><span>${t('Unité', 'الوحدة')} ${i + 1}</span>${esc(t(u.titre, u.ar))}</h3><div class="books">${ls.map(l => bookCard(l)).join('')}</div></div>` : ''; }).join('')}</section>`;
+    $('#app').innerHTML = `<section class="lvhead lv-${n.id}">
+        ${crumb([esc(t(n.titre, n.ar))])}
+        <h1>${esc(t(n.titre, n.ar))}${fx ? ` <small>${esc(fx.titre)}</small>` : ''}</h1>
+        ${n.filieres.length ? `<nav class="filieres" aria-label="${t('Filière', 'الشعبة')}">${n.filieres.map(x => `<a href="#/niveau/${n.id}/${x.id}" aria-current="${x.id === f}"><b>${esc(x.court)}</b><span>${esc(x.titre)}</span></a>`).join('')}</nav>` : ''}
+        ${searchBox('', 'q')}
+      </section>
+      <div class="mats">${mat('physique', 'Physique', 'الفيزياء', 'atom')}${mat('chimie', 'Chimie', 'الكيمياء', 'chim')}</div>
+      <section class="card lvdocs"><h2 class="ptitle">${IC.file} ${t('Documents du professeur', 'وثائق الأستاذ')} — ${esc(t(n.titre, n.ar))}</h2><div id="lvdocs"></div></section>`;
+    $('#q').addEventListener('input', e => { if (e.target.value.trim()) goSearch(e.target.value); });
+    fillDocs('#lvdocs', d => d.niveau === n.id, `<p class="hint">${t('Les séries et devoirs du professeur apparaîtront ici.', 'ستظهر هنا سلاسل وفروض الأستاذ.')}</p>`);
+  }
+
+  /* ---------- recherche globale ---------- */
+  const norm = s => String(s).replace(/<[^>]+>/g, ' ').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const tight = s => norm(s).replace(/[\s·*×]/g, '').replace(/[−–]/g, '-');
+  function search(q) {
+    $('#app').innerHTML = `<section class="lvhead">${crumb([t('Recherche', 'بحث')])}<h1>${t('Recherche', 'بحث')}</h1>${searchBox(q, 'q2')}</section><div id="res"></div>`;
+    const inp = $('#q2'); inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length);
+    const run = () => {
+      const qs = inp.value.trim(); history.replaceState(null, '', '#/recherche/' + encodeURIComponent(qs));
+      const nq = norm(qs), tq = tight(qs);
+      // mot court (pH, RC…) : mot entier seulement
+      const has = nq.length <= 3 ? (re => x => re.test(x))(new RegExp('(^|[^a-z0-9])' + nq.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '($|[^a-z0-9])')) : x => x.includes(nq);
+      if (nq.length < 2) { $('#res').innerHTML = `<p class="empty">${t('Tape au moins 2 lettres : nom d’un chapitre, formule (ex. v = d/t), mot-clé (ex. demi-vie, pH, lentille)…', 'اكتب حرفين على الأقل : اسم درس، علاقة، أو كلمة مفتاح…')}</p>`; return; }
+      const byTitle = [], byF = [], byK = [];
+      ALL.forEach(l => {
+        const ch = chapter(l);
+        if (has(norm(l.fr + ' ' + l.ar + ' ' + l.unite.titre))) { byTitle.push(bookCard(l, esc(t(l.unite.titre, l.unite.ar)))); return; }
+        const fm = ch.formules.find(f => tight(f.raw || f.tex).includes(tq) || has(norm(f.sens)));
+        if (fm) { byF.push(bookCard(l, `<span class="eq" dir="ltr" data-tex="${esc(fm.tex)}"></span> <small>${esc(fm.sens)}</small>`)); return; }
+        const txt = [l.exFr, l.exAr].concat(RESUME[l.id] || [], ch.etapes || [], ch.retenir, ch.erreurs, ch.sections.map(s => s.titre + ' ' + s.html)).map(norm);
+        const hit = txt.find(has);
+        if (hit) { const i = Math.max(0, hit.search(new RegExp(nq.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))), a = Math.max(0, i - 50); byK.push(bookCard(l, '…' + esc(hit.slice(a, i + nq.length + 70)).replace(esc(nq), m => '<mark>' + m + '</mark>') + '…')); }
+      });
+      const block = (title, arr) => arr.length ? `<section class="shelf"><h2>${title} <small>${arr.length}</small></h2><div class="books">${arr.join('')}</div></section>` : '';
+      $('#res').innerHTML = byTitle.length + byF.length + byK.length
+        ? block(t('Chapitres', 'الدروس'), byTitle) + block(t('Formules', 'العلاقات'), byF) + block(t('Mots-clés dans le cours', 'كلمات في الدرس'), byK)
+        : `<p class="empty">${t('Aucun résultat.', 'لا توجد نتائج.')}</p>`;
+      typeset($('#res'));
+    };
+    inp.addEventListener('input', run); run();
+    // charge les contenus complets pour chercher aussi dedans
+    Promise.all(ALL.map(loadContenu)).then(() => { if ($('#q2') === inp) run(); });
   }
 
   /* ---------- fiche en grand ---------- */
@@ -163,87 +257,98 @@
     document.body.appendChild(d); document.body.classList.add('noscroll'); $('.lb-x', d).focus();
   }
 
-  /* ---------- chapitre ---------- */
+  /* ---------- page chapitre ---------- */
+  const TABS = [['resume', 'Résumé du cours', 'ملخص الدرس', 'sheet'], ['experiences', 'Expériences', 'التجارب', 'flask'], ['series', 'Séries d’exercices', 'سلاسل التمارين', 'file'], ['quiz', 'Quiz', 'اختبار', 'check']];
+  const seeExp = name => `<button class="seeexp" type="button" data-sim="${name}">${IC.play}<span>${t('Voir l’expérience', 'شاهد التجربة')} : ${esc(simName(name))}</span></button><div class="stepsim sim" hidden></div>`;
+  const levelLab = (l, d) => [, t('Facile', 'سهل'), t('Moyen', 'متوسط'), l.niv.id === '2bac' ? t('Type Bac', 'نموذج الباك') : t('Approfondissement', 'تعمق')][d];
+
   function lesson(l, tab) {
-    const i = ALL.indexOf(l), prev = ALL[i - 1], next = ALL[i + 1], X = EXTRA[l.id], k = domKey(l.dom), sims = simsOf(l), keys = RESUME[l.id] || [], ser = seriesOf(l);
-    const fic = FICHES.filter(f => f.ch.includes(l.id));
-    const steps = X && X.cours && lang !== 'ar' ? X.cours : keys.map(mk);
-    const stepSims = steps.map((s, n) => simForStep(l.id, n + 1, s, sims)), nExp = stepSims.filter(Boolean).length;
-    const tabs = [['cours', t('Cours', 'الدرس'), 'book']]
-      .concat([['fiche', t('Résumé', 'الملخص'), 'sheet']], [['form', t('Formules', 'العلاقات'), 'sigma'], ['sim', t('Simulation', 'المحاكاة'), 'sliders']],
-        X ? [['quiz', t('Quiz & exercices', 'اختبار وتمارين'), 'check']] : [], [['series', t('Séries', 'السلاسل'), 'file']]);
-    if (!tabs.some(x => x[0] === tab)) tab = 'cours';
-    const nav = (x, dir) => x ? `<a class="pn ${dir}" href="#/l/${x.id}"><small>${dir === 'prev' ? t('Chapitre précédent', 'الدرس السابق') : t('Chapitre suivant', 'الدرس التالي')} · ${esc(x.lv.tag)}</small>${esc(t(x.fr, x.ar))}</a>` : '<span></span>';
-    const nextBtn = id => { const n = tabs.findIndex(x => x[0] === id) + 1; return tabs[n] ? `<button class="nextp" type="button" data-to="${tabs[n][0]}">${t('Étape suivante', 'الخطوة التالية')} : ${tabs[n][1]} ${IC.arrow}</button>` : `<nav class="pnav">${nav(prev, 'prev')}${nav(next, 'next')}</nav>`; };
-    const P = (id, body, attrs = '') => `<section class="panel" data-p="${id}" hidden ${attrs}>${body}${nextBtn(id)}</section>`;
+    const n = l.niv; let f = filOf(n);
+    if (!inFil(l, f)) { f = l.fil[0]; store.set('fil-' + n.id, f); }
+    const list = n.list.filter(x => inFil(x, f)), i = list.indexOf(l), prev = list[i - 1], next = list[i + 1];
+    const ch = chapter(l), k = domKey(l), fic = FICHES.filter(x => x.ch.includes(l.id));
+    const stepSims = (ch.etapes || (ch.retenirTl ? ch.retenir : [])).map((s, j) => simForStep(l.id, j + 1, s, ch.sims));
+    if (!TABS.some(x => x[0] === tab)) tab = 'resume';
+    const nav = (x, dir) => x ? `<a class="pn ${dir}" href="#/chapitre/${x.id}"><small>${dir === 'prev' ? t('← Chapitre précédent', 'الدرس السابق') : t('Chapitre suivant →', 'الدرس التالي')} · ${esc(t(x.matFr, x.matAr))}</small>${esc(t(x.fr, x.ar))}</a>` : '<span></span>';
+    const timeline = (items) => `<ol class="tl" dir="ltr" lang="fr">${items.map((s, j) => `<li><span class="tln"></span><div><div class="stx">${s}</div>${stepSims[j] ? seeExp(stepSims[j]) : ''}</div></li>`).join('')}</ol>`;
+    const todo = what => `<p class="todo">${IC.warn}<span>${what} — ${t('à compléter par le professeur.', 'سيضيفه الأستاذ.')}</span></p>`;
+    const byD = [1, 2, 3].map(d => ch.exos.filter(e => e.d === d));
+    let ex = 0;
+
+    const pResume = `
+      <div class="card"><div class="brief"><span class="bub">${IC.bulb}</span><div><b>${t('L’essentiel', 'الأساسي')}</b><p>${ch.intro}</p></div></div>
+        ${ch.sections.map(s => `<section class="rsec" dir="ltr" lang="fr"><h3>${s.titre}</h3>${s.html}${s.sim && SIMS[s.sim] ? seeExp(s.sim) : ''}</section>`).join('')}
+        ${ch.etapes ? `<h2 class="ptitle">${t('Le cours pas à pas', 'الدرس خطوة بخطوة')}</h2>${timeline(ch.etapes)}` : ''}
+        ${ch.details.length ? `<h2 class="ptitle">${t('Pour bien comprendre', 'لفهم أعمق')}</h2>
+          ${ch.details.map(d => `<details class="detail"><summary>${esc(d.t)}</summary><div class="dbody" dir="ltr" lang="fr">${d.h}${d.sim && SIMS[d.sim] ? seeExp(d.sim) : ''}</div></details>`).join('')}` : ''}</div>
+      <div class="card"><h2 class="ptitle">${IC.sigma} ${t('Formules à connaître', 'العلاقات الأساسية')}</h2>
+        <div class="formulas">${ch.formules.map(x => `<div class="fm"><div class="eq" dir="ltr" data-tex="${esc(x.tex)}"></div><div class="mean">${esc(x.sens)}</div></div>`).join('')}</div></div>
+      <div class="box retenir"><h2>${IC.star} ${t('À retenir', 'يجب حفظه')}</h2>${ch.retenirTl ? timeline(ch.retenir) : `<ul dir="ltr" lang="fr">${ch.retenir.map(s => `<li>${s}</li>`).join('')}</ul>`}</div>
+      <div class="box erreurs"><h2>${IC.warn} ${t('Erreurs fréquentes', 'أخطاء شائعة')}</h2>${ch.erreurs.length ? `<ul dir="ltr" lang="fr">${ch.erreurs.map(s => `<li>${s}</li>`).join('')}</ul>` : todo(t('Liste des erreurs fréquentes', 'الأخطاء الشائعة'))}</div>
+      <div class="card"><h2 class="ptitle">${t('Résumé à imprimer', 'ملخص للطبع')}</h2>
+        <div class="pdfs"><a class="pdfb" href="resumes/pdf/${l.id}.pdf" download>${IC.sheet}<span><b>${t('Résumé PDF', 'الملخص PDF')}</b><small>${t('une page, à imprimer', 'صفحة واحدة للطبع')}</small></span></a>
+          <a class="pdfb cor" href="resumes/resume.html?c=${l.id}">${IC.book}<span><b>${t('Voir le résumé', 'شاهد الملخص')}</b><small>${t('en ligne', 'على الموقع')}</small></span></a></div>
+        ${fic.map(x => `<figure class="fiche"><button type="button" class="fopen" data-f="${FICHES.indexOf(x)}"><img src="${x.src}" alt="${esc(x.titre)}" loading="lazy" width="2400" height="1697"></button>
+          <figcaption><span>${t('Fiche du professeur', 'ملخص الأستاذ')} : ${esc(x.titre)}</span><a class="lb-btn" href="${x.src}" download>${t('Télécharger', 'تحميل')}</a></figcaption></figure>`).join('')}</div>`;
+
+    const P = ch.protocole;
+    const pExp = `
+      <div class="card"><h2 class="ptitle">${IC.sliders} ${ch.sims.length > 1 ? t('Expériences interactives', 'تجارب تفاعلية') : t('Expérience interactive', 'تجربة تفاعلية')}</h2>
+        <p class="hint">${t('Déplace les curseurs : la figure et le graphe changent en temps réel. Ou clique sur « Regarder l’expérience ».', 'غيّر المقادير : الشكل والمنحنى يتغيران مباشرة. أو اضغط على « شاهد التجربة ».')}</p>
+        ${ch.sims.length > 1 ? `<div class="simtabs" role="tablist">${ch.sims.map((s, j) => `<button type="button" role="tab" data-sim="${s}" aria-selected="${j === 0}">${esc(simName(s))}</button>`).join('')}</div>` : ''}
+        <div id="sim" class="sim" dir="ltr"></div></div>
+      <div class="grid3" dir="ltr" lang="fr">
+        <div class="box proto"><h2>${IC.flask} ${t('Protocole', 'البروتوكول')}</h2>${P ? `${P.titre ? `<p class="exp-t">${P.titre}</p>` : ''}${P.materiel ? `<p><b>Matériel :</b> ${P.materiel}</p>` : ''}<ol class="steps">${(P.etapes || []).map(e => `<li>${e}</li>`).join('')}</ol>` : todo('Protocole expérimental')}</div>
+        <div class="box obs"><h2>${IC.opt} ${t('Observations', 'الملاحظات')}</h2>${ch.observations ? ch.observations : todo('Observations')}</div>
+        <div class="box concl"><h2>${IC.check} ${t('Conclusion', 'الاستنتاج')}</h2>${ch.conclusion ? ch.conclusion : todo('Conclusion')}</div>
+      </div>`;
+
+    const ser = teacherSeries(l);
+    const pSeries = `
+      <div class="card"><h2 class="ptitle">${IC.file} ${t('Séries d’exercices', 'سلاسل التمارين')}</h2>
+        ${ch.exos.length ? `<div class="pdfs"><a class="pdfb" href="series/pdf/${l.id}.pdf" download>${IC.file}<span><b>PDF ${t('énoncés', 'التمارين')}</b><small>${ch.exos.length} ${t('exercices, à imprimer', 'تمارين للطبع')}</small></span></a>
+          <a class="pdfb cor" href="series/pdf/${l.id}-corrige.pdf" download>${IC.check}<span><b>PDF ${t('avec corrections', 'مع التصحيح')}</b><small>${t('énoncés + corrigés', 'التمارين + التصحيح')}</small></span></a>
+          <a class="pdfb alt2" href="series/serie.html?c=${l.id}">${IC.book}<span><b>${t('Version à imprimer', 'نسخة للطبع')}</b><small>${t('page dédiée', 'صفحة خاصة')}</small></span></a></div>
+          <div class="legend"><span class="tag d1">★ ${levelLab(l, 1)}</span><span class="tag d2">★★ ${levelLab(l, 2)}</span><span class="tag d3">★★★ ${levelLab(l, 3)}</span></div>` : todo(t('Série d’exercices', 'سلسلة تمارين'))}</div>
+      ${byD.map((arr, d) => arr.length ? `<section class="exlevel e${d + 1}"><h2>${'★'.repeat(d + 1)} ${levelLab(l, d + 1)} <small>${arr.length}</small></h2>
+        ${arr.map(e => `<article class="exo2" dir="ltr" lang="fr"><h3>Exercice ${++ex} — ${esc(e.t || '')}</h3><div class="q">${e.q}</div>${e.fig ? `<figure class="fig">${e.fig}</figure>` : ''}
+          <button class="showcor" type="button" aria-expanded="false">${IC.check}<span>${t('Afficher la correction', 'أظهر التصحيح')}</span></button><div class="cor" hidden>${e.s}</div></article>`).join('')}</section>` : '').join('')}
+      <div class="card"><h2 class="ptitle">${t('Séries et devoirs du professeur', 'سلاسل وفروض الأستاذ')}</h2>
+        <div id="chdocs"></div>${ser.length ? `<div class="series">${ser.map(x => `<a class="serie" href="${esc(x[1])}" target="_blank" rel="noopener">${IC.file}<span>${esc(x[0])}</span>${IC.arrow}</a>`).join('')}</div>` : ''}
+        <p class="hint" id="nodocs" hidden>${t('Le professeur ajoutera ici ses séries et devoirs (PDF).', 'سيضيف الأستاذ هنا سلاسله وفروضه (PDF).')}</p></div>`;
+
+    const pQuiz = ch.quiz.length ? `<div class="card" dir="ltr" lang="fr"><h2 class="ptitle">${IC.check} Quiz — ${ch.quiz.length} questions</h2>
+        <p class="hint">${t('Choisis une réponse : la correction s’affiche tout de suite.', 'اختر جوابا : يظهر التصحيح مباشرة.')}</p>
+        ${ch.quiz.map((q, j) => `<div class="qz" data-r="${q.r}"><p><b>${j + 1}.</b> ${q.q}</p>
+          <div class="opts">${q.o.map((o, m) => `<button type="button" data-j="${m}">${o}</button>`).join('')}</div>
+          <p class="expl" hidden>${q.e}</p></div>`).join('')}
+        <p class="score" id="score" aria-live="polite"></p><button class="nextp" id="redo" type="button" hidden>↻ ${t('Recommencer le quiz', 'أعد الاختبار')}</button></div>`
+      : `<div class="card">${todo(t('Quiz de 5 à 10 questions', 'اختبار من 5 إلى 10 أسئلة'))}<p class="hint">${t('En attendant, révise le résumé et fais la série d’exercices.', 'في انتظار ذلك، راجع الملخص وأنجز سلسلة التمارين.')}</p></div>`;
+
+    const bodies = { resume: pResume, experiences: pExp, series: pSeries, quiz: pQuiz };
     $('#app').innerHTML = `
       <article class="lesson k-${k}">
         <header class="lhead">
-          <p class="crumb"><a href="#/">${t('Accueil', 'الرئيسية')}</a> › <span dir="ltr">${esc(l.lv.tag)}</span> › ${esc(t(l.dom.fr, l.dom.ar))}</p>
-          <div class="lh-row"><span class="cube3d" aria-hidden="true"><span class="cb">${[1, 2, 3, 4, 5, 6].map(n => `<i class="f${n}">${IC[k]}</i>`).join('')}</span></span><div>
+          ${crumb([`<a href="#/niveau/${n.id}${f ? '/' + f : ''}">${esc(t(n.titre, n.ar))}${f ? ' ' + esc(filName(n, f)) : ''}</a>`, esc(t(l.matFr, l.matAr)), esc(t(l.unite.titre, l.unite.ar))])}
+          <div class="lh-row"><span class="cube3d" aria-hidden="true"><span class="cb">${[1, 2, 3, 4, 5, 6].map(m => `<i class="f${m}">${IC[k]}</i>`).join('')}</span></span><div>
+            <p class="chnum">${esc(t(l.matFr, l.matAr))} · ${t('Chapitre', 'الدرس')} ${l.num}${l.fil ? ' · ' + l.fil.map(x => filName(n, x)).join(' / ') : ''}</p>
             <h1>${esc(t(l.fr, l.ar))}</h1>
             <p class="alt" dir="${lang === 'ar' ? 'ltr' : 'rtl'}">${esc(t(l.ar, l.fr))}</p></div></div>
-          <div class="lchips"><span>${steps.length} ${t('étapes', 'خطوات')}</span>${nExp ? `<span>${nExp} ${t('expérience', 'تجربة')}${nExp > 1 && lang !== 'ar' ? 's' : ''} ${t('dans le cours', 'في الدرس')}</span>` : ''}<span>${t('Résumé PDF', 'ملخص PDF')}</span><span>${l.f.length} ${t('formules', 'علاقات')}</span><span>${sims.length} ${t('simulation', 'محاكاة')}${sims.length > 1 && lang !== 'ar' ? 's' : ''}</span>${X ? '<span>Quiz</span>' : ''}${EXOS[l.id] ? `<span>${t('Série corrigée', 'سلسلة مصححة')}</span>` : ''}</div>
+          ${verified(l.id) ? '' : `<p class="verif">${IC.warn}<span>${t('Contenu à vérifier par le professeur', 'محتوى في انتظار مراجعة الأستاذ')}</span></p>`}
         </header>
-
-        <nav class="tabs3d" role="tablist">${tabs.map(x => `<button type="button" role="tab" data-t="${x[0]}">${IC[x[2]]}<span>${x[1]}</span></button>`).join('')}</nav>
-
-        ${P('cours', `<div class="card">
-          <div class="brief"><span class="bub">${IC.bulb}</span><div><b>${t('En bref', 'باختصار')}</b><p>${esc(t(l.exFr, l.exAr))}</p></div></div>
-          ${steps.length ? `<h2 class="ptitle">${t('Le cours en', 'الدرس في')} ${steps.length} ${t('étapes', 'خطوات')}</h2>
-          <ol class="tl" dir="ltr" lang="fr">${steps.map((s, n) => `<li><span class="tln"></span><div><div class="stx">${s}</div>${stepSims[n] ? `<button class="seeexp" type="button" data-sim="${stepSims[n]}">${IC.play}<span>${t('Voir l’expérience', 'شاهد التجربة')} : ${esc(simName(stepSims[n]))}</span></button><div class="stepsim sim" hidden></div>` : ''}</div></li>`).join('')}</ol>` : ''}
-          ${(DETAILS[l.id] || []).length ? `<h2 class="ptitle">${t('Pour bien comprendre', 'لفهم أعمق')}</h2>
-          ${DETAILS[l.id].map(d => `<details class="detail" open><summary>${esc(d.t)}</summary><div class="dbody" dir="ltr" lang="fr">${d.h}
-            ${d.sim && SIMS[d.sim] ? `<button class="seeexp" type="button" data-sim="${d.sim}">${IC.play}<span>${t('Voir l’expérience', 'شاهد التجربة')} : ${esc(simName(d.sim))}</span></button><div class="stepsim sim" hidden></div>` : ''}</div></details>`).join('')}` : ''}</div>`)}
-
-        ${P('fiche', `<div class="card"><h2 class="ptitle">${t('Résumé du cours', 'ملخص الدرس')}</h2>
-          <div class="pdfs"><a class="pdfb" href="resumes/pdf/${l.id}.pdf" download>${IC.sheet}<span><b>${t('Résumé PDF', 'الملخص PDF')}</b><small>${t('une page, à imprimer', 'صفحة واحدة للطبع')}</small></span></a>
-            <a class="pdfb cor" href="resumes/resume.html?c=${l.id}">${IC.book}<span><b>${t('Voir le résumé', 'شاهد الملخص')}</b><small>${t('en ligne', 'على الموقع')}</small></span></a></div></div>
-        ${fic.length ? `<div class="card"><h2 class="ptitle">${t('Fiche résumé du professeur', 'ملخص الأستاذ')}</h2>
-          <p class="hint">${t('Toute la leçon sur une page. Touche la fiche pour l’agrandir ou la télécharger.', 'الدرس كاملا في صفحة. المس الملخص لتكبيره أو تحميله.')}</p>
-          ${fic.map((f, n) => `<figure class="fiche"><button type="button" class="fopen" data-f="${FICHES.indexOf(f)}"><img src="${f.src}" alt="${esc(f.titre)}" loading="lazy" width="2400" height="1697"></button>
-            <figcaption><span>${esc(f.titre)}</span><a class="lb-btn" href="${f.src}" download>${t('Télécharger', 'تحميل')}</a></figcaption></figure>`).join('')}</div>` : ''}`)}
-
-        ${P('form', `<div class="card"><h2 class="ptitle">${t('Formules essentielles', 'العلاقات الأساسية')}</h2>
-          <div class="formulas">${l.f.map((x, n) => `<div class="fm"><div class="eq" dir="ltr" data-tex="${esc(X && X.tex[n] ? X.tex[n] : toTex(x[0]))}">${mk(x[0])}</div><div class="mean">${esc(t(x[1], x[2]))}</div></div>`).join('')}</div></div>`)}
-
-        ${P('sim', `<div class="card"><h2 class="ptitle">${sims.length > 1 ? t('Simulations interactives', 'محاكاة تفاعلية') : t('Simulation interactive', 'محاكاة تفاعلية')}</h2>
-          <p class="hint">${t('Déplace les curseurs et observe ce qui change.', 'غيّر المقادير ولاحظ ما يتغير.')}</p>
-          ${sims.length > 1 ? `<div class="simtabs" role="tablist">${sims.map((n, j) => `<button type="button" role="tab" data-sim="${n}" aria-selected="${j === 0}">${esc(simName(n))}</button>`).join('')}</div>` : ''}
-          <div id="sim" class="sim" dir="ltr"></div></div>`)}
-
-        ${X ? P('quiz', `<div class="card" dir="ltr" lang="fr"><h2 class="ptitle">Expérience virtuelle — protocole</h2>
-          <p class="exp-t">${esc(X.exp.titre)}</p>
-          <p class="hint"><b>Matériel :</b> ${esc(X.exp.materiel)}</p>
-          <ol class="steps">${X.exp.etapes.map(e => `<li>${e}</li>`).join('')}</ol></div>
-        <div class="card" dir="ltr" lang="fr"><h2 class="ptitle">Mini-quiz</h2>
-          <p class="hint">5 questions : choisis une réponse, la correction s’affiche tout de suite.</p>
-          ${X.quiz.map((q, n) => `<div class="qz" data-r="${q.r}"><p><b>${n + 1}.</b> ${q.q}</p>
-            <div class="opts">${q.o.map((o, j) => `<button type="button" data-j="${j}">${o}</button>`).join('')}</div>
-            <p class="expl" hidden>${q.e}</p></div>`).join('')}
-          <p class="score" id="score" aria-live="polite"></p></div>
-        <div class="card" dir="ltr" lang="fr"><h2 class="ptitle">Exercices corrigés</h2>
-          ${X.exos.map((e, n) => `<div class="exo"><p><b>Exercice ${n + 1}.</b> ${e.q}</p>
-            <details><summary>Voir la correction</summary><div class="sol">${e.a}</div></details></div>`).join('')}</div>`) : ''}
-
-        ${P('series', `<div class="card"><h2 class="ptitle">${t('Séries d’exercices', 'سلاسل التمارين')}</h2>
-          ${EXOS[l.id] ? `<a class="bigserie" href="series/serie.html?c=${l.id}"><span class="bub">${IC.file}</span><span><b>${t('Série d’exercices corrigés', 'سلسلة تمارين مصححة')}</b>
-            <small>${EXOS[l.id].length} ${t('exercices, du plus facile au plus difficile', 'تمارين، من الأسهل إلى الأصعب')}</small>
-            <span class="stars"><i class="d1">★</i><i class="d2">★★</i><i class="d3">★★★</i></span></span>${IC.arrow}</a>
-          <div class="pdfs"><a class="pdfb" href="series/pdf/${l.id}.pdf" download>${IC.file}<span><b>PDF ${t('énoncé', 'التمارين')}</b><small>${t('à imprimer', 'للطبع')}</small></span></a>
-            <a class="pdfb cor" href="series/pdf/${l.id}-corrige.pdf" download>${IC.check}<span><b>PDF ${t('corrigé', 'مع التصحيح')}</b><small>${t('énoncé + corrections', 'التمارين + التصحيح')}</small></span></a></div>` : ''}
-          ${ser.length ? `<div class="series">${ser.map(x => `<a class="serie" href="${esc(x[1])}" target="_blank" rel="noopener">${IC.file}<span>${esc(x[0])}</span>${IC.arrow}</a>`).join('')}</div>`
-        : EXOS[l.id] ? '' : `<p class="noser">${IC.file}<span>${t('Les séries d’exercices de ce chapitre seront ajoutées ici par le professeur.', 'سلاسل تمارين هذا الدرس سيضيفها الأستاذ هنا.')}</span></p>`}
-          ${X ? '' : `<p class="soon">${t('Expérience virtuelle et mini-quiz : bientôt disponibles pour ce chapitre.', 'التجربة الافتراضية والاختبار القصير : قريبا لهذا الدرس.')}</p>`}</div>`)}
+        <nav class="tabs3d" role="tablist">${TABS.map(x => `<button type="button" role="tab" data-t="${x[0]}">${IC[x[3]]}<span>${t(x[1], x[2])}</span></button>`).join('')}</nav>
+        ${TABS.map(x => `<section class="panel" data-p="${x[0]}" hidden>${bodies[x[0]]}</section>`).join('')}
+        <nav class="pnav">${nav(prev, 'prev')}${nav(next, 'next')}</nav>
       </article>`;
-    level = l.lv.id; store.set('level', level);
 
-    let simOn = '';
+    fillDocs('#chdocs', d => d.chapitre === l.id, '');
+    docsReady.then(() => { const nd = $('#nodocs'); if (nd) nd.hidden = !!(DOCS.some(d => d.chapitre === l.id) || ser.length); });
+
     function closeSteps() {
-      document.querySelectorAll('.stepsim').forEach(c => { c.hidden = true; c.innerHTML = ''; });
-      document.querySelectorAll('.seeexp').forEach(b => { b.classList.remove('open'); b.lastChild.textContent = t('Voir l’expérience', 'شاهد التجربة') + ' : ' + simName(b.dataset.sim); });
+      $$('.stepsim').forEach(c => { c.hidden = true; c.innerHTML = ''; });
+      $$('.seeexp').forEach(b => { b.classList.remove('open'); b.lastChild.textContent = t('Voir l’expérience', 'شاهد التجربة') + ' : ' + simName(b.dataset.sim); });
     }
-    document.querySelectorAll('.seeexp').forEach(b => b.addEventListener('click', () => {
+    $$('.seeexp').forEach(b => b.addEventListener('click', () => {
       const box = b.nextElementSibling, open = !box.hidden;
       if (stopSim) { stopSim(); stopSim = null; }
       closeSteps();
@@ -251,34 +356,39 @@
       box.hidden = false; b.classList.add('open'); b.lastChild.textContent = t('Fermer l’expérience', 'أغلق التجربة');
       mountSim(box, b.dataset.sim);
     }));
-    function show(id, scroll) {
+    function show(id) {
       if (stopSim) { stopSim(); stopSim = null; }
       closeSteps();
-      document.querySelectorAll('.tabs3d button').forEach(b => b.setAttribute('aria-selected', b.dataset.t === id));
-      document.querySelectorAll('.panel').forEach(p => { p.hidden = p.dataset.p !== id; });
-      if (id === 'sim') { const cur = $('.simtabs [aria-selected="true"]'); simOn = cur ? cur.dataset.sim : sims[0]; mountSim($('#sim'), simOn); }
+      $$('.tabs3d button').forEach(b => b.setAttribute('aria-selected', b.dataset.t === id));
+      $$('.panel').forEach(p => { p.hidden = p.dataset.p !== id; });
+      if (id === 'experiences') { const cur = $('.simtabs [aria-selected="true"]'); mountSim($('#sim'), cur ? cur.dataset.sim : ch.sims[0]); }
       typeset($(`.panel[data-p="${id}"]`));
-      history.replaceState(null, '', '#/l/' + l.id + (id === 'cours' ? '' : '/' + id));
+      history.replaceState(null, '', '#/chapitre/' + l.id + (id === 'resume' ? '' : '/' + id));
       const b = $(`.tabs3d [data-t="${id}"]`); if (b && b.scrollIntoView) b.scrollIntoView({ block: 'nearest', inline: 'center' });
-      if (scroll) $('.tabs3d').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-    document.querySelectorAll('.tabs3d button').forEach(b => b.addEventListener('click', () => show(b.dataset.t)));
-    document.querySelectorAll('.nextp').forEach(b => b.addEventListener('click', () => show(b.dataset.to, true)));
-    document.querySelectorAll('.simtabs button').forEach(b => b.addEventListener('click', () => {
-      document.querySelectorAll('.simtabs button').forEach(x => x.setAttribute('aria-selected', x === b));
+    $$('.tabs3d button').forEach(b => b.addEventListener('click', () => show(b.dataset.t)));
+    $$('.simtabs button').forEach(b => b.addEventListener('click', () => {
+      $$('.simtabs button').forEach(x => x.setAttribute('aria-selected', x === b));
       if (stopSim) stopSim();
       mountSim($('#sim'), b.dataset.sim);
     }));
-    document.querySelectorAll('.fopen').forEach(b => b.addEventListener('click', () => lightbox(FICHES[+b.dataset.f])));
-    let good = 0, done = 0;
-    document.querySelectorAll('.qz').forEach(qz => qz.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    $$('.fopen').forEach(b => b.addEventListener('click', () => lightbox(FICHES[+b.dataset.f])));
+    $$('.showcor').forEach(b => b.addEventListener('click', () => {
+      const c = b.nextElementSibling, open = c.hidden; c.hidden = !open;
+      b.setAttribute('aria-expanded', open); b.lastChild.textContent = open ? t('Masquer la correction', 'أخف التصحيح') : t('Afficher la correction', 'أظهر التصحيح');
+      if (open) typeset(c);
+    }));
+    let good = 0, done = 0; const nq = ch.quiz.length;
+    $$('.qz').forEach(qz => $$('button', qz).forEach(b => b.addEventListener('click', () => {
       if (qz.dataset.done) return; qz.dataset.done = 1; done++;
       const ok = b.dataset.j === qz.dataset.r; if (ok) good++;
-      b.classList.add(ok ? 'ok' : 'ko'); qz.querySelector(`button[data-j="${qz.dataset.r}"]`).classList.add('ok');
-      qz.querySelectorAll('button').forEach(x => { x.disabled = true; });
-      qz.querySelector('.expl').hidden = false;
-      $('#score').textContent = 'Score : ' + good + ' / ' + done + (done === 5 ? (good === 5 ? ' — Excellent !' : good >= 3 ? ' — Bien, revois les questions manquées.' : ' — Relis le cours puis réessaie.') : '');
+      b.classList.add(ok ? 'ok' : 'ko'); $(`button[data-j="${qz.dataset.r}"]`, qz).classList.add('ok');
+      $$('button', qz).forEach(x => { x.disabled = true; });
+      $('.expl', qz).hidden = false;
+      $('#score').textContent = 'Score : ' + good + ' / ' + done + (done === nq ? (good === nq ? ' — Excellent !' : good >= nq / 2 ? ' — Bien, revois les questions manquées.' : ' — Relis le résumé du cours puis réessaie.') : '');
+      if (done === nq) $('#redo').hidden = false;
     })));
+    const redo = $('#redo'); if (redo) redo.addEventListener('click', () => { lesson(l, 'quiz'); });
     show(tab);
   }
 
@@ -318,7 +428,6 @@
       if (on) { autoT0 = performance.now(); lastIdx = -1; if (!sim.anim) frame(); }
       else if (lastIdx >= 0) { setVal(rng[lastIdx], rng[lastIdx][5]); lastIdx = -1; if (!sim.anim) frame(); }
     }
-
     function colors() {
       const cs = getComputedStyle(document.documentElement), g = k => cs.getPropertyValue(k).trim();
       return { ink: g('--ink'), mute: g('--mute'), grid: g('--grid'), bg: g('--card'), a: g('--s-a'), b: g('--s-b'), c: g('--s-c'), d: g('--s-d'), e: g('--s-e') };
@@ -358,6 +467,8 @@
   }
 
   /* ---------- routage ---------- */
+  const OLD_TABS = { cours: 'resume', fiche: 'resume', form: 'resume', sim: 'experiences', quiz: 'quiz', series: 'series' };
+  let seq = 0;
   function route() {
     if (stopSim) { stopSim(); stopSim = null; }
     document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
@@ -367,12 +478,26 @@
     $('#theme').textContent = dark ? '☀' : '☾';
     $('#theme').setAttribute('aria-label', dark ? t('Mode clair', 'الوضع الفاتح') : t('Mode sombre', 'الوضع الداكن'));
     $('#insta').href = INSTAGRAM_URL; $('#insta-top').href = INSTAGRAM_URL;
-    $('#foot').textContent = t('Zakaria Lazrak — Professeur de Physique-Chimie · Programme marocain (BIOF) : Tronc Commun, 1ʳᵉ Bac, 2ᵉ Bac', 'Zakaria Lazrak — أستاذ الفيزياء والكيمياء · المقرر المغربي : الجذع المشترك، الأولى باك، الثانية باك');
-    if (window.MathJax && MathJax.typesetClear) MathJax.typesetClear();
-    const m = location.hash.match(/^#\/l\/([\w-]+)(?:\/(\w+))?/), l = m && ALL.find(x => x.id === m[1]);
-    if (l) { lesson(l, m[2]); document.title = t(l.fr, l.ar) + ' — ' + t('Bibliothèque de Physique-Chimie', 'مكتبة الفيزياء والكيمياء'); window.scrollTo(0, 0); }
-    else { home(); document.title = t('Bibliothèque de Physique-Chimie | Zakaria Lazrak', 'مكتبة الفيزياء والكيمياء | Zakaria Lazrak'); }
+    $('#searchbtn').setAttribute('aria-label', t('Recherche', 'بحث'));
+    $('#foot').textContent = t('Prof. Zakaria Lazrak — Professeur de Physique-Chimie · Programme marocain (BIOF)', 'الأستاذ زكرياء لزرق — أستاذ الفيزياء والكيمياء · المقرر المغربي');
+    const h = decodeURIComponent(location.hash);
+    const old = h.match(/^#\/l\/([\w-]+)(?:\/(\w+))?/);
+    if (old) { location.replace('#/chapitre/' + old[1] + (old[2] && OLD_TABS[old[2]] && OLD_TABS[old[2]] !== 'resume' ? '/' + OLD_TABS[old[2]] : '')); return; }
+    const site = t('Bibliothèque de Physique-Chimie', 'مكتبة الفيزياء والكيمياء');
+    let m;
+    const my = ++seq;
+    window.scrollTo(0, 0);
+    if ((m = h.match(/^#\/chapitre\/([\w-]+)(?:\/(\w+))?/)) && BY[m[1]] && BY[m[1]].niv) {
+      const l = BY[m[1]];
+      $('#app').innerHTML = '<p class="empty">…</p>';
+      loadContenu(l).then(() => { if (my === seq) { lesson(l, m[2]); document.title = t(l.fr, l.ar) + ' — ' + site; } });
+    } else if ((m = h.match(/^#\/niveau\/([\w]+)(?:\/(\w+))?/)) && NIV[m[1]]) {
+      niveau(NIV[m[1]], m[2]); document.title = t(NIV[m[1]].titre, NIV[m[1]].ar) + ' — ' + site;
+    } else if ((m = h.match(/^#\/recherche\/?(.*)$/))) {
+      search(m[1] || ''); document.title = t('Recherche', 'بحث') + ' — ' + site;
+    } else { home(); document.title = site + ' | Prof. Zakaria Lazrak'; }
   }
+  window.__typeset = () => typeset();
   $('#lang').addEventListener('click', () => { lang = lang === 'ar' ? 'fr' : 'ar'; store.set('lang', lang); route(); });
   $('#theme').addEventListener('click', () => {
     const dark = theme ? theme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;

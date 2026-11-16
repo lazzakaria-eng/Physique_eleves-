@@ -21,8 +21,8 @@ const fs = require('fs');
   for (const id of ids) {
     for (const cor of [false, true]) {
       await page.goto(`http://127.0.0.1:8765/series/serie.html?c=${id}&pdf=1${cor ? '&cor=1' : ''}`);
-      await page.waitForFunction(() => window.MathJax && MathJax.startup && MathJax.startup.promise).catch(() => {});
-      await page.evaluate(() => MathJax.startup.promise);
+      await page.waitForFunction(() => window.__ready === true);
+      await page.evaluate(() => document.fonts.ready);
       await page.waitForTimeout(300);
       const file = path.join(out, id + (cor ? '-corrige' : '') + '.pdf');
       await page.pdf({ path: file, format: 'A4', printBackground: true, displayHeaderFooter: true, headerTemplate: '<span></span>', footerTemplate: foot,

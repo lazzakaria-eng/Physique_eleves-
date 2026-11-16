@@ -1,69 +1,42 @@
-# Bibliothèque de Physique-Chimie — مكتبة الفيزياء والكيمياء
+# Bibliothèque de Physique-Chimie — Prof. Zakaria Lazrak
 
-Site de référence pour les élèves (Zakaria Lazrak — Physique & Chimie) : **79 chapitres** de physique et de chimie (50 + 29)
-pour le **Tronc Commun**, la **1ʳᵉ Bac Sciences Mathématiques** et la **2ᵉ Bac Sciences Physiques**.
+Site statique (HTML / CSS / JavaScript, compatible GitHub Pages) pour les élèves : tout le programme marocain
+(BIOF) de physique-chimie, du **Tronc Commun** au **2ᵉ Bac**.
 
-Chaque chapitre contient :
+## Organisation
 
-1. un résumé du cours : une explication courte et les points « à retenir » ;
-2. les formules essentielles (MathJax) ;
-3. une ou plusieurs simulations interactives (canvas JavaScript, avec curseurs) ;
-4. une expérience virtuelle avec un protocole court ;
-5. un mini-quiz de 5 questions corrigées (et des exercices corrigés).
+- **Accueil** : 3 grandes cartes → Tronc Commun, 1ʳᵉ Bac (SX / SM), 2ᵉ Bac (PC / SVT / SM).
+- **Page d'un niveau** : choix de la filière, puis **Physique** et **Chimie** séparées, en unités, chapitres dans l'ordre officiel.
+- **Page d'un chapitre** (même modèle partout), 4 onglets :
+  1. **Résumé du cours** — l'essentiel, cours pas à pas, formules (KaTeX), encadrés « À retenir » et « Erreurs fréquentes », résumé PDF, fiches du professeur ;
+  2. **Expériences** — simulations interactives (curseurs, graphe en temps réel), protocole, observations, conclusion ;
+  3. **Séries d'exercices** — classées Facile / Moyen / Type Bac (ou Approfondissement), correction derrière « Afficher la correction », PDF ;
+  4. **Quiz** — QCM corrigé automatiquement ;
+  et les boutons « Chapitre précédent / suivant ».
+- **Recherche globale** (loupe en haut) : chapitre, formule, mot-clé.
+- Mode clair / sombre, interface FR / عربي, adapté au téléphone.
+- Les chapitres non encore vérifiés affichent « Contenu à vérifier par le professeur ».
 
-Les parties 4 et 5 sont rédigées pour deux chapitres pour l'instant : **Le mouvement** (TC) et
-**Décroissance radioactive** (2ᵉ Bac). Pour en ajouter, compléter `js/extra.js`.
+## Ajouter un PDF ou un chapitre
 
-Interface en français (arabe disponible), mode clair / sombre, adaptée au téléphone.
+Voir **`contenu/LISEZMOI.md`** (pas à pas). En bref :
+- PDF : déposer le fichier dans `pdf/tc`, `pdf/1bac` ou `pdf/2bac` et ajouter une ligne dans `pdf/documents.json` ;
+- chapitre : une ligne dans `js/data.js` (ou `js/data-chimie.js`) + son identifiant dans `contenu/programme.js`.
 
-## Séries d'exercices corrigés (rédigées)
-
-`js/exos.js`, `js/exos-tc.js`, `js/exos-1bac.js` et `js/exos-2bac.js` contiennent les séries (une par chapitre, 79 au total) d'exercices corrigés (du plus facile au plus difficile) ; chacune s'ouvre dans
-`series/serie.html?c=<id du chapitre>`, avec le logo du professeur, et s'imprime en PDF (énoncé seul ou avec corrections).
-Le lien apparaît automatiquement dans l'onglet « Séries » du chapitre.
-Les PDF (énoncé et corrigé) sont dans `series/pdf/`, les résumés PDF dans `resumes/pdf/` (`node tools/make_resumes.js`). Après avoir modifié `js/exos.js`, les régénérer :
-lancer `python3 -m http.server 8765` dans le dossier du site, puis `node tools/make_pdfs.js` (nécessite Playwright).
-
-## Ajouter une série d'exercices
-
-Chaque chapitre a une section « Séries d'exercices ». Pour y ajouter une série :
-
-1. déposer le PDF dans le dossier `series/` (ou utiliser un lien Google Drive) ;
-2. ouvrir `js/series.js`, trouver le chapitre et ajouter une ligne entre ses crochets :
-
-```js
-'tc-mouvement': [
-  ['Série 1 — Le mouvement', 'series/tc-mouvement-serie1.pdf'],
-],
-```
-
-## Réglages
-
-- **Instagram** : le lien du bouton est dans `js/extra.js` (`INSTAGRAM_URL`) et dans `index.html`.
-
-## Publication avec GitHub Pages
-
-Site statique, sans framework ni étape de build.
-
-1. Fusionner cette branche dans `main`.
-2. Sur GitHub : **Settings → Pages → Build and deployment → Deploy from a branch**,
-   choisir la branche `main` et le dossier `/ (root)`, puis **Save**.
-3. Le site est publié à l'adresse `https://<utilisateur>.github.io/Physique_eleves-/`.
-
-Le fichier `.nojekyll` désactive Jekyll ; tous les chemins sont relatifs.
-
-## Mises à jour
-
-Après chaque modification du site, changer le texte de `version.txt` (par exemple la date du jour).
-Les navigateurs des élèves chargent alors tout de suite les nouveaux fichiers au lieu d'une ancienne copie.
+Après chaque modification, changer le texte de `version.txt` (par ex. la date) : les élèves reçoivent tout de suite la nouvelle version.
 
 ## Structure
 
-- `index.html`, `css/style.css` — page et styles
-- `version.txt` — numéro de version du site (à changer à chaque mise à jour)
-- `js/data.js`, `js/data-chimie.js` — chapitres de physique et de chimie (titres, explications, relations)
-- `js/extra.js` — lien Instagram, formules LaTeX, expériences, quiz et exercices corrigés
-- `js/resume.js` — points « à retenir », simulations supplémentaires par chapitre, noms des simulations
-- `js/sims.js`, `js/sims-chimie.js` — simulations (paramètres + dessin sur canvas)
-- `js/app.js` — navigation, recherche, affichage
-- `assets/` — logo, MathJax (copie locale, licence Apache 2.0)
+- `index.html`, `css/style.css`, `version.txt`
+- `contenu/programme.js` — ordre officiel, filières, chapitres vérifiés ; `contenu/<niveau>/<id>.js` — contenus complets
+- `pdf/` — documents du professeur (`documents.json` + dossiers par niveau)
+- `js/data.js`, `js/data-chimie.js` — chapitres (titres, explications, formules) ; `js/resume.js` — points à retenir
+- `js/extra.js` (lien Instagram, quiz), `js/details.js`, `js/exos*.js` (séries rédigées), `js/series.js` (liens de séries)
+- `js/sims*.js` — simulations ; `js/app.js` — navigation, onglets, recherche
+- `series/serie.html` + `series/pdf/`, `resumes/resume.html` + `resumes/pdf/` — pages imprimables et PDF
+- `tools/make_pdfs.js`, `tools/make_resumes.js` — régénèrent les PDF (`python3 -m http.server 8765`, puis `node tools/…`, Playwright)
+- `assets/` — logo, fiches, KaTeX (copie locale, licence MIT)
+
+## Publication
+
+GitHub : **Settings → Pages → Deploy from a branch → `main` / `(root)`**. Le fichier `.nojekyll` désactive Jekyll.

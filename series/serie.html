@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Série d'exercices | Zakaria Lazrak</title>
 <link rel="icon" href="../assets/icon.jpg">
+<link rel="stylesheet" href="../assets/katex/katex.min.css">
 <style>
   :root { --ink: #0d1424; --mute: #5b6577; --line: #dfe6f2; --bg: #f3f6fc; --card: #fff; --brand: #1f6fe0; --e1: #12946a; --e2: #d98200; --e3: #d93a4a; }
   * { box-sizing: border-box; }
@@ -33,7 +34,7 @@
   summary { cursor: pointer; font-weight: 700; color: var(--brand); width: fit-content; }
   .s { margin-top: 10px; padding: 12px 14px; border-radius: 12px; background: #eaf7f1; overflow-x: auto; }
   footer { margin-top: 26px; text-align: center; font-size: .82rem; color: var(--mute); }
-  mjx-container { font-size: 105%; }
+  .katex { font-size: 1.05em; }
   @media print {
     body { background: #fff; }
     .bar, summary { display: none; }
@@ -65,10 +66,11 @@
     </div>
   </header>
   <div class="legend">Exercices classés du plus facile au plus difficile :
-    <span class="tag d1">★ Facile</span><span class="tag d2">★★ Moyen</span><span class="tag d3">★★★ Difficile</span></div>
+    <span class="tag d1">★ Facile</span><span class="tag d2">★★ Moyen</span><span class="tag d3" id="lab3">★★★ Approfondissement</span></div>
   <main id="list"></main>
   <footer>© Zakaria Lazrak — Professeur de Physique-Chimie · instagram.com/zakarialazrak</footer>
 </div>
+<script src="../contenu/programme.js"></script>
 <script src="../js/data.js"></script>
 <script src="../js/data-chimie.js"></script>
 <script src="../js/exos.js"></script>
@@ -82,20 +84,21 @@
     var lesson = null, level = null;
     LEVELS.forEach(function (lv) { lv.domains.forEach(function (d) { d.lessons.forEach(function (l) { if (l.id === id) { lesson = l; level = lv; } }); }); });
     var list = EXOS[id] || [];
-    var lab = ['', '★ Facile', '★★ Moyen', '★★★ Difficile'], col = ['', 'var(--e1)', 'var(--e2)', 'var(--e3)'];
+    var lab = ['', '★ Facile', '★★ Moyen', id.indexOf('2b') === 0 ? '★★★ Type Bac' : '★★★ Approfondissement'], col = ['', 'var(--e1)', 'var(--e2)', 'var(--e3)'];
     var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
     if (lesson) {
       document.getElementById('ttl').textContent = 'Série d’exercices — ' + lesson.fr;
       document.getElementById('lvl').textContent = level.fr + ' · ' + list.length + ' exercices corrigés';
-      document.getElementById('back').href = '../index.html#/l/' + id + '/series';
+      document.getElementById('back').href = '../index.html#/chapitre/' + id + '/series';
       document.getElementById('d1').href = 'pdf/' + id + '.pdf';
       document.getElementById('d2').href = 'pdf/' + id + '-corrige.pdf';
       document.title = 'Série — ' + lesson.fr + ' | Zakaria Lazrak';
     }
+    if (id.indexOf('2b') === 0) document.getElementById('lab3').textContent = '★★★ Type Bac';
     var sorted = list.slice().sort(function (a, b) { return a.d - b.d; });
     document.getElementById('list').innerHTML = sorted.length ? sorted.map(function (e, n) {
       return '<section class="exo" style="--c:' + col[e.d] + '"><h2>Exercice ' + (n + 1) + ' — ' + esc(e.t) + ' <span class="tag d' + e.d + '">' + lab[e.d] + '</span></h2>' +
-        '<div class="q">' + e.q + '</div>' + (e.fig ? '<figure class="fig">' + e.fig + '</figure>' : '') + '<details><summary>Voir la correction</summary><div class="s">' + e.s + '</div></details></section>';
+        '<div class="q">' + e.q + '</div>' + (e.fig ? '<figure class="fig">' + e.fig + '</figure>' : '') + '<details><summary>Afficher la correction</summary><div class="s">' + e.s + '</div></details></section>';
     }).join('') : '<p>Aucune série pour ce chapitre pour l’instant.</p>';
     var open = false;
     document.getElementById('all').addEventListener('click', function () {
@@ -107,8 +110,14 @@
     if (/[?&]cor=1/.test(location.search)) { open = true; document.body.classList.add('avec'); document.querySelectorAll('details').forEach(function (d) { d.open = true; }); }
     if (/[?&]pdf=1/.test(location.search)) document.body.classList.add('pdf');
   })();
-  window.MathJax = { tex: { inlineMath: [['\\(', '\\)']] }, svg: { fontCache: 'global' } };
 </script>
-<script src="../assets/mathjax/tex-svg.js" async></script>
+<script src="../assets/katex/katex.min.js"></script>
+<script src="../assets/katex/auto-render.min.js"></script>
+<script>
+  // formules avec KaTeX ; window.__ready = true quand tout est prêt (utilisé par tools/*.js pour les PDF)
+  renderMathInElement(document.body, { delimiters: [{ left: '\\(', right: '\\)', display: false }, { left: '\\[', right: '\\]', display: true }], throwOnError: false, strict: false });
+  
+  window.__ready = true;
+</script>
 </body>
 </html>
