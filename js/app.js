@@ -387,7 +387,7 @@
     $$('.xpsim').forEach(b => b.addEventListener('click', () => {
       const tb = $(`.simtabs [data-sim="${b.dataset.go}"]`);
       if (tb) tb.click(); else { if (stopSim) stopSim(); mountSim($('#sim'), b.dataset.go); }
-      $('#sim').closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const c = $('#sim').closest('.card'); window.scrollTo({ top: c.getBoundingClientRect().top + scrollY - 130, behavior: 'smooth' });
     }));
     $$('.xpnav a').forEach(a => a.addEventListener('click', ev => { ev.preventDefault(); const s = document.getElementById('xp-' + a.dataset.xp); if (s) s.scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
     $$('.fopen').forEach(b => b.addEventListener('click', () => lightbox(FICHES[+b.dataset.f])));

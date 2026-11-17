@@ -525,7 +525,7 @@ mark { background: color-mix(in srgb, var(--gold) 70%, transparent); color: inhe
 .xpnav ol { margin: 0; padding-inline-start: 22px; columns: 2; column-gap: 28px; }
 .xpnav li { margin: 4px 0; break-inside: avoid; }
 .xpnav a { color: inherit; text-decoration: none; border-bottom: 1px dashed currentColor; }
-.xp { margin: 22px 0 8px; scroll-margin-top: 80px; }
+.xp { margin: 22px 0 8px; scroll-margin-top: 130px; }
 .xph { display: flex; align-items: center; gap: 10px; font-size: 1.2rem; margin: 0 0 8px; }
 .xpn { flex: none; display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #1f6fe0; color: #fff; font-size: .95rem; }
 .xpbut { margin: 0 0 10px; }

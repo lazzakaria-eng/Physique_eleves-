@@ -42,6 +42,23 @@
    modèle) et ajoutez l'identifiant dans `FICHIERS_CONTENU`.
 4. Changez la date dans `version.txt` pour que les élèves reçoivent tout de suite la nouvelle version.
 
+## Ajouter une expérience à un chapitre
+
+Les expériences de l’onglet « Expériences » sont dans `contenu/exp-tc.js`, `contenu/exp-1bac.js` et `contenu/exp-2bac.js`.
+L’expérience n° 1 de chaque chapitre est le protocole du fichier `contenu/<niveau>/<id>.js` ; les suivantes sont dans ces fichiers.
+Pour en ajouter une, copiez un bloc `{ t: …, but: …, mat: …, e: […], obs: […], cc: …, sim: … },` dans la liste du chapitre :
+
+```js
+{ t: 'Titre de l’expérience', but: 'Ce que l’on veut montrer.',
+  mat: 'liste du matériel.',
+  e: ['Étape 1.', 'Étape 2.'],
+  obs: ['Observation 1.', 'Observation 2.'],
+  cc: 'Conclusion.',
+  sim: 'nom de la simulation (facultatif)' },
+```
+
+Écrivez les apostrophes avec ’ (et non ') à l’intérieur des textes. Puis changez `version.txt`.
+
 ## Format d'un fichier de contenu complet
 
 ```js
