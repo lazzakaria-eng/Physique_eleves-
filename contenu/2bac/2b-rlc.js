@@ -30,7 +30,7 @@ CONTENU['2b-rlc'] = {
     ],
   },
   experiences: {
-    sims: ['rlc'],
+    sims: ['rlc', 'rlc_entretien'],
     protocole: { titre: 'Décharge d’un condensateur dans une bobine', materiel: 'C = 1 µF chargé sous 6 V, bobine L = 0,1 H, résistance variable, interface.',
       etapes: [TX`Enregistrer \(u_C(t)\) avec R = 0 (résistance de la bobine seule).`, 'Mesurer la pseudo-période.', 'Augmenter R et observer.', TX`Comparer T à \(2\pi\sqrt{LC}\).`] },
     observations: TX`<ul><li>Oscillations amorties de pseudo-période ≈ 2 ms.</li><li>Plus R est grande, plus l’amortissement est rapide ; au-delà d’une valeur, plus d’oscillation.</li></ul>`,

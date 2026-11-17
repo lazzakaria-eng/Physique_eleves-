@@ -31,7 +31,7 @@ CONTENU['2b-rl'] = {
     ],
   },
   experiences: {
-    sims: ['rl'],
+    sims: ['rl', 'rl_retard'],
     protocole: { titre: 'Établissement du courant dans un dipôle RL', materiel: 'bobine (L ≈ 0,1 H, r ≈ 10 Ω), R = 100 Ω, générateur 6 V, interface (mesure de u_R).',
       etapes: [TX`Enregistrer \(u_R(t)\), image de \(i = u_R/R\), à la fermeture du circuit.`, 'Déterminer τ (tangente ou 63 % de I₀).', TX`Comparer avec \(L/(R + r)\).`, 'Recommencer avec un noyau de fer dans la bobine (L augmente).'] },
     observations: TX`<ul><li>Le courant s’établit progressivement ; τ ≈ 0,9 ms.</li><li>Avec le noyau de fer, l’établissement est plus lent.</li></ul>`,
