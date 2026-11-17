@@ -33,7 +33,7 @@ CONTENU['2b-noyaux'] = {
     ],
   },
   experiences: {
-    sims: ['liaison'],
+    sims: ['liaison', 'fission', 'fusion'],
     protocole: { titre: 'Exploiter la courbe d’Aston', materiel: 'simulation « courbe d’Aston », tableau des énergies de liaison.',
       etapes: ['Repérer le noyau le plus stable.', 'Comparer E_ℓ/A pour ²H, ⁴He, ⁵⁶Fe, ²³⁵U.', 'Prévoir si la fusion de deux noyaux de ²H, ou la fission de ²³⁵U, libère de l’énergie.'] },
     observations: TX`<ul><li>\(E_\ell/A\) est maximale (≈ 8,8 MeV) vers le fer.</li><li>⁴He (7,1 MeV) est beaucoup plus stable que ²H (1,1 MeV) ; ²³⁵U (7,6 MeV) est moins stable que les noyaux moyens.</li></ul>`,
