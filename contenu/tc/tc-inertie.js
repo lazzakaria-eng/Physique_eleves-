@@ -34,11 +34,11 @@ CONTENU['tc-inertie'] = {
     ],
   },
   experiences: {
-    sims: ['inertie', 'newton'],
-    protocole: { titre: 'Enregistrer le mouvement d’un autoporteur pseudo-isolé', materiel: 'table à coussin d’air horizontale, autoporteur portant deux éclateurs (au centre et au bord), feuille d’enregistrement.',
-      etapes: ['Régler la table bien horizontale.', 'Lancer l’autoporteur en le faisant tourner sur lui-même.', 'Observer les deux enregistrements : celui du centre et celui du bord.', 'Dans la simulation « inertie », mettre le frottement à zéro puis l’augmenter.'] },
-    observations: TX`<ul><li>Les points du centre sont alignés et équidistants ; ceux du bord forment une courbe.</li><li>Sans frottement, le mobile garde sa vitesse ; avec frottement, il ralentit puis s’arrête.</li></ul>`,
-    conclusion: TX`<p>Pour un solide pseudo-isolé, seul le centre d’inertie a un mouvement rectiligne uniforme : c’est le principe d’inertie. Un ralentissement prouve l’existence d’une force non compensée (le frottement).</p>`,
+    sims: ['autoporteur', 'inertie', 'newton'],
+    protocole: { titre: 'Enregistrer le mouvement d’un autoporteur pseudo-isolé', materiel: 'table à coussin d’air réglée horizontale (niveau à bulle), autoporteur avec éclateur central, soufflerie, générateur d’impulsions (τ = 40 ms), feuille d’enregistrement, règle.',
+      etapes: ['Régler l’horizontalité de la table avec le niveau à bulle (vis de réglage des pieds).', 'Mettre la soufflerie en marche : l’autoporteur flotte sur un coussin d’air.', 'Lancer l’autoporteur sans le faire tourner, puis déclencher l’enregistrement : l’éclateur marque la position G toutes les τ = 40 ms.', TX`Mesurer les distances \(G_0G_1,\ G_1G_2,\ \dots\) et calculer les vitesses \(v_i = \dfrac{G_{i-1}G_{i+1}}{2\tau}\).`, 'Dans la simulation « Autoporteur pseudo-isolé » : choisir « soufflerie en marche, table horizontale » et observer les points.'] },
+    observations: TX`<ul><li>Les points \(G_0, G_1, G_2, \dots\) sont <b>alignés</b> : la trajectoire de G est une droite.</li><li>Les distances \(G_iG_{i+1}\) sont <b>égales</b> : la vitesse de G est constante.</li><li>L’autoporteur est soumis à son poids \(\vec P\) et à la réaction \(\vec R\) du coussin d’air (frottements négligeables) : \(\vec P + \vec R = \vec 0\).</li></ul>`,
+    conclusion: TX`<p>Un solide <b>pseudo-isolé</b> (forces qui se compensent) a un centre d’inertie G en <b>mouvement rectiligne uniforme</b> (ou au repos) : c’est le <b>principe d’inertie</b>, \(\sum \vec F = \vec 0 \Leftrightarrow \vec v_G = \overrightarrow{\text{cte}}\).</p>`,
   },
   quiz: [
     { q: 'Un palet glisse sur une table à coussin d’air horizontale. Il est :', o: ['isolé', 'pseudo-isolé', 'soumis à une force motrice', 'en mouvement accéléré'], r: 1, e: 'Le poids et l’action de l’air se compensent.' },

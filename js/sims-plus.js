@@ -181,3 +181,59 @@ S('des', [['N0', ['N_0 (nombre de dés)', 'N_0 (عدد النرد)'], 50, 400, 1
     T_('« Demi-vie » : t_{1/2} = ln 2 / (−ln(1 − p)) ≈ ', '« عمر النصف » : t_{1/2} = ln 2 / (−ln(1 − p)) ≈ ') + fmt(th) + T_(' lancers', ' رمية'),
     T_('Chaque dé est imprévisible, mais la population suit une loi exponentielle.', 'كل نرد لا يمكن توقعه، لكن المجموعة تتبع قانونا أسيا.')];
 });
+
+/* Autoporteur sur table à coussin d’air : enregistrement vu de dessus (solide pseudo-isolé ou non) */
+S('autoporteur', [['v0', ['vitesse de lancement v_0 (m/s)', 'سرعة الإطلاق v_0 (m/s)'], 0.1, 0.6, 0.02, 0.3],
+  ['w', ['rotation sur lui-même (tours/s)', 'الدوران حول نفسه (دورة/s)'], 0, 2, 0.1, 1],
+  ['cas', ['Conditions', 'الشروط'], [['soufflerie en marche, table horizontale', 'النافخة تشتغل، المنضدة أفقية'], ['soufflerie arrêtée (frottements)', 'النافخة متوقفة (احتكاكات)'], ['soufflerie en marche, table inclinée', 'النافخة تشتغل، المنضدة مائلة']], 0]], 1, (c, v, t) => {
+  const T_ = (fr, ar) => SIM_LANG === 'ar' ? ar : fr;
+  const cas = +v.cas, K = 700, tau = 0.04, X0 = 44, Y0 = cas === 2 ? 90 : 250, th = cas === 2 ? 0 : rad(-14), ux = Math.cos(th), uy = Math.sin(th), R = 22;
+  const af = 0.25, ai = 0.12;
+  const tStop = cas === 1 ? v.v0 / af : Infinity;
+  const pos = s => {
+    if (cas === 1) { const u = Math.min(s, tStop), d = v.v0 * u - af * u * u / 2; return [X0 + d * ux * K, Y0 + d * uy * K]; }
+    const d = v.v0 * s; return [X0 + d * ux * K, Y0 + d * uy * K + (cas === 2 ? ai * s * s / 2 * K : 0)];
+  };
+  const out = p => p[0] > 452 - R || p[1] < 28 + R || p[1] > 332 - R;
+  let tEnd = 0; while (tEnd < 6 && !out(pos(tEnd + tau))) tEnd += tau;
+  const tt = Math.min(t % (tEnd + 1.5), tEnd);
+  // table vue de dessus
+  c.rect(20, 20, 440, 320, c.bg, c.ink, 2);
+  c.text(T_('Table à coussin d’air (vue de dessus)', 'منضدة الوسادة الهوائية (منظر علوي)'), 30, 38, c.mute, 'left', 12);
+  if (cas === 2) { c.text(T_('pente ↓', 'الميل ↓'), 452, 330, c.d, 'right', 12, true); }
+  const rot = s => cas === 1 ? (s < tStop ? s - s * s / (2 * tStop) : tStop / 2) : s;
+  const n = Math.floor(tt / tau + 1e-9), angle = k => 2 * Math.PI * v.w * rot(k * tau);
+  const nl = cas === 1 ? Math.min(n, Math.ceil(tStop / tau)) : n;
+  for (let k = 0; k <= n; k++) {
+    const p = pos(k * tau), a = angle(k);
+    c.circ(p[0] + R * 0.8 * Math.cos(a), p[1] + R * 0.8 * Math.sin(a), 2.6, c.d);
+    c.circ(p[0], p[1], 2.6, c.a);
+    if (k === 0 || k === nl) c.text('G' + k, p[0], p[1] + 14, c.a, 'center', 10);
+  }
+  const G = pos(tt), a = 2 * Math.PI * v.w * rot(tt);
+  c.circ(G[0], G[1], R, 'rgba(120,140,170,.25)', c.ink, 2);
+  c.circ(G[0], G[1], 3.5, c.a); c.circ(G[0] + R * 0.8 * Math.cos(a), G[1] + R * 0.8 * Math.sin(a), 3.5, c.d);
+  c.text('● ' + T_('centre d’inertie G', 'مركز القصور G'), 30, 322, c.a, 'left', 12, true);
+  c.text('● ' + T_('point du bord', 'نقطة من الحافة'), 200, 322, c.d, 'left', 12, true);
+  // vue de côté : forces
+  const bx = 545, by = 200, inc = cas === 2 ? rad(10) : 0;
+  c.text(T_('Forces (vue de côté)', 'القوى (منظر جانبي)'), bx, 40, c.ink, 'center', 12, true);
+  c.line(bx - 75, by + 18 + 75 * Math.tan(inc), bx + 75, by + 18 - 75 * Math.tan(inc), c.ink, 3);
+  c.rect(bx - 24, by - 6, 48, 22, 'rgba(120,140,170,.35)', c.ink);
+  c.arrow(bx, by + 5, bx, by + 85, c.b, 'P');
+  c.arrow(bx, by + 5, bx - 80 * Math.sin(inc), by + 5 - 80 * Math.cos(inc), c.c, 'R');
+  if (cas === 1 && tt < tStop) c.arrow(bx - 26, by + 12, bx - 66, by + 12, c.d, 'f');
+  const ok = cas === 0, stopped = cas === 1 && tt >= tStop;
+  c.text(ok || stopped ? 'P + R = 0' : cas === 1 ? 'P + R + f ≠ 0' : 'P + R ≠ 0', bx, by + 118, ok || stopped ? c.c : c.d, 'center', 14, true);
+  if (stopped) c.text(T_('à l’arrêt : équilibre', 'متوقف : توازن'), bx, by + 138, c.c, 'center', 13, true);
+  if (!stopped) c.text(ok ? T_('pseudo-isolé', 'شبه معزول') : T_('non pseudo-isolé', 'غير شبه معزول'), bx, by + 138, ok ? c.c : c.d, 'center', 13, true);
+  // mesures : deux intervalles G_iG_{i+1}
+  const d = k => { const p = pos(k * tau), q = pos((k + 1) * tau); return Math.hypot(q[0] - p[0], q[1] - p[1]) / K * 1000; };
+  const m = Math.max(1, Math.min(n, cas === 1 ? Math.floor(tStop / tau) : n) - 1);
+  const r = ['τ = 40 ms', 'G_0G_1 = ' + fmt(d(0)) + ' mm   ;   G_{' + (m - 1) + '}G_{' + m + '} = ' + fmt(d(m - 1)) + ' mm'];
+  if (ok) r.push(T_('Points de G alignés et équidistants : mouvement rectiligne uniforme, v_G = ', 'نقط G مستقيمية ومتساوية المسافات : حركة مستقيمية منتظمة، v_G = ') + fmt(v.v0) + ' m/s');
+  else if (cas === 1) r.push(T_('Les écarts diminuent : G ralentit puis s’arrête (frottement non compensé).', 'المسافات تتناقص : G يتباطأ ثم يتوقف (احتكاك غير معوض).'));
+  else r.push(T_('La trajectoire de G se courbe et les écarts augmentent : P et R ne se compensent plus.', 'مسار G ينحني والمسافات تتزايد : P و R لا يتعاوضان.'));
+  r.push(v.w > 0 ? T_(ok ? 'Le point du bord a une trajectoire courbe : seul G suit le principe d’inertie.' : 'Le point du bord tourne autour de G.', ok ? 'نقطة الحافة مسارها منحن : G وحده يخضع لمبدأ القصور.' : 'نقطة الحافة تدور حول G.') : T_('Sans rotation, tous les points ont le même mouvement (translation).', 'بدون دوران، لكل النقط نفس الحركة (إزاحة).'));
+  return r;
+});
