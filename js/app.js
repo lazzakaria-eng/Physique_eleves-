@@ -98,7 +98,8 @@
       retenir: R.retenir || (RESUME[l.id] || []).map(mk),
       retenirTl: !R.retenir && !etapes,
       erreurs: R.erreurs || [],
-      sims,
+      sims: sims.slice(),
+      xps: (window.EXPS && EXPS[l.id]) || [],
       protocole: E.protocole || (X.exp ? { titre: X.exp.titre, materiel: X.exp.materiel, etapes: X.exp.etapes } : null),
       observations: E.observations || null, conclusion: E.conclusion || null,
       exos: C.series || EXOS[l.id] || [],
@@ -292,16 +293,27 @@
           <figcaption><span>${t('Fiche du professeur', 'ملخص الأستاذ')} : ${esc(x.titre)}</span><a class="lb-btn" href="${x.src}" download>${t('Télécharger', 'تحميل')}</a></figcaption></figure>`).join('')}</div>`;
 
     const P = ch.protocole;
+    const lst = v => Array.isArray(v) ? `<ul>${v.map(e => `<li>${e}</li>`).join('')}</ul>` : (/^\s*</.test(v) ? v : `<p>${v}</p>`);
+    const XPS = (P ? [{ t: P.titre, mat: P.materiel, e: P.etapes, obs: ch.observations, cc: ch.conclusion, sim: ch.sims[0] }] : []).concat(ch.xps);
+    XPS.forEach(x => { if (x.sim && SIMS[x.sim] && !ch.sims.includes(x.sim)) ch.sims.push(x.sim); });
     const pExp = `
       <div class="card"><h2 class="ptitle">${IC.sliders} ${ch.sims.length > 1 ? t('Expériences interactives', 'تجارب تفاعلية') : t('Expérience interactive', 'تجربة تفاعلية')}</h2>
         <p class="hint">${t('Déplace les curseurs : la figure et le graphe changent en temps réel. Ou clique sur « Regarder l’expérience ».', 'غيّر المقادير : الشكل والمنحنى يتغيران مباشرة. أو اضغط على « شاهد التجربة ».')}</p>
         ${ch.sims.length > 1 ? `<div class="simtabs" role="tablist">${ch.sims.map((s, j) => `<button type="button" role="tab" data-sim="${s}" aria-selected="${j === 0}">${esc(simName(s))}</button>`).join('')}</div>` : ''}
         <div id="sim" class="sim" dir="ltr"></div></div>
-      <div class="grid3" dir="ltr" lang="fr">
-        <div class="box proto"><h2>${IC.flask} ${t('Protocole', 'البروتوكول')}</h2>${P ? `${P.titre ? `<p class="exp-t">${P.titre}</p>` : ''}${P.materiel ? `<p><b>Matériel :</b> ${P.materiel}</p>` : ''}<ol class="steps">${(P.etapes || []).map(e => `<li>${e}</li>`).join('')}</ol>` : todo('Protocole expérimental')}</div>
-        <div class="box obs"><h2>${IC.opt} ${t('Observations', 'الملاحظات')}</h2>${ch.observations ? ch.observations : todo('Observations')}</div>
-        <div class="box concl"><h2>${IC.check} ${t('Conclusion', 'الاستنتاج')}</h2>${ch.conclusion ? ch.conclusion : todo('Conclusion')}</div>
-      </div>`;
+      ${XPS.length > 1 ? `<nav class="card xpnav"><h2 class="ptitle">${IC.flask} ${t('Les expériences du chapitre', 'تجارب الدرس')} <small>${XPS.length}</small></h2>
+        <ol dir="ltr" lang="fr">${XPS.map((x, j) => `<li><a href="#xp-${j + 1}" data-xp="${j + 1}">${x.t || 'Expérience ' + (j + 1)}</a></li>`).join('')}</ol></nav>` : ''}
+      ${XPS.length ? XPS.map((x, j) => `<section class="xp" id="xp-${j + 1}" dir="ltr" lang="fr">
+        <h2 class="xph"><span class="xpn">${j + 1}</span>${x.t ? x.t : 'Expérience ' + (j + 1)}</h2>
+        ${x.but ? `<p class="xpbut"><b>But :</b> ${x.but}</p>` : ''}
+        ${x.fig || ''}
+        <div class="grid3">
+          <div class="box proto"><h2>${IC.flask} ${t('Protocole', 'البروتوكول')}</h2>${x.mat ? `<p><b>Matériel :</b> ${x.mat}</p>` : ''}<ol class="steps">${(x.e || []).map(e => `<li>${e}</li>`).join('')}</ol></div>
+          <div class="box obs"><h2>${IC.opt} ${t('Observations', 'الملاحظات')}</h2>${x.obs ? lst(x.obs) : todo('Observations')}</div>
+          <div class="box concl"><h2>${IC.check} ${t('Conclusion', 'الاستنتاج')}</h2>${x.cc ? lst(x.cc) : todo('Conclusion')}</div>
+        </div>
+        ${x.sim && SIMS[x.sim] ? `<button class="xpsim" type="button" data-go="${x.sim}">${IC.play}<span>${t('Simuler cette expérience', 'حاكي هذه التجربة')} : ${esc(simName(x.sim))}</span></button>` : ''}
+      </section>`).join('') : `<div class="box proto">${todo('Protocole expérimental')}</div>`}`;
 
     const ser = teacherSeries(l);
     const pSeries = `
@@ -372,6 +384,12 @@
       if (stopSim) stopSim();
       mountSim($('#sim'), b.dataset.sim);
     }));
+    $$('.xpsim').forEach(b => b.addEventListener('click', () => {
+      const tb = $(`.simtabs [data-sim="${b.dataset.go}"]`);
+      if (tb) tb.click(); else { if (stopSim) stopSim(); mountSim($('#sim'), b.dataset.go); }
+      $('#sim').closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }));
+    $$('.xpnav a').forEach(a => a.addEventListener('click', ev => { ev.preventDefault(); const s = document.getElementById('xp-' + a.dataset.xp); if (s) s.scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
     $$('.fopen').forEach(b => b.addEventListener('click', () => lightbox(FICHES[+b.dataset.f])));
     $$('.showcor').forEach(b => b.addEventListener('click', () => {
       const c = b.nextElementSibling, open = c.hidden; c.hidden = !open;
