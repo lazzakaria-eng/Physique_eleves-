@@ -32,7 +32,7 @@ CONTENU['2b-rc'] = {
     ],
   },
   experiences: {
-    sims: ['rc'],
+    sims: ['rc', 'rc_energie'],
     protocole: { titre: 'Charge d’un condensateur', materiel: 'générateur 6 V, R = 10 kΩ, C = 100 µF, interface d’acquisition, interrupteur.',
       etapes: ['Décharger le condensateur, puis fermer l’interrupteur sur le générateur.', TX`Enregistrer \(u_C(t)\).`, 'Déterminer τ par la tangente à l’origine et par la lecture de 0,63E.', 'Recommencer avec 2R puis 2C.'] },
     observations: TX`<ul><li>\(u_C\) croît puis tend vers E ; τ ≈ 1 s.</li><li>Doubler R ou C double τ.</li></ul>`,
