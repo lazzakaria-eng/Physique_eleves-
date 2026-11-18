@@ -798,3 +798,73 @@ mark { background: color-mix(in srgb, var(--gold) 70%, transparent); color: inhe
 @media (max-width: 370px) { .brand span { display: none; } }
 .jx-end { --g: #2563eb; }
 @media (max-width: 440px) { #insta-top { display: none; } .brand span, .brand b { min-width: 0; overflow: hidden; text-overflow: ellipsis; } }
+
+/* ===== Jeux sur écran interactif (TNI) ===== */
+body.jx-full .top, body.jx-full .foot { display: none; }
+body.jx-full main { max-width: none; padding: 0; }
+body.jx-full::before, body.jx-full::after { display: none; }
+.jx-stage { min-height: 100vh; box-sizing: border-box; padding: 1.2vh 2.2vw 2vh; display: flex; flex-direction: column; gap: 1.4vh;
+  background: radial-gradient(120% 80% at 50% 0, color-mix(in srgb, #6d28d9 10%, var(--bg)), var(--bg)); font-size: clamp(16px, 1.25vw, 30px); }
+.jx-topbar { display: flex; align-items: center; gap: 10px; }
+.jx-topbar .jx-tt { flex: 1; }
+.jx-topbar button { font: inherit; font-size: .85em; font-weight: 700; cursor: pointer; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: .4em .8em; box-shadow: 0 3px 0 var(--line); }
+.jx-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 1.2vw; }
+.jx-team { --c: #2563eb; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: .5em 1em; border-radius: 1em; background: var(--card); border: 3px solid color-mix(in srgb, var(--c) 30%, var(--line)); transition: all .3s; }
+.jx-team b { font-size: 1.15em; color: var(--c); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .jx-team span { font-size: 2.2em; font-weight: 900; color: var(--c); line-height: 1; }
+.jx-team.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 10%, var(--card)); box-shadow: 0 6px 0 var(--c), 0 20px 40px -20px var(--c); transform: translateY(-3px); }
+.jx-turn { text-align: center; font-size: 1.5em; } .jx-turn b { color: var(--c); }
+.jx-stage .jx-q { flex: 1; display: flex; flex-direction: column; padding: 2.4vh 2.4vw; border-radius: 1.4em; }
+.jx-stage .jx-ch { font-size: .9em; }
+.jx-stage .jx-qt { font-size: 2em; line-height: 1.4; margin-bottom: 2.4vh; font-weight: 600; }
+.jx-stage .jx-os { flex: 1; gap: 1.6vw; grid-auto-rows: minmax(12vh, 1fr); }
+.jx-stage .jx-os button { display: flex; align-items: center; gap: .7em; text-align: start; font-size: 1.7em; padding: .6em 1em; border-radius: .7em; border-width: 3px; box-shadow: 0 6px 0 var(--line); min-height: 0; }
+.jx-os button i { flex: none; display: grid; place-items: center; width: 1.7em; height: 1.7em; border-radius: .45em; font-style: normal; font-weight: 900; color: #fff; font-size: .85em; }
+.jx-os button:nth-child(1) i { background: #2563eb; } .jx-os button:nth-child(2) i { background: #dc2626; } .jx-os button:nth-child(3) i { background: #16a34a; } .jx-os button:nth-child(4) i { background: #d97706; }
+.jx-os button span { min-width: 0; overflow-x: auto; }
+.jx-after { text-align: center; margin-top: 1.6vh; } .jx-after:empty { display: none; }
+.jx-e { color: var(--mute); font-size: 1.1em; margin: 0 0 1vh; }
+.jx-steal { font-size: 1.4em; font-weight: 800; margin: 0 0 1vh; color: var(--ink); }
+.jx-stealb { display: flex; gap: 1vw; justify-content: center; flex-wrap: wrap; }
+.jx-stealb button { --c: #64748b; font: inherit; font-size: 1.2em; font-weight: 800; cursor: pointer; color: #fff; background: var(--c); border: 0; border-radius: .7em; padding: .5em 1.2em; box-shadow: 0 5px 0 color-mix(in srgb, var(--c) 60%, #000); }
+.jx-stealb .no { color: var(--ink); background: var(--card); border: 2px solid var(--line); box-shadow: 0 5px 0 var(--line); }
+.jx-turnrow { display: flex; align-items: center; justify-content: center; gap: 1.6vw; }
+.jx-ring { position: relative; flex: none; width: 4.6em; height: 4.6em; display: grid; place-items: center; }
+.jx-stage { position: relative; }
+.jx-ring svg { position: absolute; inset: 0; transform: rotate(-90deg); } .jx-ring circle { fill: var(--card); stroke: var(--line); stroke-width: 8; }
+.jx-ring .v { fill: none; stroke: var(--c); stroke-linecap: round; stroke-dasharray: 283; transition: stroke-dashoffset .1s linear; }
+.jx-ring span { position: relative; font-size: 1.9em; font-weight: 900; }
+.jx-stage .jx-hud .jx-score { font-size: 3em; } .jx-stage .jx-hud .jx-time { font-size: 2.6em; } .jx-stage .jx-serie { font-size: 2em; }
+.jx-stage .jx-timer { height: 1.6vh; }
+.jx-ready { flex: 1; display: grid; place-content: center; justify-items: center; text-align: center; gap: 1vh; }
+.jx-ready h1 { font-size: 5em; margin: 0; color: var(--c); } .jx-ready p { font-size: 1.6em; margin: 0; color: var(--mute); }
+.jx-btn.huge { font-size: 2.2em; padding: .5em 1.6em; border-radius: .6em; margin-top: 2vh; }
+.jx-stage .jx-btn.big { font-size: 1.3em; }
+.jx-stage .jx-mem { flex: 1; grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr)); gap: 1.2vw; align-content: stretch; }
+.jx-stage .jx-card3 { aspect-ratio: auto; min-height: 15vh; }
+.jx-stage .jx-card3 .back { font-size: 2.6em; } .jx-stage .jx-card3 .front { font-size: 1.15em; } .jx-stage .jx-card3 .front.tex { font-size: 1.35em; }
+.jx-card3.done .front { --c: #16a34a; border-color: var(--c); background: color-mix(in srgb, var(--c) 14%, var(--card)); color: var(--ink); box-shadow: 0 5px 0 var(--c); }
+.jx-h { text-align: center; font-size: 3.4em; margin: 2vh 0 0; }
+.jx-podium { flex: 1; display: flex; align-items: flex-end; justify-content: center; gap: 2vw; padding-bottom: 2vh; }
+.jx-pod { --c: #2563eb; display: grid; justify-items: center; gap: .3em; width: 18vw; max-width: 300px; animation: jxrise .8s cubic-bezier(.2, .8, .2, 1) both; }
+.jx-pod b { font-size: 1.5em; color: var(--c); text-align: center; } .jx-pod > span { font-size: 2em; font-weight: 900; }
+.jx-step { width: 100%; display: grid; place-items: center; color: #fff; font-size: 4em; font-weight: 900; border-radius: .2em .2em 0 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 70%, #fff), var(--c)); box-shadow: inset 0 4px 0 rgba(255, 255, 255, .35), 0 20px 40px -20px var(--c); }
+.jx-pod.p1 .jx-step { height: 34vh; } .jx-pod.p2 .jx-step { height: 24vh; } .jx-pod.p3 .jx-step { height: 16vh; } .jx-pod.p4 .jx-step { height: 10vh; }
+.jx-pod.p1 { animation-delay: .5s; } .jx-pod.p2 { animation-delay: .25s; }
+@keyframes jxrise { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: none; } }
+.jx-stage .jx-acts { margin: 0 0 2vh; }
+/* accueil */
+.jx-keys { margin-top: 10px !important; font-size: .9rem; opacity: .75 !important; }
+.jx-teams-ed { padding: 16px; border-radius: 22px; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .22); display: grid; gap: 8px; }
+.jx-teams-ed h2 { margin: 0 0 4px; font-size: 1.05rem; }
+.jx-ted { display: flex; align-items: center; gap: 8px; } .jx-ted i { flex: none; width: 18px; height: 18px; border-radius: 6px; background: var(--c); box-shadow: 0 0 0 3px rgba(255, 255, 255, .3); }
+.jx-ted input { flex: 1; min-width: 0; font: inherit; color: #fff; background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .3); border-radius: 10px; padding: 7px 10px; }
+.jx-ted button, .jx-add { font: inherit; cursor: pointer; color: #fff; background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .3); border-radius: 10px; padding: 6px 10px; }
+.jx-opts { display: flex; gap: 16px; flex-wrap: wrap; font-size: .9rem; margin-top: 4px; } .jx-opts input { accent-color: #f59e0b; }
+.jx-teamsline { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; }
+.jx-teamsline span { color: #fff; background: var(--c); font-weight: 800; padding: 4px 12px; border-radius: 999px; font-size: .9rem; } .jx-teamsline a { font-size: .85rem; }
+.jx-tour { margin: 0 0 12px; padding-inline-start: 22px; font-size: 1.05rem; } .jx-tour li { display: flex; justify-content: space-between; padding: 4px 0; } .jx-tour em { font-style: normal; font-weight: 900; }
+.jx-pal { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; } .jx-pal li { display: grid; gap: 2px; padding-bottom: 8px; border-bottom: 1px dashed var(--line); }
+.jx-pal small, .jx-pal span { color: var(--mute); font-size: .85rem; }
+@media (max-width: 900px) { .jx-pod { width: 22vw; } .jx-stage .jx-os { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .jx-pod { animation: none; } }
