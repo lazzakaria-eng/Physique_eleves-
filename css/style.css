@@ -986,3 +986,57 @@ body.jx-full::before, body.jx-full::after { display: none; }
 .jx-rres.shake > div { animation: jxpop .5s, jxwobble 1.2s .5s 2; } @keyframes jxwobble { 25% { transform: rotate(-4deg); } 75% { transform: rotate(4deg); } }
 @media (max-width: 900px) { .jx-rw { grid-template-columns: minmax(0, 1fr); } .jx-wheelbox { width: min(90vw, 60vh); } .jx-rres b { font-size: 5em; } }
 .jx-rres[hidden] { display: none; }
+/* ===== Défis de classe ===== */
+.y1 { --g: #0d9488; } .y2 { --g: #4f46e5; } .y3 { --g: #db2777; }
+.jx-eqq { justify-content: center; align-items: center; }
+.jx-eq { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 1.2vw; font-size: 2.6em; padding: 2vh 0; }
+.jx-eq.shake { animation: jxshake .4s; }
+.jx-sp { display: inline-flex; align-items: center; gap: .15em; }
+.jx-co { display: inline-grid; justify-items: center; gap: .05em; }
+.jx-co b { min-width: 1.3em; text-align: center; font-size: 1em; color: var(--g, #0d9488); padding: 0 .1em; border-radius: .2em; background: color-mix(in srgb, #0d9488 10%, var(--card)); }
+.jx-co b.g { color: #16a34a; background: #dcfce7; } .jx-co b.sol { color: #dc2626; background: #fee2e2; }
+.jx-co button { font: inherit; font-size: .42em; width: 2.6em; height: 1.7em; cursor: pointer; border: 0; border-radius: .45em; color: #fff; background: linear-gradient(145deg, #2dd4bf, #0d9488); box-shadow: 0 4px 0 #115e59; touch-action: manipulation; }
+.jx-co button:active { transform: translateY(3px); box-shadow: 0 1px 0 #115e59; }
+.jx-f2 { font-weight: 700; } .jx-f2 sub, .jx-f2 sup { font-size: .6em; } .jx-arrow { color: #dc2626; font-weight: 900; } .jx-plus { color: var(--mute); }
+.jx-bil table { margin: 0 auto 1vh; border-collapse: collapse; font-size: 1.3em; }
+.jx-bil th, .jx-bil td { padding: .25em .7em; border: 1px solid var(--line); text-align: center; }
+.jx-bil td.g { background: #dcfce7; color: #14532d; font-weight: 800; } .jx-bil td.r { background: #fee2e2; color: #7f1d1d; font-weight: 800; }
+.jx-symq { align-items: center; text-align: center; }
+.jx-ans { display: inline-flex; align-items: center; justify-content: center; min-width: 40%; min-height: 1.4em; margin: 1vh auto; padding: .1em .6em; font-size: 4em; font-weight: 800; border-radius: .25em; border: 4px solid #4f46e5; background: var(--card); }
+.jx-ans.shake { animation: jxshake .4s; border-color: #dc2626; }
+.jx-ans sub, .jx-ans sup, .jx-sol sub, .jx-sol sup { font-size: .55em; }
+.jx-caret { width: 3px; height: 1em; background: #4f46e5; margin-left: 2px; animation: jxblink 1s steps(2) infinite; } @keyframes jxblink { 50% { opacity: 0; } }
+.jx-tipk { margin: .2em 0 1vh; color: var(--mute); }
+.jx-kb { display: grid; gap: .8vh; justify-content: center; } .jx-kb > div { display: flex; gap: .5vw; justify-content: center; }
+.jx-kb button { min-width: 2.6em; height: 2.3em; font: inherit; font-size: 1.35em; font-weight: 800; cursor: pointer; color: var(--ink); background: var(--card); border: 2px solid var(--line); border-radius: .45em; box-shadow: 0 4px 0 var(--line); touch-action: manipulation; }
+.jx-kb button.w { min-width: 3.6em; background: #e0e7ff; } .jx-kb button:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--line); }
+.jx-kb button.ok { min-width: 8em; color: #fff; background: #16a34a; border-color: #16a34a; box-shadow: 0 4px 0 #14532d; } .jx-kb button.pass { min-width: 6em; }
+.jx-sol { font-size: 1.4em; color: #16a34a; }
+.jx-drawq .jx-canvas3 { position: relative; flex: 1; min-height: 32vh; display: grid; place-items: center; border-radius: 1em; background: #fff; border: 2px dashed var(--line); margin-bottom: 1.6vh; }
+.jx-canvas3 svg { width: min(80%, 70vh); height: auto; max-height: 40vh; }
+.jx-canvas3 path { fill: none; stroke: #111827; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.jx-canvas3 .jx-pts { position: absolute; top: .6em; right: .8em; font-weight: 900; font-size: 1.6em; color: #db2777; }
+.jx-drawwrap { position: relative; flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1vw; min-height: 0; }
+.jx-pad2 { width: 100%; height: 100%; border-radius: 1em; background: #fff; border: 3px solid var(--line); touch-action: none; cursor: crosshair; }
+.jx-tools { display: grid; gap: 1vh; align-content: start; }
+.jx-tools button { width: 3.4em; height: 3.4em; border-radius: .7em; border: 3px solid var(--line); cursor: pointer; font-size: 1.2em; background: var(--card); }
+.jx-tools .col { border-color: #fff; box-shadow: 0 0 0 2px var(--line); }
+.jx-secret { position: absolute; inset: 0; z-index: 3; display: grid; place-content: center; justify-items: center; gap: 2vh; border-radius: 1em; background: radial-gradient(circle, #312e81, #0f172a); color: #fff; text-align: center; }
+.jx-secret p { font-size: 1.8em; margin: 0; max-width: 30ch; } .jx-word { font-size: 3.4em !important; font-weight: 900; color: #fde68a; } .jx-cd { font-size: 4em !important; font-weight: 900; }
+.jx-guess { display: flex; gap: 1vw; align-items: center; justify-content: center; flex-wrap: wrap; font-size: 1.2em; font-weight: 800; }
+.jx-guess button[data-t] { --c: #64748b; font: inherit; color: #fff; background: var(--c); border: 0; border-radius: .6em; padding: .45em 1.1em; cursor: pointer; box-shadow: 0 4px 0 color-mix(in srgb, var(--c) 60%, #000); }
+.jx-guess button.no { color: var(--ink); background: var(--card); border: 2px solid var(--line); box-shadow: 0 4px 0 var(--line); }
+.jx-word2 b { color: #db2777; }
+.jx-kb button.on { background: #4f46e5; color: #fff; }
+/* ajustements : tout tient dans l’écran */
+.jx-symq .jx-qt.big { margin-bottom: .6vh; padding: 0; }
+.jx-ans { font-size: 3em; margin: .4vh auto; }
+.jx-tipk { margin: .2em 0 .6vh; font-size: .9em; }
+.jx-kb { gap: .6vh; } .jx-kb button { height: 1.95em; font-size: 1.2em; min-width: 2.4em; }
+.jx-drawwrap { grid-template-columns: minmax(0, 1fr) auto; }
+.jx-tools { grid-template-columns: repeat(2, auto); gap: .8vh .6vw; }
+.jx-tools button { width: 2.8em; height: 2.8em; font-size: 1.05em; }
+.jx-stage:has(.jx-drawwrap) { height: 100vh; min-height: 0; }
+.jx-stage:has(.jx-drawwrap) .jx-drawwrap { min-height: 0; }
+.jx-drawwrap { grid-template-rows: minmax(0, 1fr); flex: 1 1 0; }
+.jx-pad2 { display: block; height: 100%; min-height: 0; }

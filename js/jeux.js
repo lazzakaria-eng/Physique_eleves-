@@ -107,7 +107,7 @@ window.JEUX = (() => {
     ['vraifaux', '✅', 'Vrai ou faux réflexe', 'صحيح أم خطأ', 'Une affirmation au centre : le plus rapide à répondre juste marque. Une erreur donne le point à l’adversaire !', 'عبارة في الوسط : الأسرع بالجواب الصحيح يربح. الخطأ يمنح النقطة للخصم !', 'd4'],
   ];
   const G3 = () => (window.JEUX3D ? JEUX3D.list : []);
-  const gName = id => { const g = GAMES.concat(DUO, G3()).find(x => x[0] === id); return g ? C.t(g[2], g[3]) : id; };
+  const gName = id => { const g = GAMES.concat(DUO, G3(), window.DEFIS ? DEFIS.list : []).find(x => x[0] === id); return g ? C.t(g[2], g[3]) : id; };
   function hub() {
     full(false);
     const T = teams(), tr = tournoi(), pal = get('jx-palmares', []);
@@ -120,6 +120,8 @@ window.JEUX = (() => {
           ${T.map((x, i) => `<div class="jx-ted" style="--c:${COLORS[i]}"><i></i><input data-i="${i}" maxlength="18" value="${C.esc(x.n)}">${T.length > 2 ? `<button type="button" data-del="${i}" aria-label="${C.t('Supprimer', 'حذف')}">✕</button>` : ''}</div>`).join('')}
           ${T.length < 4 ? `<button type="button" class="jx-add">＋ ${C.t('Ajouter une équipe', 'أضف فريقا')}</button>` : ''}
           <div class="jx-opts"><label><input type="checkbox" id="pe"${get('jx-pe', true) ? ' checked' : ''}> ${C.t('Plein écran', 'ملء الشاشة')}</label><label><input type="checkbox" id="son"${sonOn() ? ' checked' : ''}> ${C.t('Sons', 'الأصوات')}</label></div></div></div>
+      ${window.DEFIS ? `<h2 class="jx-sec">🏁 ${C.t('Défis de classe — équations, formules, schémas', 'تحديات القسم — معادلات، صيغ، تبيانات')}</h2>
+      <div class="jx-games">${DEFIS.list.map(g => `<a class="jx-game tilt ${g[6]}" href="#/jeux/${g[0]}"><span class="jx-ic">${g[1]}</span><b>${C.t(g[2], g[3])}</b><span>${C.t(g[4], g[5])}</span><span class="jx-meta"><em>${C.t('Lancer', 'ابدأ')} ›</em></span></a>`).join('')}</div>` : ''}
       <h2 class="jx-sec">👥 ${C.t('Jeux par équipes', 'ألعاب الفرق')}</h2>
       <div class="jx-games">${GAMES.map(g => `<a class="jx-game tilt ${g[6]}" href="#/jeux/${g[0]}"><span class="jx-ic">${g[1]}</span><b>${C.t(g[2], g[3])}</b><span>${C.t(g[4], g[5])}</span><span class="jx-meta"><em>${C.t('Lancer', 'ابدأ')} ›</em></span></a>`).join('')}</div>
       <h2 class="jx-sec">🆚 ${C.t('Jeux à 2 joueurs — face à face sur l’écran', 'ألعاب لاعبين اثنين — وجها لوجه على الشاشة')}</h2>
@@ -550,7 +552,7 @@ window.JEUX = (() => {
   return {
     init(ctx) { C = ctx; },
     stop() { stop(); document.body.classList.remove('jx-full'); },
-    api: { bar: () => bar(), wireBar: () => wireBar(), full, beep, confetti, onKey, later, every, hook: f => hooks.push(f), duoWin: (g, n, sc, a) => duoWin(g, n, sc, a), duoNames: () => duoNames(), put, get, PC: ['#2563eb', '#dc2626'], C: () => C },
-    page(sub) { stop(); if (window.JEUX3D && JEUX3D.list.some(g => g[0] === sub)) return JEUX3D.page(sub); ({ match: matchSetup, duel: matchSetup, chrono: chronoSetup, memory: memorySetup, unites: unitesSetup, enigmes: enigmesSetup, defis: defisSetup, intrus: intrusSetup, mots: motsSetup }[sub] || (DUO.some(g => g[0] === sub) ? () => duoSetup(sub) : hub))(); },
+    api: { bar: () => bar(), wireBar: () => wireBar(), full, beep, confetti, onKey, later, every, hook: f => hooks.push(f), duoWin: (g, n, sc, a) => duoWin(g, n, sc, a), duoNames: () => duoNames(), put, get, PC: ['#2563eb', '#dc2626'], C: () => C, teams: () => teams(), COLORS, podium: (g, T, sc, a) => podium(g, T, sc, a), stopTimers: () => stop() },
+    page(sub) { stop(); if (window.DEFIS && DEFIS.list.some(g => g[0] === sub)) return DEFIS.page(sub); if (window.JEUX3D && JEUX3D.list.some(g => g[0] === sub)) return JEUX3D.page(sub); ({ match: matchSetup, duel: matchSetup, chrono: chronoSetup, memory: memorySetup, unites: unitesSetup, enigmes: enigmesSetup, defis: defisSetup, intrus: intrusSetup, mots: motsSetup }[sub] || (DUO.some(g => g[0] === sub) ? () => duoSetup(sub) : hub))(); },
   };
 })();
