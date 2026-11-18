@@ -59,6 +59,14 @@ Pour en ajouter une, copiez un bloc `{ t: …, but: …, mat: …, e: […], obs
 
 Écrivez les apostrophes avec ’ (et non ') à l’intérieur des textes. Puis changez `version.txt`.
 
+## Ajouter une simulation PhET à un chapitre
+
+Les simulations PhET (phet.colorado.edu/fr) sont listées dans `contenu/phet.js`.
+1. Ouvrez la simulation sur le site PhET et repérez son nom dans l’adresse : `…/sims/html/NOM/latest/…` (par exemple `pendulum-lab`).
+2. Si elle n’est pas déjà dans `PHET`, ajoutez une ligne : `'pendulum-lab': ['Titre en français', 'Ce que l’élève y fait.'],`
+3. Ajoutez son nom dans la liste du chapitre, dans `PHET_CH` : `'2b-oscillants': ['pendulum-lab', 'masses-and-springs'],`
+Puis changez `version.txt`.
+
 ## Format d'un fichier de contenu complet
 
 ```js

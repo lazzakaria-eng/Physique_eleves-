@@ -269,6 +269,7 @@
     if (e.key === 'ArrowRight' || e.key === 'PageDown') { r.__go(document.dir === 'rtl' ? -1 : 1); e.preventDefault(); }
     else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { r.__go(document.dir === 'rtl' ? 1 : -1); e.preventDefault(); }
   });
+  const phURL = s => `https://phet.colorado.edu/sims/html/${s}/latest/${s}_all.html?locale=fr`;
   function lesson(l, tab) {
     const n = l.niv; let f = filOf(n);
     if (!inFil(l, f)) { f = l.fil[0]; store.set('fil-' + n.id, f); }
@@ -322,6 +323,7 @@
       </div>`;
 
     const P = ch.protocole;
+    const PH = ((window.PHET_CH && PHET_CH[l.id]) || []).filter(x => PHET[x]);
     const lst = v => Array.isArray(v) ? `<ul>${v.map(e => `<li>${e}</li>`).join('')}</ul>` : (/^\s*</.test(v) ? v : `<p>${v}</p>`);
     const XPS = (P ? [{ t: P.titre, mat: P.materiel, e: P.etapes, obs: ch.observations, cc: ch.conclusion, sim: ch.sims[0] }] : []).concat(ch.xps);
     XPS.forEach(x => { if (x.sim && SIMS[x.sim] && !ch.sims.includes(x.sim)) ch.sims.push(x.sim); });
@@ -330,6 +332,13 @@
         <p class="hint">${t('Déplace les curseurs : la figure et le graphe changent en temps réel. Ou clique sur « Regarder l’expérience ».', 'غيّر المقادير : الشكل والمنحنى يتغيران مباشرة. أو اضغط على « شاهد التجربة ».')}</p>
         ${ch.sims.length > 1 ? `<div class="simtabs" role="tablist">${ch.sims.map((s, j) => `<button type="button" role="tab" data-sim="${s}" aria-selected="${j === 0}">${esc(simName(s))}</button>`).join('')}</div>` : ''}
         <div id="sim" class="sim" dir="ltr"></div></div>
+      ${PH.length ? `<section class="card phet"><h2 class="ptitle"><span class="phlogo">PhET</span> ${t('Simulations PhET pour ce chapitre', 'محاكاة PhET لهذا الدرس')}</h2>
+        <p class="hint">${t('Simulations de l’Université du Colorado, en français. Clique sur « Lancer » : la simulation s’ouvre ici même.', 'محاكاة جامعة كولورادو. اضغط على « تشغيل » : تفتح المحاكاة هنا.')}</p>
+        <div class="phgrid">${PH.map(s => `<article class="phcard" dir="ltr" lang="fr"><div class="phimg"><img src="https://phet.colorado.edu/sims/html/${s}/latest/${s}-600.png" alt="" loading="lazy" onerror="this.remove()"><span>PhET</span></div>
+          <div class="phtx"><b>${PHET[s][0]}</b><small>${PHET[s][1]}</small></div>
+          <div class="phbt"><button type="button" class="phgo" data-ph="${s}">${IC.play}<span>${t('Lancer', 'تشغيل')}</span></button><a href="${phURL(s)}" target="_blank" rel="noopener">${t('Nouvel onglet', 'نافذة جديدة')} ↗</a></div></article>`).join('')}</div>
+        <div class="phview" hidden><div class="phbar"><b></b><span><button type="button" class="phfull">⛶ ${t('Plein écran', 'ملء الشاشة')}</button><button type="button" class="phclose">✕ ${t('Fermer', 'إغلاق')}</button></span></div><div class="phframe"></div></div>
+        <p class="phcred">PhET Interactive Simulations, University of Colorado Boulder — <a href="https://phet.colorado.edu/fr/" target="_blank" rel="noopener">phet.colorado.edu</a> — licence CC-BY 4.0.</p></section>` : ''}
       ${XPS.length > 1 ? `<nav class="card xpnav"><h2 class="ptitle">${IC.flask} ${t('Les expériences du chapitre', 'تجارب الدرس')} <small>${XPS.length}</small></h2>
         <ol dir="ltr" lang="fr">${XPS.map((x, j) => `<li><a href="#xp-${j + 1}" data-xp="${j + 1}">${x.t || 'Expérience ' + (j + 1)}</a></li>`).join('')}</ol></nav>` : ''}
       ${XPS.length ? XPS.map((x, j) => `<section class="xp" id="xp-${j + 1}" dir="ltr" lang="fr">
@@ -402,6 +411,7 @@
       closeSteps();
       $$('.tabs3d button').forEach(b => b.setAttribute('aria-selected', b.dataset.t === id));
       $$('.panel').forEach(p => { p.hidden = p.dataset.p !== id; });
+      const pv = $('.phview'); if (pv && id !== 'experiences') { pv.hidden = true; $('.phframe', pv).innerHTML = ''; }
       if (id === 'experiences') { const cur = $('.simtabs [aria-selected="true"]'); mountSim($('#sim'), cur ? cur.dataset.sim : ch.sims[0]); }
       typeset($(`.panel[data-p="${id}"]`));
       history.replaceState(null, '', '#/chapitre/' + l.id + (id === 'resume' ? '' : '/' + id));
@@ -462,6 +472,15 @@
       if (stopSim) stopSim();
       mountSim($('#sim'), b.dataset.sim);
     }));
+    $$('.phgo').forEach(b => b.addEventListener('click', () => {
+      const v = $('.phview'), s = b.dataset.ph;
+      $('.phbar b', v).textContent = PHET[s][0];
+      $('.phframe', v).innerHTML = `<iframe src="${phURL(s)}" title="${esc(PHET[s][0])}" allowfullscreen allow="fullscreen" loading="lazy"></iframe>`;
+      v.hidden = false; $$('.phcard').forEach(c => c.classList.toggle('on', c.contains(b)));
+      window.scrollTo({ top: v.getBoundingClientRect().top + scrollY - 130, behavior: 'smooth' });
+    }));
+    $$('.phclose').forEach(b => b.addEventListener('click', () => { const v = $('.phview'); v.hidden = true; $('.phframe', v).innerHTML = ''; $$('.phcard').forEach(c => c.classList.remove('on')); }));
+    $$('.phfull').forEach(b => b.addEventListener('click', () => { const f = $('.phframe iframe'); if (f && f.requestFullscreen) f.requestFullscreen(); }));
     $$('.xpsim').forEach(b => b.addEventListener('click', () => {
       const tb = $(`.simtabs [data-sim="${b.dataset.go}"]`);
       if (tb) tb.click(); else { if (stopSim) stopSim(); mountSim($('#sim'), b.dataset.go); }
