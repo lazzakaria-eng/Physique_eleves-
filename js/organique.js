@@ -71,6 +71,14 @@
   const bruteTxt = c => ['C', 'H', 'O'].filter(e => c[e]).map(e => e + (c[e] > 1 ? c[e] : '')).join('');
   const bruteHtml = c => sub(bruteTxt(c));
 
+  /* ---------- chapitres du programme ---------- */
+  const FCH = { alcane: '1bc-squelettes', alcène: '1bc-squelettes', alcool: '1bc-groupes', aldéhyde: '1bc-groupes', cétone: '1bc-groupes', acide: '1bc-groupes', ester: '2bc-ester', anhydride: '2bc-controle' };
+  const CAT_CH = { nom: ['1bc-squelettes', '1bc-groupes', '2bc-ester'], formule: ['1bc-squelettes', '1bc-groupes', '2bc-ester'], famille: ['1bc-squelettes', '1bc-groupes', '2bc-ester', '2bc-controle'],
+    classe: ['1bc-groupes'], brute: ['1bc-squelettes', '1bc-groupes'], isomere: ['1bc-squelettes', '1bc-groupes'], oxydation: ['1bc-groupes'], ester: ['2bc-ester', '2bc-controle'], tests: ['1bc-squelettes', '1bc-groupes', '2bc-ester'], cours: ['1bc-squelettes', '2bc-ester', '2bc-controle'] };
+  const ORG_CH = ['1bc-squelettes', '1bc-groupes', '2bc-ester', '2bc-controle'];
+  let CH = ORG_CH; // chapitres choisis pour la partie en cours
+  const inCh = c => CH.includes(c);
+
   /* ---------- générateurs de questions ---------- */
   const CATS = {
     nom: ['Nommer la molécule', 'تسمية الجزيئة'], formule: ['Retrouver la formule', 'إيجاد الصيغة'], famille: ['Famille chimique', 'العائلة الكيميائية'],
@@ -84,7 +92,7 @@
   const Q = {
     nom: P => { const m = pick(P); return { q: `${T('Quel est le nom de cette molécule ?', 'ما اسم هذه الجزيئة ؟')}<div class="sdbox">${struct(m.s)}</div>`, os: shuffle([m].concat(near(m, P))).map(x => ({ o: esc(x.nom), ok: x === m })), e: `${esc(m.nom)} : ${FAM[m.f].toLowerCase()}.` }; },
     formule: P => { const m = pick(P); return { q: `${T('Quelle est la formule semi-développée du', 'ما الصيغة نصف المنشورة لـ')} <b>${esc(m.nom)}</b> ?`, os: shuffle([m].concat(near(m, P))).map(x => ({ o: struct(x.s), ok: x === m })), struct: true, e: '' }; },
-    famille: P => { const m = pick(P); const fs = shuffle(Object.keys(FAM).filter(f => f !== m.f && P.some(x => x.f === f))).slice(0, 3); return { q: `${T('À quelle famille appartient cette molécule ?', 'إلى أي عائلة تنتمي هذه الجزيئة ؟')}<div class="sdbox">${struct(m.s)}</div>`, os: shuffle([m.f].concat(fs)).map(f => ({ o: FAM[f], ok: f === m.f })), e: `${esc(m.nom)}.` }; },
+    famille: P => { const m = pick(P); const near2 = shuffle(Object.keys(FAM).filter(f => f !== m.f && P.some(x => x.f === f))), far = shuffle(Object.keys(FAM).filter(f => f !== m.f && !near2.includes(f))), fs = near2.concat(far).slice(0, 3); return { q: `${T('À quelle famille appartient cette molécule ?', 'إلى أي عائلة تنتمي هذه الجزيئة ؟')}<div class="sdbox">${struct(m.s)}</div>`, os: shuffle([m.f].concat(fs)).map(f => ({ o: FAM[f], ok: f === m.f })), e: `${esc(m.nom)}.` }; },
     classe: P => { const m = pick(P.filter(x => x.cl)); return { q: `${T('Quelle est la classe de cet alcool ?', 'ما صنف هذا الكحول ؟')}<div class="sdbox">${struct(m.s)}</div>`, os: ['primaire', 'secondaire', 'tertiaire'].map(c => ({ o: T('Alcool ', 'كحول ') + c, ok: c === m.cl })), e: `${esc(m.nom)} : ${T('le carbone fonctionnel est lié à', 'الكربون الوظيفي مرتبط بـ')} ${{ primaire: '1', secondaire: '2', tertiaire: '3' }[m.cl]} ${T('atome(s) de carbone', 'ذرة كربون')} (${T('méthanol : primaire', 'الميثانول : أولي')}).` }; },
     brute: P => { const m = pick(P.filter(x => x.s !== 'CH4')), c = brute(m.s), d = [{ ...c, H: c.H + 2 }, { ...c, H: c.H - 2 }, { ...c, C: c.C + 1 }, { ...c, O: (c.O || 0) + 1 }, { ...c, C: c.C - 1, H: c.H - 2 }].filter(x => x.H > 0 && x.C > 0).map(bruteTxt).filter(x => x !== bruteTxt(c));
       return { q: `${T('Quelle est la formule brute de cette molécule ?', 'ما الصيغة الإجمالية لهذه الجزيئة ؟')}<div class="sdbox">${struct(m.s)}</div>`, os: shuffle([bruteTxt(c)].concat(shuffle([...new Set(d)]).slice(0, 3))).map(x => ({ o: sub(x), ok: x === bruteTxt(c) })), e: `${esc(m.nom)} : ${bruteHtml(c)}.` }; },
@@ -103,7 +111,7 @@
       return { q: `${T('Produit de l’oxydation ménagée du', 'ناتج الأكسدة المعتدلة لـ')} <b>${esc(m.nom)}</b> (${T('oxydant en défaut', 'مؤكسد بنقص')}) ?`, os: shuffle([good].concat(others)).map(x => ({ o: esc(x), ok: x === good })), e: `${esc(m.nom)} (${T('alcool', 'كحول')} ${m.cl}) → ${esc(good)}${m.ox[1] ? ' ; ' + T('en excès d’oxydant : ', 'بوفرة المؤكسد : ') + esc(m.ox[1]) : ''}.` };
     },
     ester: P => {
-      const es = M.filter(x => x.f === 'ester'), m = pick(es), kind = Math.floor(Math.random() * 4);
+      const es = M.filter(x => x.f === 'ester'), m = pick(es), kind = pick([0, 1].filter(() => inCh('2bc-ester')).concat([2, 3].filter(() => inCh('2bc-controle'))).concat([]).length ? [0, 1].filter(() => inCh('2bc-ester')).concat([2, 3].filter(() => inCh('2bc-controle'))) : [0, 1, 2, 3]);
       if (kind === 0) { const others = shuffle(es.filter(x => x !== m)).slice(0, 3); return { q: `${T('Estérification :', 'الأسترة :')} <b>${esc(m.ac)}</b> + <b>${esc(m.al)}</b> ⇌ ? + ${T('eau', 'ماء')}`, os: shuffle([m].concat(others)).map(x => ({ o: esc(x.nom), ok: x === m })), e: `${esc(m.nom)}. ${T('Réaction lente, limitée et athermique.', 'تفاعل بطيء ومحدود ولاحراري.')}` }; }
       if (kind === 1) { const pairs = shuffle(es.filter(x => x !== m)).slice(0, 3); return { q: `${T('L’hydrolyse de', 'حلمأة')} <b>${esc(m.nom)}</b> ${T('donne :', 'تعطي :')}`, os: shuffle([m].concat(pairs)).map(x => ({ o: `${esc(x.ac)} + ${esc(x.al)}`, ok: x === m })), e: T('Hydrolyse = réaction inverse de l’estérification (lente et limitée).', 'الحلمأة = عكس الأسترة (بطيئة ومحدودة).') }; }
       if (kind === 2) { const ac = byName(m.ac), car = m.ac.replace('acide ', 'ion ').replace('oïque', 'oate'); return { q: `${T('Saponification de', 'تصبن')} <b>${esc(m.nom)}</b> ${T('par la soude : produits ?', 'بالصودا : النواتج ؟')}`, os: shuffle([[`${esc(car)} + ${esc(m.al)}`, true], [`${esc(m.ac)} + ${esc(m.al)}`, false], [`${esc(car)} + ${T('eau', 'ماء')}`, false], [`${esc(m.ac)} + ${T('ion hydroxyde', 'أيون الهيدروكسيد')}`, false]]).map(([o, ok]) => ({ o, ok })), e: T('Saponification : ester + HO⁻ → ion carboxylate + alcool ; réaction lente mais totale.', 'التصبن : إستر + HO⁻ ← أيون كربوكسيلات + كحول ؛ تفاعل بطيء لكنه كلي.') }; }
@@ -112,43 +120,46 @@
     },
     tests: P => {
       const L = [
-        [T('Précipité jaune-orangé avec la DNPH, mais rien avec la liqueur de Fehling :', 'راسب أصفر برتقالي مع DNPH ولا شيء مع محلول فهلنغ :'), 'Une cétone', ['Un aldéhyde', 'Un alcool', 'Un acide carboxylique'], 'La DNPH caractérise le groupe carbonyle ; Fehling et Tollens ne réagissent qu’avec les aldéhydes.'],
-        [T('Précipité rouge brique avec la liqueur de Fehling à chaud :', 'راسب أحمر آجوري مع محلول فهلنغ ساخن :'), 'Un aldéhyde', ['Une cétone', 'Un alcool', 'Un ester'], 'Fehling (et Tollens) : test des aldéhydes.'],
-        [T('Dépôt d’argent (miroir) avec le réactif de Tollens :', 'راسب الفضة (مرآة) مع كاشف تولنس :'), 'Un aldéhyde', ['Une cétone', 'Un alcane', 'Un acide carboxylique'], 'Les aldéhydes réduisent les ions argent.'],
-        [T('Décoloration de l’eau de brome :', 'إزالة لون ماء البروم :'), 'Un alcène', ['Un alcane', 'Une cétone', 'Un ester'], 'Addition du dibrome sur la double liaison C=C.'],
-        [T('Le BBT devient jaune et effervescence avec l’hydrogénocarbonate de sodium :', 'BBT يصفر وفوران مع هيدروجينوكربونات الصوديوم :'), 'Un acide carboxylique', ['Un alcool', 'Un aldéhyde', 'Un ester'], 'Le groupe –COOH donne une solution acide.'],
-        [T('Décolore le permanganate acidifié, sans réagir avec la DNPH :', 'يزيل لون البرمنغنات المحمضة ولا يتفاعل مع DNPH :'), 'Un alcool primaire ou secondaire', ['Un alcool tertiaire', 'Une cétone', 'Un alcane'], 'Les alcools I et II s’oxydent ; un alcool tertiaire, non.'],
-        [T('Quel réactif permet de distinguer le propanal de la propanone ?', 'أي كاشف يميز البروبانال عن البروبانون ؟'), 'La liqueur de Fehling', ['La DNPH', 'Le BBT', 'L’eau de brome'], 'Les deux donnent un précipité avec la DNPH ; seul l’aldéhyde réagit avec Fehling.'],
-        [T('Quel réactif permet de distinguer le butane du but-1-ène ?', 'أي كاشف يميز البوتان عن البوت-1-ين ؟'), 'L’eau de brome', ['La DNPH', 'Le réactif de Tollens', 'Le BBT'], 'Seul l’alcène décolore l’eau de brome.'],
-        [T('Odeur fruitée caractéristique :', 'رائحة فاكهية مميزة :'), 'Un ester', ['Un alcane', 'Un acide carboxylique', 'Un alcool tertiaire'], 'Les esters sont responsables de nombreux arômes (banane, ananas…).'],
+        [T('Précipité jaune-orangé avec la DNPH, mais rien avec la liqueur de Fehling :', 'راسب أصفر برتقالي مع DNPH ولا شيء مع محلول فهلنغ :'), 'Une cétone', ['Un aldéhyde', 'Un alcool', 'Un acide carboxylique'], 'La DNPH caractérise le groupe carbonyle ; Fehling et Tollens ne réagissent qu’avec les aldéhydes.', '1bc-groupes'],
+        [T('Précipité rouge brique avec la liqueur de Fehling à chaud :', 'راسب أحمر آجوري مع محلول فهلنغ ساخن :'), 'Un aldéhyde', ['Une cétone', 'Un alcool', 'Un ester'], 'Fehling (et Tollens) : test des aldéhydes.', '1bc-groupes'],
+        [T('Dépôt d’argent (miroir) avec le réactif de Tollens :', 'راسب الفضة (مرآة) مع كاشف تولنس :'), 'Un aldéhyde', ['Une cétone', 'Un alcane', 'Un acide carboxylique'], 'Les aldéhydes réduisent les ions argent.', '1bc-groupes'],
+        [T('Décoloration de l’eau de brome :', 'إزالة لون ماء البروم :'), 'Un alcène', ['Un alcane', 'Une cétone', 'Un ester'], 'Addition du dibrome sur la double liaison C=C.', '1bc-squelettes'],
+        [T('Le BBT devient jaune et effervescence avec l’hydrogénocarbonate de sodium :', 'BBT يصفر وفوران مع هيدروجينوكربونات الصوديوم :'), 'Un acide carboxylique', ['Un alcool', 'Un aldéhyde', 'Un ester'], 'Le groupe –COOH donne une solution acide.', '1bc-groupes'],
+        [T('Décolore le permanganate acidifié, sans réagir avec la DNPH :', 'يزيل لون البرمنغنات المحمضة ولا يتفاعل مع DNPH :'), 'Un alcool primaire ou secondaire', ['Un alcool tertiaire', 'Une cétone', 'Un alcane'], 'Les alcools I et II s’oxydent ; un alcool tertiaire, non.', '1bc-groupes'],
+        [T('Quel réactif permet de distinguer le propanal de la propanone ?', 'أي كاشف يميز البروبانال عن البروبانون ؟'), 'La liqueur de Fehling', ['La DNPH', 'Le BBT', 'L’eau de brome'], 'Les deux donnent un précipité avec la DNPH ; seul l’aldéhyde réagit avec Fehling.', '1bc-groupes'],
+        [T('Quel réactif permet de distinguer le butane du but-1-ène ?', 'أي كاشف يميز البوتان عن البوت-1-ين ؟'), 'L’eau de brome', ['La DNPH', 'Le réactif de Tollens', 'Le BBT'], 'Seul l’alcène décolore l’eau de brome.', '1bc-squelettes'],
+        [T('Odeur fruitée caractéristique :', 'رائحة فاكهية مميزة :'), 'Un ester', ['Un alcane', 'Un acide carboxylique', 'Un alcool tertiaire'], 'Les esters sont responsables de nombreux arômes (banane, ananas…).', '2bc-ester'],
       ];
-      const [q, g, w, e] = pick(L); return { q, os: shuffle([g].concat(w)).map(o => ({ o, ok: o === g })), e };
+      const L2 = L.filter(x => inCh(x[4])), [q, g, w, e] = pick(L2.length ? L2 : L); return { q, os: shuffle([g].concat(w)).map(o => ({ o, ok: o === g })), e };
     },
     cours: P => {
       const L = [
-        ['Le rendement de l’estérification d’un mélange équimolaire avec un alcool primaire est d’environ :', '67 %', ['100 %', '33 %', '5 %'], 'K ≈ 4 : x_f = 2/3 mol pour 1 mol de chaque réactif.'],
-        ['Avec un alcool tertiaire, le rendement de l’estérification (mélange équimolaire) est d’environ :', '5 %', ['67 %', '60 %', '100 %'], 'Primaire 67 %, secondaire 60 %, tertiaire 5 %.'],
-        ['Le rôle de l’acide sulfurique dans l’estérification :', 'Catalyseur', ['Réactif', 'Solvant', 'Il augmente le rendement'], 'Il accélère la réaction sans modifier l’état d’équilibre.'],
-        ['Pour augmenter le rendement de l’estérification, on peut :', 'Mettre un réactif en excès', ['Ajouter un catalyseur', 'Ajouter de l’eau', 'Refroidir le mélange'], 'Ou éliminer un produit (eau ou ester) au fur et à mesure.'],
-        ['Le chauffage à reflux permet :', 'D’accélérer la réaction sans perte de matière', ['D’augmenter K', 'De rendre la réaction totale', 'D’éliminer l’eau'], 'La température accélère ; le réfrigérant condense les vapeurs.'],
-        ['La saponification est une réaction :', 'Lente et totale', ['Rapide et limitée', 'Lente et limitée', 'Instantanée'], 'Elle n’est pas renversable.'],
-        ['La partie hydrophile d’un ion carboxylate (savon) est :', 'Le groupe –COO⁻', ['La chaîne carbonée', 'L’ion sodium', 'Le groupe –CH₃'], 'La chaîne carbonée est hydrophobe (lipophile).'],
-        ['Le groupe caractéristique d’un ester est :', '–COO–', ['–COOH', '–CHO', '–OH'], 'R–COO–R′.'],
-        ['L’estérification et l’hydrolyse conduisent :', 'Au même état d’équilibre', ['À des états d’équilibre différents', 'À une réaction totale', 'À aucun équilibre'], 'Ce sont deux réactions inverses.'],
-        ['Remplacer l’acide par l’anhydride d’acide rend l’estérification :', 'Rapide et totale', ['Plus lente', 'Limitée à 67 %', 'Impossible'], 'Pas d’eau formée, donc pas d’hydrolyse.'],
-        ['Les alcanes sont des hydrocarbures :', 'Saturés (liaisons simples)', ['Insaturés', 'Aromatiques', 'Oxygénés'], 'Formule générale CₙH₂ₙ₊₂.'],
-        ['La formule générale des alcènes à une double liaison est :', 'CₙH₂ₙ', ['CₙH₂ₙ₊₂', 'CₙH₂ₙ₋₂', 'CₙH₂ₙ₊₁OH'], 'Une double liaison C=C.'],
-        ['Le craquage catalytique permet :', 'De raccourcir les chaînes carbonées', ['D’allonger les chaînes', 'De ramifier les chaînes', 'De former des cycles uniquement'], 'Il produit des molécules plus petites (essences, alcènes).'],
-        ['La polymérisation de l’éthène donne :', 'Le polyéthylène', ['Le polystyrène', 'Le PVC', 'Le nylon'], 'n CH₂=CH₂ → –(CH₂–CH₂)ₙ–.'],
+        ['Le rendement de l’estérification d’un mélange équimolaire avec un alcool primaire est d’environ :', '67 %', ['100 %', '33 %', '5 %'], 'K ≈ 4 : x_f = 2/3 mol pour 1 mol de chaque réactif.', '2bc-ester'],
+        ['Avec un alcool tertiaire, le rendement de l’estérification (mélange équimolaire) est d’environ :', '5 %', ['67 %', '60 %', '100 %'], 'Primaire 67 %, secondaire 60 %, tertiaire 5 %.', '2bc-ester'],
+        ['Le rôle de l’acide sulfurique dans l’estérification :', 'Catalyseur', ['Réactif', 'Solvant', 'Il augmente le rendement'], 'Il accélère la réaction sans modifier l’état d’équilibre.', '2bc-ester'],
+        ['Pour augmenter le rendement de l’estérification, on peut :', 'Mettre un réactif en excès', ['Ajouter un catalyseur', 'Ajouter de l’eau', 'Refroidir le mélange'], 'Ou éliminer un produit (eau ou ester) au fur et à mesure.', '2bc-ester'],
+        ['Le chauffage à reflux permet :', 'D’accélérer la réaction sans perte de matière', ['D’augmenter K', 'De rendre la réaction totale', 'D’éliminer l’eau'], 'La température accélère ; le réfrigérant condense les vapeurs.', '2bc-ester'],
+        ['La saponification est une réaction :', 'Lente et totale', ['Rapide et limitée', 'Lente et limitée', 'Instantanée'], 'Elle n’est pas renversable.', '2bc-controle'],
+        ['La partie hydrophile d’un ion carboxylate (savon) est :', 'Le groupe –COO⁻', ['La chaîne carbonée', 'L’ion sodium', 'Le groupe –CH₃'], 'La chaîne carbonée est hydrophobe (lipophile).', '2bc-controle'],
+        ['Le groupe caractéristique d’un ester est :', '–COO–', ['–COOH', '–CHO', '–OH'], 'R–COO–R′.', '2bc-ester'],
+        ['L’estérification et l’hydrolyse conduisent :', 'Au même état d’équilibre', ['À des états d’équilibre différents', 'À une réaction totale', 'À aucun équilibre'], 'Ce sont deux réactions inverses.', '2bc-ester'],
+        ['Remplacer l’acide par l’anhydride d’acide rend l’estérification :', 'Rapide et totale', ['Plus lente', 'Limitée à 67 %', 'Impossible'], 'Pas d’eau formée, donc pas d’hydrolyse.', '2bc-controle'],
+        ['Les alcanes sont des hydrocarbures :', 'Saturés (liaisons simples)', ['Insaturés', 'Aromatiques', 'Oxygénés'], 'Formule générale CₙH₂ₙ₊₂.', '1bc-squelettes'],
+        ['La formule générale des alcènes à une double liaison est :', 'CₙH₂ₙ', ['CₙH₂ₙ₊₂', 'CₙH₂ₙ₋₂', 'CₙH₂ₙ₊₁OH'], 'Une double liaison C=C.', '1bc-squelettes'],
+        ['Le craquage catalytique permet :', 'De raccourcir les chaînes carbonées', ['D’allonger les chaînes', 'De ramifier les chaînes', 'De former des cycles uniquement'], 'Il produit des molécules plus petites (essences, alcènes).', '1bc-squelettes'],
+        ['La polymérisation de l’éthène donne :', 'Le polyéthylène', ['Le polystyrène', 'Le PVC', 'Le nylon'], 'n CH₂=CH₂ → –(CH₂–CH₂)ₙ–.', '1bc-squelettes'],
       ];
-      const [q, g, w, e] = pick(L); return { q: T(q, q), os: shuffle([g].concat(w)).map(o => ({ o, ok: o === g })), e };
+      const L2 = L.filter(x => inCh(x[4])), [q, g, w, e] = pick(L2.length ? L2 : L); return { q: T(q, q), os: shuffle([g].concat(w)).map(o => ({ o, ok: o === g })), e };
     },
   };
 
   /* ---------- déroulement (équipes, chacune son tour) ---------- */
   function play(v, again) {
     const api = A(), h = H(), TM = api.teams(), N = TM.length, sc = TM.map(() => 0), per = +v.nb, SEC = +v.sec;
-    const P = M.filter(m => v.niv === '2bac' || m.n === '1bac'), cats = (v.cat === 'all' ? Object.keys(CATS) : [v.cat]).filter(c => !(v.niv !== '2bac' && c === 'ester'));
+    CH = (v.chs && v.chs.length ? v.chs : ORG_CH);
+    let P = M.filter(m => inCh(FCH[m.f])); if (P.length < 4) P = M.filter(m => inCh(FCH[m.f]) || FCH[m.f] === '1bc-groupes');
+    const ok = c => CAT_CH[c].some(inCh) && (c !== 'classe' && c !== 'oxydation' || P.some(m => m.cl)) && (c !== 'isomere' || P.length > 3);
+    let cats = (v.cat === 'all' ? Object.keys(CATS) : [v.cat]).filter(ok); if (!cats.length) cats = Object.keys(CATS).filter(ok);
     let i = 0, last = ''; api.full(true);
     const gen = () => { for (let k = 0; k < 20; k++) { const c = pick(cats), q = Q[c](P); if (q && (q.q + q.os.map(x => x.o).join()) !== last) { last = q.q + q.os.map(x => x.o).join(); return Object.assign(q, { cat: c }); } } return Object.assign(Q.famille(P), { cat: 'famille' }); };
     function round() {
@@ -181,10 +192,9 @@
 
   DEFIS.register(['organique', '🧪', 'Défi chimie organique', 'تحدي الكيمياء العضوية', 'Nomenclature, formules dessinées, familles, classes d’alcools, isomères, oxydation ménagée, esters, tests caractéristiques : des centaines de questions différentes.', 'التسمية، الصيغ المرسومة، العائلات، أصناف الكحولات، المتماكبات، الأكسدة المعتدلة، الإسترات، روائز الكشف : مئات الأسئلة المختلفة.', 'y4'], () => {
     const h = H();
-    h.setup('organique', h.sel('niv', T('Niveau', 'المستوى'), [['1bac', '1re Bac'], ['2bac', '2e Bac (avec esters et anhydrides)']], A().C().store.get('jx-orgniv', '2bac'))
-      + h.sel('cat', T('Catégorie', 'الفئة'), [['all', T('Toutes les catégories (mélange)', 'كل الفئات (مزيج)')]].concat(Object.entries(CATS).map(([k, x]) => [k, T(x[0], x[1])])), 'all')
+    h.setup('organique', h.sel('cat', T('Catégorie', 'الفئة'), [['all', T('Toutes les catégories (mélange)', 'كل الفئات (مزيج)')]].concat(Object.entries(CATS).map(([k, x]) => [k, T(x[0], x[1])])), 'all')
       + h.roundsF() + h.sel('sec', T('Temps par question', 'الوقت لكل سؤال'), [['30', '30 s'], ['45', '45 s'], ['60', '60 s'], ['90', '90 s']], '45'),
-      v => { A().C().store.set('jx-orgniv', v.niv); const run = () => play(v, run); run(); });
+      v => { const run = () => play(v, run); run(); }, ORG_CH);
   });
-  DEFIS._org = { M, Q, struct, brute, bruteTxt };
+  DEFIS._org = { M, Q, struct, brute, bruteTxt, setCh: c => { CH = c; }, FCH };
 })();

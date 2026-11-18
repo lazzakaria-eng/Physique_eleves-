@@ -1061,3 +1061,16 @@ body.jx-full::before, body.jx-full::after { display: none; }
 .jx-orgq .sdbox { margin: .6vh 0 0; } .jx-orgq .sdbox .sdf { font-size: 1.22em; }
 .jx-stage .jx-orgq .jx-os { grid-auto-rows: minmax(8vh, auto); }
 .jx-stage .jx-orgq { padding-top: 1.6vh; padding-bottom: 1.6vh; }
+/* ===== sélection des chapitres (défis) ===== */
+.jx-chp { margin: 14px 0 6px; padding: 14px; border-radius: 18px; text-align: start; background: color-mix(in srgb, var(--g, #4f46e5) 6%, var(--card)); border: 1px solid color-mix(in srgb, var(--g, #4f46e5) 25%, var(--line)); }
+.jx-chp-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
+.jx-chp-n { font-size: .85rem; font-weight: 800; color: var(--g, #4f46e5); }
+.jx-chp-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.jx-chp-tabs button, .jx-chp-acts button { font: inherit; font-size: .85rem; font-weight: 700; cursor: pointer; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+.jx-chp-tabs button.on { color: #fff; background: var(--g, #4f46e5); border-color: transparent; }
+.jx-chp-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 6px; max-height: 260px; overflow-y: auto; }
+.jx-chp-list label { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 12px; cursor: pointer; font-size: .9rem; line-height: 1.3; background: var(--card); border: 1px solid var(--line); }
+.jx-chp-list label.on { border-color: var(--g, #4f46e5); background: color-mix(in srgb, var(--g, #4f46e5) 10%, var(--card)); font-weight: 700; }
+.jx-chp-list input { accent-color: var(--g, #4f46e5); width: 18px; height: 18px; flex: none; }
+.jx-chp-acts { display: flex; gap: 6px; margin-top: 10px; }
+.jx-setup:has(.jx-chp) { max-width: 820px; }

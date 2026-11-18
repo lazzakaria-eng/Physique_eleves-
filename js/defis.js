@@ -89,13 +89,52 @@ window.DEFIS = (() => {
     [['(C17H35COO)3C3H5', 'HO^-'], ['C17H35COO^-', 'C3H8O3'], [1, 3, 3, 1], '2bac', 'org'], [['C7H6O3', 'C4H6O3'], ['C9H8O4', 'C2H4O2'], [1, 1, 1, 1], '2bac', 'org'],
   ];
 
+  // chapitre(s) du programme de chaque équation
+  function eqChaps(e) {
+    const [r, p, , n, t] = e, txt = r.concat(p).join(' ');
+    if (t === 'diss') return ['1bc-electrolytes', '1bc-conductimetrie'];
+    if (n === 'tc') return t === 'redox' && /\^/.test(txt) && !/H\^\+|H2O/.test(txt) ? ['tcc-transformation', '1bc-redox', '2bc-piles', '2bc-spontanee'] : ['tcc-transformation'];
+    if (n === '1bac') return t === 'ab' ? ['1bc-acidobase', '1bc-dosages'] : t === 'org' ? ['1bc-groupes'] : ['1bc-redox', '1bc-dosages'];
+    if (t === 'ab') return ['2bc-deuxsens', '2bc-acidebase', '2bc-dosage'];
+    if (t === 'elec') return ['2bc-electrolyse'];
+    if (t === 'redox') return /S2O8/.test(txt) ? ['2bc-lentes', '2bc-vitesse'] : ['2bc-piles', '2bc-spontanee'];
+    if (t === 'org') return /\(C2H3O\)2O|C17H35|C7H6O3|HO\^-/.test(txt) ? ['2bc-controle'] : ['2bc-ester'];
+    return [];
+  }
+  EQ.forEach(e => { e.chs = eqChaps(e); });
+  const EQ_CH = [...new Set(EQ.flatMap(e => e.chs))];
+
   /* ---------- habillage commun (équipes, tours, podium) ---------- */
-  function setup(id, fields, go) {
-    const G = list.find(x => x[0] === id), TM = A().teams();
+  /* sélection d’un ou plusieurs chapitres du programme (seuls ceux qui ont du contenu pour ce défi) */
+  const LVN = { tc: 'Tronc commun', '1bac': '1re Bac', '2bac': '2e Bac' };
+  function chapPicker(id, avail) {
+    const ALL = A().C().ALL.filter(l => avail.includes(l.id)), lvls = Object.keys(LVN).filter(n => ALL.some(l => l.niv.id === n));
+    let chosen = (A().get('jx-chs-' + id, null) || []).filter(x => avail.includes(x)); if (!chosen.length) chosen = ALL.filter(l => l.niv.id === lvls[lvls.length - 1]).map(l => l.id);
+    let tab = (ALL.find(l => chosen.includes(l.id)) || ALL[0]).niv.id;
+    const html = `<div class="jx-chp"><div class="jx-chp-h"><b>📚 ${T('Chapitres du programme', 'دروس المقرر')}</b><span class="jx-chp-n"></span></div>
+      <div class="jx-chp-tabs">${lvls.map(n => `<button type="button" data-lv="${n}">${LVN[n]}</button>`).join('')}</div><div class="jx-chp-list"></div>
+      <div class="jx-chp-acts"><button type="button" data-a="all">✔ ${T('Tout ce niveau', 'كل المستوى')}</button><button type="button" data-a="none">✕ ${T('Aucun', 'لا شيء')}</button></div></div>`;
+    const paint = () => {
+      $$('.jx-chp-tabs button').forEach(b => b.classList.toggle('on', b.dataset.lv === tab));
+      $('.jx-chp-list').innerHTML = ALL.filter(l => l.niv.id === tab).map(l => `<label class="${chosen.includes(l.id) ? 'on' : ''}"><input type="checkbox" value="${l.id}"${chosen.includes(l.id) ? ' checked' : ''}> ${esc(A().C().t(l.fr, l.ar))}</label>`).join('');
+      $$('.jx-chp-list input').forEach(c => c.addEventListener('change', () => { chosen = c.checked ? chosen.concat(c.value) : chosen.filter(x => x !== c.value); A().put('jx-chs-' + id, chosen); paint(); }));
+      $('.jx-chp-n').textContent = chosen.length + ' ' + T('chapitre(s) choisi(s)', 'درس مختار');
+      $('#go').disabled = !chosen.length;
+    };
+    const wire = () => {
+      $$('.jx-chp-tabs button').forEach(b => b.addEventListener('click', () => { tab = b.dataset.lv; paint(); }));
+      $$('.jx-chp-acts button').forEach(b => b.addEventListener('click', () => { const ids = ALL.filter(l => l.niv.id === tab).map(l => l.id); chosen = b.dataset.a === 'all' ? [...new Set(chosen.concat(ids))] : chosen.filter(x => !ids.includes(x)); A().put('jx-chs-' + id, chosen); paint(); }));
+      paint();
+    };
+    return { html, wire, get: () => chosen.slice() };
+  }
+  function setup(id, fields, go, avail) {
+    const G = list.find(x => x[0] === id), TM = A().teams(), cp = avail ? chapPicker(id, avail) : null;
     app().innerHTML = `<section class="jx-page"><a class="jx-back" href="#/jeux">‹ ${T('Espace Jeux', 'فضاء الألعاب')}</a><div class="jx-setup ${G[6]}"><span class="jx-ic">${G[1]}</span><h1>${T(G[2], G[3])}</h1><p>${T(G[4], G[5])}</p>
       <p class="jx-teamsline">${TM.map((x, i) => `<span style="--c:${A().COLORS[i]}">${esc(x.n)}</span>`).join('')} <a href="#/jeux">${T('modifier les équipes', 'تعديل الفرق')}</a></p>
-      <div class="jx-form">${fields}</div><button type="button" class="jx-btn big" id="go">▶ ${T('Lancer en plein écran', 'ابدأ في ملء الشاشة')}</button></div></section>`;
-    $('#go').addEventListener('click', () => { const v = {}; $$('.jx-form select').forEach(s => { v[s.id] = s.value; }); go(v); });
+      ${cp ? cp.html : ''}<div class="jx-form">${fields}</div><button type="button" class="jx-btn big" id="go">▶ ${T('Lancer en plein écran', 'ابدأ في ملء الشاشة')}</button></div></section>`;
+    if (cp) cp.wire();
+    $('#go').addEventListener('click', () => { const v = {}; $$('.jx-form select').forEach(s => { v[s.id] = s.value; }); if (cp) v.chs = cp.get(); go(v); });
   }
   const sel = (id, lab, opts, v) => `<label class="jx-f"><span>${lab}</span><select id="${id}">${opts.map(o => `<option value="${o[0]}"${o[0] === v ? ' selected' : ''}>${o[1]}</option>`).join('')}</select></label>`;
   const roundsF = () => sel('nb', T('Manches par équipe', 'جولات لكل فريق'), [['2', '2'], ['3', '3'], ['5', '5']], '3');
@@ -110,7 +149,8 @@ window.DEFIS = (() => {
   /* ================= 1. Équilibrage express ================= */
   function equilibrePlay(v, again) {
     const api = A(), TM = api.teams(), N = TM.length, sc = TM.map(() => 0), per = +v.nb, SEC = +v.sec, LV = { tc: ['tc'], '1bac': ['tc', '1bac'], '2bac': ['tc', '1bac', '2bac'], seul1: ['1bac'], seul2: ['2bac'] }[v.niv] || ['tc', '1bac', '2bac'];
-    let Q = shuffle(EQ.filter(e => LV.includes(e[3]) && (v.type === 'all' || e[4] === v.type))); if (!Q.length) Q = shuffle(EQ); let i = 0; api.full(true);
+    const inCh = e => !v.chs || e.chs.some(c => v.chs.includes(c));
+    let Q = shuffle(EQ.filter(e => inCh(e) && (v.type === 'all' || e[4] === v.type))); if (!Q.length) Q = shuffle(EQ.filter(inCh)); if (!Q.length) Q = shuffle(EQ); let i = 0; api.full(true);
     function round() {
       api.stopTimers(); if (i >= per * N) return api.podium('equilibre', TM, sc, again);
       const cur = i % N, eq = Q[i % Q.length], sp = eq[0].concat(eq[1]), c = sp.map(() => 1); let done = false, aide = false, wrong = 0;
@@ -173,6 +213,11 @@ window.DEFIS = (() => {
     ['Symbole de l’unité de champ magnétique', ['T']], ['Symbole de l’unité de charge électrique', ['C']], ['Symbole de l’unité d’activité radioactive', ['Bq']],
     ['Symbole de l’unité de quantité de matière', ['mol']], ['Symbole de l’unité de conductance', ['S']], ['Symbole de l’unité de tension', ['V']], ['Symbole de l’unité d’intensité', ['A']],
   ];
+  const UNIT_CH = { N: ['tc-actions', 'tc-gravitation'], J: ['1b-travail', '1b-ec'], W: ['1b-travail', '1b-global'], Pa: ['tc-actions'], Hz: ['tc-tension', '2b-ondes-per'], 'Ω': ['tc-passifs'],
+    F: ['2b-rc'], H: ['2b-rl'], T: ['1b-champb'], C: ['tc-courant'], Bq: ['2b-radioactivite'], mol: ['tcc-mole'], S: ['1bc-conductimetrie'], V: ['tc-tension'], A: ['tc-courant'] };
+  SY.forEach(q => { const t = q[0], a = q[1][0];
+    q.chs = /unité/.test(t) ? UNIT_CH[a] || [] : /élément/.test(t) ? ['tcc-atome', 'tcc-classification'] : /ion /.test(t) ? ['tcc-atome', '1bc-electrolytes'] : /éthanol|éthanoïque/.test(t) ? ['tcc-molecules', '1bc-groupes'] : ['tcc-molecules', 'tcc-mole']; });
+  const SY_CH = [...new Set(SY.flatMap(q => q.chs))];
   const norm = s => s.replace(/\s+/g, '').replace(/−/g, '-').replace(/\^/g, '').replace(/[⁺]/g, '+').replace(/[⁻]/g, '-');
   function preview(raw) { // H2O → H₂O ; SO42- avec ^ : SO4^2- → SO₄²⁻
     const r = raw.replace(/−/g, '-'); const m = r.match(/^(.*?)\^?(\d*[+-])$/); let body = m ? m[1] : r, ch = m ? m[2] : '';
@@ -180,7 +225,7 @@ window.DEFIS = (() => {
     return esc(body).replace(/([A-Za-z\)])(\d+)/g, '$1<sub>$2</sub>') + (ch ? `<sup>${ch.replace('-', '−')}</sup>` : '');
   }
   function symbolesPlay(v, again) {
-    const api = A(), TM = api.teams(), N = TM.length, sc = TM.map(() => 0), per = +v.nb, SEC = +v.sec, Q = shuffle(SY); let i = 0, caps = true; api.full(true);
+    const api = A(), TM = api.teams(), N = TM.length, sc = TM.map(() => 0), per = +v.nb, SEC = +v.sec, Q = shuffle(SY.filter(q => !v.chs || q.chs.some(c => v.chs.includes(c)))); let i = 0, caps = true; api.full(true);
     const ROWS = [['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'], ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'], ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '(', ')', '^'], ['+', '−', 'Ω', '⇧', '⌫']];
     function round() {
       api.stopTimers(); if (i >= per * N) return api.podium('symboles', TM, sc, again);
@@ -256,12 +301,23 @@ window.DEFIS = (() => {
   const DRAW_WORDS = ['Le vecteur poids d’un solide', 'Une onde transversale sur une corde', 'Un circuit RC', 'Un dosage (burette + bécher)', 'La molécule d’eau', 'Les lignes de champ d’un aimant droit',
     'Un pendule simple', 'La diffraction de la lumière par une fente', 'Un atome (noyau + électrons)', 'Une chute libre', 'Le montage à reflux', 'Une pile Daniell', 'Un solide sur un plan incliné',
     'Un satellite en orbite', 'Un circuit en série avec une lampe', 'Une lentille et son image', 'Un ressort étiré', 'La réflexion sur un miroir', 'Le spectre de la lumière blanche', 'Une électrolyse'];
+  const ELEC = ['tc-courant', 'tc-tension', 'tc-association'];
+  const SCH_CH = { 'Conducteur ohmique (résistance)': ELEC.concat('tc-passifs'), Lampe: ELEC, Diode: ['tc-passifs'], 'Diode électroluminescente (DEL)': ['tc-passifs'], Condensateur: ['2b-rc', '2b-rlc'],
+    Bobine: ['2b-rl', '2b-rlc'], 'Générateur (pile)': ELEC.concat('tc-actif'), 'Interrupteur ouvert': ELEC, 'Ampèremètre': ['tc-courant'], 'Voltmètre': ['tc-tension'], Moteur: ['tc-actif', '1b-transfert'],
+    'Lentille convergente': ['1b-lentille', '1b-instruments'], 'Lentille divergente': ['1b-lentille'], 'Miroir plan': ['1b-miroir'], Ressort: ['tc-2forces', '2b-oscillants'], 'Amplificateur opérationnel': ['tc-aop'],
+    'Prise de terre (masse)': ['tc-tension'], 'Bécher': ['tcc-concentration', '1bc-dosages', '2bc-dosage'], Erlenmeyer: ['tcc-concentration', '1bc-dosages', '2bc-dosage'], 'Éprouvette graduée': ['tcc-concentration', 'tcc-mole'],
+    Burette: ['1bc-dosages', '2bc-dosage'], 'Fiole jaugée': ['tcc-concentration'], 'Ampoule à décanter': ['tcc-extraction'], 'Vecteur force (flèche)': ['tc-actions', 'tc-2forces'] };
+  SCH.forEach(x => { x.chs = SCH_CH[x[0]] || []; });
+  const WORD_CH = ['tc-gravitation', '2b-ondes', '2b-rc', '1bc-dosages', 'tcc-molecules', '1b-champb', '2b-oscillants', '2b-lumiere', 'tcc-atome', '2b-chute', 'tcc-synthese', '2bc-piles', 'tc-3forces', '2b-satellites', 'tc-courant', '1b-lentille', 'tc-2forces', '1b-miroir', '1b-visibilite', '2bc-electrolyse'];
+  const WORDS = DRAW_WORDS.map((w, k) => ({ w, chs: [WORD_CH[k]] })).concat(SCH.map(x => ({ w: x[0], chs: x.chs })));
+  const DESSIN_CH = [...new Set(WORDS.flatMap(x => x.chs))];
+  const inChs = (x, v) => !v.chs || x.chs.some(c => v.chs.includes(c));
   function dessinSetup() {
     setup('dessin', sel('mode', T('Mode', 'النمط'), [['voir', T('Identifier le schéma qui se dessine', 'تعرّف على التبيان الذي يُرسم')], ['faire', T('Un élève dessine, son équipe devine', 'يرسم تلميذ ويخمن فريقه')]], 'voir') + sel('nb', T('Manches par équipe', 'جولات لكل فريق'), [['2', '2'], ['3', '3'], ['5', '5']], '3'),
-      v => { const run = () => (v.mode === 'faire' ? dessinFaire : dessinVoir)(v, run); run(); });
+      v => { const run = () => (v.mode === 'faire' ? dessinFaire : dessinVoir)(v, run); run(); }, DESSIN_CH);
   }
   function dessinVoir(v, again) {
-    const api = A(), TM = api.teams(), N = TM.length, sc = TM.map(() => 0), per = +v.nb, Q = shuffle(SCH), DUR = 14000; let i = 0; api.full(true);
+    const api = A(), TM = api.teams(), N = TM.length, sc = TM.map(() => 0), per = +v.nb, Q0 = SCH.filter(x => inChs(x, v)), Q = shuffle(Q0.length ? Q0 : SCH), DUR = 14000; let i = 0; api.full(true);
     function round() {
       api.stopTimers(); if (i >= per * N) return api.podium('dessin', TM, sc, again);
       let cur = i % N; const s = Q[i % Q.length], os = shuffle([s[0]].concat(shuffle(SCH.filter(x => x[0] !== s[0])).slice(0, 3).map(x => x[0]))); let done = false; const out = new Set();
@@ -289,7 +345,7 @@ window.DEFIS = (() => {
     round();
   }
   function dessinFaire(v, again) {
-    const api = A(), TM = api.teams(), N = TM.length, sc = TM.map(() => 0), per = +v.nb, W = shuffle(DRAW_WORDS.concat(SCH.map(x => x[0]))), SEC = 75; let i = 0; api.full(true);
+    const api = A(), TM = api.teams(), N = TM.length, sc = TM.map(() => 0), per = +v.nb, W0 = WORDS.filter(x => inChs(x, v)).map(x => x.w), W = shuffle(W0.length ? W0 : WORDS.map(x => x.w)), SEC = 75; let i = 0; api.full(true);
     function round() {
       api.stopTimers(); if (i >= per * N) return api.podium('dessin', TM, sc, again);
       const cur = i % N, word = W[i % W.length]; let color = '#111827', size = 6, done = false, started = false;
@@ -335,13 +391,13 @@ window.DEFIS = (() => {
     register(def, fn) { list.push(def); EXTRA[def[0]] = fn; },
     page(id) {
       const T2 = (s, opts, d) => sel('sec', T('Temps par question', 'الوقت لكل سؤال'), opts.map(x => [x, x + ' s']), d);
-      if (id === 'equilibre') setup(id, sel('niv', T('Niveau', 'المستوى'), [['tc', 'Tronc commun'], ['1bac', '1re Bac (avec TC)'], ['seul1', '1re Bac seulement'], ['2bac', '2e Bac (avec TC et 1re Bac)'], ['seul2', '2e Bac seulement']], A().C().store.get('jx-eqniv', '2bac'))
-        + sel('type', T('Type de réaction', 'نوع التفاعل'), [['all', T('Tous les types', 'كل الأنواع')]].concat(Object.entries(TY).map(([k, x]) => [k, T(x[0], x[1])])), 'all') + roundsF() + T2('sec', ['45', '60', '90', '120'], '60'), v => { A().C().store.set('jx-eqniv', v.niv); const run = () => equilibrePlay(v, run); run(); });
-      else if (id === 'symboles') setup(id, roundsF() + T2('sec', ['20', '30', '45'], '30'), v => { const run = () => symbolesPlay(v, run); run(); });
+      if (id === 'equilibre') setup(id, sel('type', T('Type de réaction', 'نوع التفاعل'), [['all', T('Tous les types', 'كل الأنواع')]].concat(Object.entries(TY).map(([k, x]) => [k, T(x[0], x[1])])), 'all') + roundsF() + T2('sec', ['45', '60', '90', '120'], '60'), v => { const run = () => equilibrePlay(v, run); run(); }, EQ_CH);
+      else if (id === 'symboles') setup(id, roundsF() + T2('sec', ['20', '30', '45'], '30'), v => { const run = () => symbolesPlay(v, run); run(); }, SY_CH);
       else if (id === 'dessin') dessinSetup();
       else if (EXTRA[id]) EXTRA[id]();
     },
     _test: { parse, bilan, EQ, TY },
     _h: { setup, sel, roundsF, board, ring, timer, fmt, shuffle },
+    _ch: { EQ_CH, SY_CH, DESSIN_CH },
   };
 })();
