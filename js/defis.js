@@ -24,6 +24,7 @@ window.DEFIS = (() => {
   }
   function parse(sp) {
     const [body, ch] = sp.split('^'); let i = 0;
+    if (body === 'e') return { atoms: {}, q: -1 };
     const group = () => { const m = {}; while (i < body.length && body[i] !== ')') {
       let sub; if (body[i] === '(') { i++; sub = group(); i++; } else { const e = body.slice(i).match(/^[A-Z][a-z]?/)[0]; i += e.length; sub = { [e]: 1 }; }
       const n = body.slice(i).match(/^\d+/); const k = n ? +n[0] : 1; if (n) i += n[0].length;
@@ -40,20 +41,52 @@ window.DEFIS = (() => {
     const ok = Object.values(el).every(v => v[0] === v[1]) && q[0] === q[1] && c.reduce(gcd) === 1;
     return { el, q, ok };
   }
-  // n : niveau ; s : solution (contrôle)
+  // [réactifs, produits, solution, niveau, type] — niveau : tc, 1bac, 2bac (un niveau inclut les précédents)
+  const TY = { comb: ['Combustion', 'احتراق'], prec: ['Précipitation', 'ترسيب'], diss: ['Dissolution', 'ذوبان'], ab: ['Acide-base', 'حمض-قاعدة'],
+    redox: ['Oxydoréduction', 'أكسدة-اختزال'], demi: ['Demi-équation électronique', 'نصف معادلة إلكترونية'], elec: ['Électrolyse', 'تحليل كهربائي'], org: ['Chimie organique', 'كيمياء عضوية'], autre: ['Synthèse / décomposition', 'تركيب / تفكك'] };
   const EQ = [
-    [['C3H8', 'O2'], ['CO2', 'H2O'], [1, 5, 3, 4]], [['Al', 'H^+'], ['Al^3+', 'H2'], [2, 6, 2, 3]], [['Cu', 'Ag^+'], ['Cu^2+', 'Ag'], [1, 2, 1, 2]],
-    [['Fe^3+', 'HO^-'], ['Fe(OH)3'], [1, 3, 1]], [['C2H6O', 'O2'], ['CO2', 'H2O'], [1, 3, 2, 3]], [['Fe2O3', 'CO'], ['Fe', 'CO2'], [1, 3, 2, 3]],
-    [['MnO2', 'HCl'], ['MnCl2', 'Cl2', 'H2O'], [1, 4, 1, 1, 2]], [['Cl^-', 'H2O'], ['Cl2', 'H2', 'HO^-'], [2, 2, 1, 1, 2]],
-    [['CH4', 'O2'], ['CO2', 'H2O'], [1, 2, 1, 2]], [['H2', 'O2'], ['H2O'], [2, 1, 2]], [['Na', 'H2O'], ['Na^+', 'HO^-', 'H2'], [2, 2, 2, 2, 1]],
-    [['Zn', 'H^+'], ['Zn^2+', 'H2'], [1, 2, 1, 1]], [['N2', 'H2'], ['NH3'], [1, 3, 2]], [['Fe', 'O2'], ['Fe3O4'], [3, 2, 1]],
-    [['CaCO3', 'H^+'], ['Ca^2+', 'CO2', 'H2O'], [1, 2, 1, 1, 1]], [['Al', 'O2'], ['Al2O3'], [4, 3, 2]], [['C4H10', 'O2'], ['CO2', 'H2O'], [2, 13, 8, 10]],
-    [['Cu^2+', 'HO^-'], ['Cu(OH)2'], [1, 2, 1]], [['Fe', 'Cu^2+'], ['Fe^2+', 'Cu'], [1, 1, 1, 1]], [['MnO4^-', 'H^+', 'Fe^2+'], ['Mn^2+', 'Fe^3+', 'H2O'], [1, 8, 5, 1, 5, 4]],
-    [['I2', 'S2O3^2-'], ['I^-', 'S4O6^2-'], [1, 2, 2, 1]], [['Cr2O7^2-', 'H^+', 'Fe^2+'], ['Cr^3+', 'Fe^3+', 'H2O'], [1, 14, 6, 2, 6, 7]],
-    [['NH3', 'O2'], ['NO', 'H2O'], [4, 5, 4, 6]], [['Mg', 'HCl'], ['MgCl2', 'H2'], [1, 2, 1, 1]], [['Pb^2+', 'I^-'], ['PbI2'], [1, 2, 1]],
-    [['KClO3'], ['KCl', 'O2'], [2, 2, 3]], [['H2O2'], ['H2O', 'O2'], [2, 2, 1]], [['C6H12O6', 'O2'], ['CO2', 'H2O'], [1, 6, 6, 6]],
-    [['SO2', 'O2'], ['SO3'], [2, 1, 2]], [['Fe^2+', 'H2O2', 'H^+'], ['Fe^3+', 'H2O'], [2, 1, 2, 2, 2]], [['Cu', 'NO3^-', 'H^+'], ['Cu^2+', 'NO', 'H2O'], [3, 2, 8, 3, 2, 4]],
-    [['Ag^+', 'Zn'], ['Ag', 'Zn^2+'], [2, 1, 2, 1]], [['C2H6O', 'MnO4^-', 'H^+'], ['C2H4O2', 'Mn^2+', 'H2O'], [5, 4, 12, 5, 4, 11]],
+    // --- Tronc commun ---
+    [['C3H8', 'O2'], ['CO2', 'H2O'], [1, 5, 3, 4], 'tc', 'comb'], [['C2H6O', 'O2'], ['CO2', 'H2O'], [1, 3, 2, 3], 'tc', 'comb'], [['CH4', 'O2'], ['CO2', 'H2O'], [1, 2, 1, 2], 'tc', 'comb'],
+    [['C4H10', 'O2'], ['CO2', 'H2O'], [2, 13, 8, 10], 'tc', 'comb'], [['C2H2', 'O2'], ['CO2', 'H2O'], [2, 5, 4, 2], 'tc', 'comb'], [['C8H18', 'O2'], ['CO2', 'H2O'], [2, 25, 16, 18], 'tc', 'comb'],
+    [['C2H4', 'O2'], ['CO2', 'H2O'], [1, 3, 2, 2], 'tc', 'comb'], [['C6H6', 'O2'], ['CO2', 'H2O'], [2, 15, 12, 6], 'tc', 'comb'], [['CH4O', 'O2'], ['CO2', 'H2O'], [2, 3, 2, 4], 'tc', 'comb'],
+    [['C6H12O6', 'O2'], ['CO2', 'H2O'], [1, 6, 6, 6], 'tc', 'comb'], [['H2', 'O2'], ['H2O'], [2, 1, 2], 'tc', 'comb'], [['Fe', 'O2'], ['Fe3O4'], [3, 2, 1], 'tc', 'comb'],
+    [['Fe', 'O2'], ['Fe2O3'], [4, 3, 2], 'tc', 'comb'], [['Al', 'O2'], ['Al2O3'], [4, 3, 2], 'tc', 'comb'], [['Mg', 'O2'], ['MgO'], [2, 1, 2], 'tc', 'comb'], [['NH3', 'O2'], ['NO', 'H2O'], [4, 5, 4, 6], 'tc', 'comb'],
+    [['Fe^3+', 'HO^-'], ['Fe(OH)3'], [1, 3, 1], 'tc', 'prec'], [['Cu^2+', 'HO^-'], ['Cu(OH)2'], [1, 2, 1], 'tc', 'prec'], [['Fe^2+', 'HO^-'], ['Fe(OH)2'], [1, 2, 1], 'tc', 'prec'],
+    [['Al^3+', 'HO^-'], ['Al(OH)3'], [1, 3, 1], 'tc', 'prec'], [['Pb^2+', 'I^-'], ['PbI2'], [1, 2, 1], 'tc', 'prec'], [['Ca^2+', 'PO4^3-'], ['Ca3(PO4)2'], [3, 2, 1], 'tc', 'prec'],
+    [['Ag^+', 'CrO4^2-'], ['Ag2CrO4'], [2, 1, 1], 'tc', 'prec'],
+    [['CaCl2'], ['Ca^2+', 'Cl^-'], [1, 1, 2], 'tc', 'diss'], [['Al2(SO4)3'], ['Al^3+', 'SO4^2-'], [1, 2, 3], 'tc', 'diss'], [['FeCl3'], ['Fe^3+', 'Cl^-'], [1, 1, 3], 'tc', 'diss'],
+    [['Na2SO4'], ['Na^+', 'SO4^2-'], [1, 2, 1], 'tc', 'diss'], [['K3PO4'], ['K^+', 'PO4^3-'], [1, 3, 1], 'tc', 'diss'], [['Na2CO3'], ['Na^+', 'CO3^2-'], [1, 2, 1], 'tc', 'diss'],
+    [['Al', 'H^+'], ['Al^3+', 'H2'], [2, 6, 2, 3], 'tc', 'redox'], [['Cu', 'Ag^+'], ['Cu^2+', 'Ag'], [1, 2, 1, 2], 'tc', 'redox'], [['Fe2O3', 'CO'], ['Fe', 'CO2'], [1, 3, 2, 3], 'tc', 'redox'],
+    [['Zn', 'H^+'], ['Zn^2+', 'H2'], [1, 2, 1, 1], 'tc', 'redox'], [['Fe', 'Cu^2+'], ['Fe^2+', 'Cu'], [1, 1, 1, 1], 'tc', 'redox'], [['Na', 'H2O'], ['Na^+', 'HO^-', 'H2'], [2, 2, 2, 2, 1], 'tc', 'redox'],
+    [['Mg', 'HCl'], ['MgCl2', 'H2'], [1, 2, 1, 1], 'tc', 'redox'], [['Ag^+', 'Zn'], ['Ag', 'Zn^2+'], [2, 1, 2, 1], 'tc', 'redox'], [['Al', 'Cu^2+'], ['Al^3+', 'Cu'], [2, 3, 2, 3], 'tc', 'redox'],
+    [['CaCO3', 'H^+'], ['Ca^2+', 'CO2', 'H2O'], [1, 2, 1, 1, 1], 'tc', 'ab'],
+    [['N2', 'H2'], ['NH3'], [1, 3, 2], 'tc', 'autre'], [['KClO3'], ['KCl', 'O2'], [2, 2, 3], 'tc', 'autre'], [['H2O2'], ['H2O', 'O2'], [2, 2, 1], 'tc', 'autre'], [['SO2', 'O2'], ['SO3'], [2, 1, 2], 'tc', 'autre'],
+    [['CaCO3'], ['CaO', 'CO2'], [1, 1, 1], 'tc', 'autre'], [['NaHCO3'], ['Na2CO3', 'CO2', 'H2O'], [2, 1, 1, 1], 'tc', 'autre'],
+    // --- 1re Bac ---
+    [['H2SO4', 'HO^-'], ['SO4^2-', 'H2O'], [1, 2, 1, 2], '1bac', 'ab'], [['H3PO4', 'HO^-'], ['PO4^3-', 'H2O'], [1, 3, 1, 3], '1bac', 'ab'], [['CO3^2-', 'H3O^+'], ['CO2', 'H2O'], [1, 2, 1, 3], '1bac', 'ab'],
+    [['Ca(OH)2', 'HCl'], ['CaCl2', 'H2O'], [1, 2, 1, 2], '1bac', 'ab'], [['Mg(OH)2', 'H3O^+'], ['Mg^2+', 'H2O'], [1, 2, 1, 4], '1bac', 'ab'], [['Al(OH)3', 'H3O^+'], ['Al^3+', 'H2O'], [1, 3, 1, 6], '1bac', 'ab'],
+    [['HCO3^-', 'H3O^+'], ['CO2', 'H2O'], [1, 1, 1, 2], '1bac', 'ab'], [['NaOH', 'H2SO4'], ['Na2SO4', 'H2O'], [2, 1, 1, 2], '1bac', 'ab'], [['NH3', 'H2SO4'], ['NH4^+', 'SO4^2-'], [2, 1, 2, 1], '1bac', 'ab'],
+    [['Fe^3+', 'e^-'], ['Fe^2+'], [1, 1, 1], '1bac', 'demi'], [['Cu^2+', 'e^-'], ['Cu'], [1, 2, 1], '1bac', 'demi'], [['I2', 'e^-'], ['I^-'], [1, 2, 2], '1bac', 'demi'],
+    [['Cl2', 'e^-'], ['Cl^-'], [1, 2, 2], '1bac', 'demi'], [['S4O6^2-', 'e^-'], ['S2O3^2-'], [1, 2, 2], '1bac', 'demi'], [['MnO4^-', 'H^+', 'e^-'], ['Mn^2+', 'H2O'], [1, 8, 5, 1, 4], '1bac', 'demi'],
+    [['Cr2O7^2-', 'H^+', 'e^-'], ['Cr^3+', 'H2O'], [1, 14, 6, 2, 7], '1bac', 'demi'], [['O2', 'H^+', 'e^-'], ['H2O'], [1, 4, 4, 2], '1bac', 'demi'], [['H2O2', 'H^+', 'e^-'], ['H2O'], [1, 2, 2, 2], '1bac', 'demi'],
+    [['NO3^-', 'H^+', 'e^-'], ['NO', 'H2O'], [1, 4, 3, 1, 2], '1bac', 'demi'], [['SO4^2-', 'H^+', 'e^-'], ['SO2', 'H2O'], [1, 4, 2, 1, 2], '1bac', 'demi'], [['H^+', 'e^-'], ['H2'], [2, 2, 1], '1bac', 'demi'],
+    [['MnO2', 'HCl'], ['MnCl2', 'Cl2', 'H2O'], [1, 4, 1, 1, 2], '1bac', 'redox'], [['MnO4^-', 'H^+', 'Fe^2+'], ['Mn^2+', 'Fe^3+', 'H2O'], [1, 8, 5, 1, 5, 4], '1bac', 'redox'],
+    [['I2', 'S2O3^2-'], ['I^-', 'S4O6^2-'], [1, 2, 2, 1], '1bac', 'redox'], [['Cr2O7^2-', 'H^+', 'Fe^2+'], ['Cr^3+', 'Fe^3+', 'H2O'], [1, 14, 6, 2, 6, 7], '1bac', 'redox'],
+    [['Fe^2+', 'H2O2', 'H^+'], ['Fe^3+', 'H2O'], [2, 1, 2, 2, 2], '1bac', 'redox'], [['Cu', 'NO3^-', 'H^+'], ['Cu^2+', 'NO', 'H2O'], [3, 2, 8, 3, 2, 4], '1bac', 'redox'],
+    [['C2H6O', 'MnO4^-', 'H^+'], ['C2H4O2', 'Mn^2+', 'H2O'], [5, 4, 12, 5, 4, 11], '1bac', 'redox'], [['MnO4^-', 'H^+', 'H2C2O4'], ['Mn^2+', 'CO2', 'H2O'], [2, 6, 5, 2, 10, 8], '1bac', 'redox'],
+    [['H2O2', 'I^-', 'H^+'], ['I2', 'H2O'], [1, 2, 2, 1, 2], '1bac', 'redox'], [['MnO4^-', 'H^+', 'H2O2'], ['Mn^2+', 'O2', 'H2O'], [2, 6, 5, 2, 5, 8], '1bac', 'redox'],
+    [['Sn^2+', 'Fe^3+'], ['Sn^4+', 'Fe^2+'], [1, 2, 1, 2], '1bac', 'redox'], [['Cr2O7^2-', 'H^+', 'I^-'], ['Cr^3+', 'I2', 'H2O'], [1, 14, 6, 2, 3, 7], '1bac', 'redox'],
+    [['ClO^-', 'Cl^-', 'H^+'], ['Cl2', 'H2O'], [1, 1, 2, 1, 1], '1bac', 'redox'], [['Fe', 'H^+'], ['Fe^2+', 'H2'], [1, 2, 1, 1], '1bac', 'redox'],
+    [['C3H8O', 'O2'], ['C3H6O', 'H2O'], [2, 1, 2, 2], '1bac', 'org'], [['C2H4', 'H2O'], ['C2H6O'], [1, 1, 1], '1bac', 'org'], [['C2H4', 'Br2'], ['C2H4Br2'], [1, 1, 1], '1bac', 'org'],
+    // --- 2e Bac ---
+    [['CH3COOH', 'H2O'], ['CH3COO^-', 'H3O^+'], [1, 1, 1, 1], '2bac', 'ab'], [['NH3', 'H2O'], ['NH4^+', 'HO^-'], [1, 1, 1, 1], '2bac', 'ab'], [['H2O', 'H2O'], ['H3O^+', 'HO^-'], [1, 1, 1, 1], '2bac', 'ab'],
+    [['C6H5COOH', 'HO^-'], ['C6H5COO^-', 'H2O'], [1, 1, 1, 1], '2bac', 'ab'], [['H2C2O4', 'HO^-'], ['C2O4^2-', 'H2O'], [1, 2, 1, 2], '2bac', 'ab'],
+    [['Cl^-', 'H2O'], ['Cl2', 'H2', 'HO^-'], [2, 2, 1, 1, 2], '2bac', 'elec'], [['H2O'], ['H2', 'O2'], [2, 2, 1], '2bac', 'elec'], [['NaCl', 'H2O'], ['Na^+', 'HO^-', 'H2', 'Cl2'], [2, 2, 2, 2, 1, 1], '2bac', 'elec'],
+    [['Cu^2+', 'H2O'], ['Cu', 'O2', 'H^+'], [2, 2, 2, 1, 4], '2bac', 'elec'], [['PbSO4', 'H2O'], ['Pb', 'PbO2', 'SO4^2-', 'H^+'], [2, 2, 1, 1, 2, 4], '2bac', 'elec'],
+    [['Zn', 'Cu^2+'], ['Zn^2+', 'Cu'], [1, 1, 1, 1], '2bac', 'redox'], [['Zn', 'Ag^+'], ['Zn^2+', 'Ag'], [1, 2, 1, 2], '2bac', 'redox'], [['S2O8^2-', 'I^-'], ['SO4^2-', 'I2'], [1, 2, 2, 1], '2bac', 'redox'],
+    [['C2H4O2', 'C2H6O'], ['C4H8O2', 'H2O'], [1, 1, 1, 1], '2bac', 'org'], [['C5H12O', 'C2H4O2'], ['C7H14O2', 'H2O'], [1, 1, 1, 1], '2bac', 'org'],
+    [['(C2H3O)2O', 'C2H6O'], ['C4H8O2', 'C2H4O2'], [1, 1, 1, 1], '2bac', 'org'], [['C4H8O2', 'HO^-'], ['C2H3O2^-', 'C2H6O'], [1, 1, 1, 1], '2bac', 'org'],
+    [['(C17H35COO)3C3H5', 'HO^-'], ['C17H35COO^-', 'C3H8O3'], [1, 3, 3, 1], '2bac', 'org'], [['C7H6O3', 'C4H6O3'], ['C9H8O4', 'C2H4O2'], [1, 1, 1, 1], '2bac', 'org'],
   ];
 
   /* ---------- habillage commun (équipes, tours, podium) ---------- */
@@ -76,13 +109,14 @@ window.DEFIS = (() => {
 
   /* ================= 1. Équilibrage express ================= */
   function equilibrePlay(v, again) {
-    const api = A(), TM = api.teams(), N = TM.length, sc = TM.map(() => 0), per = +v.nb, SEC = +v.sec, Q = shuffle(EQ); let i = 0; api.full(true);
+    const api = A(), TM = api.teams(), N = TM.length, sc = TM.map(() => 0), per = +v.nb, SEC = +v.sec, LV = { tc: ['tc'], '1bac': ['tc', '1bac'], '2bac': ['tc', '1bac', '2bac'], seul1: ['1bac'], seul2: ['2bac'] }[v.niv] || ['tc', '1bac', '2bac'];
+    let Q = shuffle(EQ.filter(e => LV.includes(e[3]) && (v.type === 'all' || e[4] === v.type))); if (!Q.length) Q = shuffle(EQ); let i = 0; api.full(true);
     function round() {
       api.stopTimers(); if (i >= per * N) return api.podium('equilibre', TM, sc, again);
       const cur = i % N, eq = Q[i % Q.length], sp = eq[0].concat(eq[1]), c = sp.map(() => 1); let done = false, aide = false, wrong = 0;
       app().innerHTML = `<section class="jx-stage">${api.bar()}${board(TM, sc, cur)}
         <div class="jx-turnrow"><div class="jx-turn" style="--c:${api.COLORS[cur]}">${T('À', 'دور')} <b>${esc(TM[cur].n)}</b> ${T('d’équilibrer', 'للموازنة')} · ${Math.floor(i / N) + 1}/${per}</div>${ring(api.COLORS[cur], SEC)}</div>
-        <div class="jx-q jx-eqq" dir="ltr" lang="fr"><div class="jx-eq">${sp.map((s, k) => `${k === eq[0].length ? '<span class="jx-arrow">⟶</span>' : k ? '<span class="jx-plus">+</span>' : ''}
+        <div class="jx-q jx-eqq" dir="ltr" lang="fr"><p class="jx-ch">${T(TY[eq[4]][0], TY[eq[4]][1])} · ${{ tc: 'Tronc commun', '1bac': '1re Bac', '2bac': '2e Bac' }[eq[3]]}</p><div class="jx-eq">${sp.map((s, k) => `${k === eq[0].length ? '<span class="jx-arrow">⟶</span>' : k ? '<span class="jx-plus">+</span>' : ''}
           <span class="jx-sp"><span class="jx-co"><button type="button" class="up" data-k="${k}">▲</button><b data-c="${k}">1</b><button type="button" class="dn" data-k="${k}">▼</button></span><span class="jx-f2">${fmt(s)}</span></span>`).join('')}</div>
           <div class="jx-bil" hidden></div>
           <div class="jx-cluebar"><button type="button" class="jx-hint" id="aide">📊 ${T('Bilan des atomes (−3)', 'حصيلة الذرات (−3)')}</button><button type="button" class="jx-btn big" id="ok">✔ ${T('Valider', 'تحقق')}</button></div><div class="jx-after"></div></div></section>`;
@@ -299,10 +333,11 @@ window.DEFIS = (() => {
     list,
     page(id) {
       const T2 = (s, opts, d) => sel('sec', T('Temps par question', 'الوقت لكل سؤال'), opts.map(x => [x, x + ' s']), d);
-      if (id === 'equilibre') setup(id, roundsF() + T2('sec', ['45', '60', '90', '120'], '60'), v => { const run = () => equilibrePlay(v, run); run(); });
+      if (id === 'equilibre') setup(id, sel('niv', T('Niveau', 'المستوى'), [['tc', 'Tronc commun'], ['1bac', '1re Bac (avec TC)'], ['seul1', '1re Bac seulement'], ['2bac', '2e Bac (avec TC et 1re Bac)'], ['seul2', '2e Bac seulement']], A().C().store.get('jx-eqniv', '2bac'))
+        + sel('type', T('Type de réaction', 'نوع التفاعل'), [['all', T('Tous les types', 'كل الأنواع')]].concat(Object.entries(TY).map(([k, x]) => [k, T(x[0], x[1])])), 'all') + roundsF() + T2('sec', ['45', '60', '90', '120'], '60'), v => { A().C().store.set('jx-eqniv', v.niv); const run = () => equilibrePlay(v, run); run(); });
       else if (id === 'symboles') setup(id, roundsF() + T2('sec', ['20', '30', '45'], '30'), v => { const run = () => symbolesPlay(v, run); run(); });
       else if (id === 'dessin') dessinSetup();
     },
-    _test: { parse, bilan, EQ },
+    _test: { parse, bilan, EQ, TY },
   };
 })();
