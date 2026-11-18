@@ -263,6 +263,12 @@
   const seeExp = name => `<button class="seeexp" type="button" data-sim="${name}">${IC.play}<span>${t('Voir l’expérience', 'شاهد التجربة')} : ${esc(simName(name))}</span></button><div class="stepsim sim" hidden></div>`;
   const levelLab = (l, d) => [, t('Facile', 'سهل'), t('Moyen', 'متوسط'), l.niv.id === '2bac' ? t('Type Bac', 'نموذج الباك') : t('Approfondissement', 'تعمق')][d];
 
+  document.addEventListener('keydown', e => {
+    const r = document.querySelector('.panel[data-p="resume"]:not([hidden]) .reader[data-mode="pages"]');
+    if (!r || !r.__go || e.altKey || e.ctrlKey || e.metaKey || e.target.closest('input, textarea, select, [contenteditable]')) return;
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') { r.__go(document.dir === 'rtl' ? -1 : 1); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { r.__go(document.dir === 'rtl' ? 1 : -1); e.preventDefault(); }
+  });
   function lesson(l, tab) {
     const n = l.niv; let f = filOf(n);
     if (!inFil(l, f)) { f = l.fil[0]; store.set('fil-' + n.id, f); }
@@ -276,21 +282,44 @@
     const byD = [1, 2, 3].map(d => ch.exos.filter(e => e.d === d));
     let ex = 0;
 
-    const pResume = `
-      <div class="card"><div class="brief"><span class="bub">${IC.bulb}</span><div><b>${t('L’essentiel', 'الأساسي')}</b><p>${ch.intro}</p></div></div>
-        ${ch.sections.map(s => `<section class="rsec" dir="ltr" lang="fr"><h3>${s.titre}</h3>${s.html}${s.sim && SIMS[s.sim] ? seeExp(s.sim) : ''}</section>`).join('')}
-        ${ch.etapes ? `<h2 class="ptitle">${t('Le cours pas à pas', 'الدرس خطوة بخطوة')}</h2>${timeline(ch.etapes)}` : ''}
-        ${ch.details.length ? `<h2 class="ptitle">${t('Pour bien comprendre', 'لفهم أعمق')}</h2>
-          ${ch.details.map(d => `<details class="detail"><summary>${esc(d.t)}</summary><div class="dbody" dir="ltr" lang="fr">${d.h}${d.sim && SIMS[d.sim] ? seeExp(d.sim) : ''}</div></details>`).join('')}` : ''}</div>
-      <div class="card"><h2 class="ptitle">${IC.sigma} ${t('Formules à connaître', 'العلاقات الأساسية')}</h2>
-        <div class="formulas">${ch.formules.map(x => `<div class="fm"><div class="eq" dir="ltr" data-tex="${esc(x.tex)}"></div><div class="mean">${esc(x.sens)}</div></div>`).join('')}</div></div>
-      <div class="box retenir"><h2>${IC.star} ${t('À retenir', 'يجب حفظه')}</h2>${ch.retenirTl ? timeline(ch.retenir) : `<ul dir="ltr" lang="fr">${ch.retenir.map(s => `<li>${s}</li>`).join('')}</ul>`}</div>
-      <div class="box erreurs"><h2>${IC.warn} ${t('Erreurs fréquentes', 'أخطاء شائعة')}</h2>${ch.erreurs.length ? `<ul dir="ltr" lang="fr">${ch.erreurs.map(s => `<li>${s}</li>`).join('')}</ul>` : todo(t('Liste des erreurs fréquentes', 'الأخطاء الشائعة'))}</div>
-      <div class="card"><h2 class="ptitle">${t('Résumé à imprimer', 'ملخص للطبع')}</h2>
-        <div class="pdfs"><a class="pdfb" href="resumes/pdf/${l.id}.pdf" download>${IC.sheet}<span><b>${t('Résumé PDF', 'الملخص PDF')}</b><small>${t('une page, à imprimer', 'صفحة واحدة للطبع')}</small></span></a>
+    /* ---------- Résumé : lecteur de cours, une partie à la fois ---------- */
+    const strip = x => String(x).replace(/^\s*\d+\s*[.)]\s*/, '');
+    const RP = [];
+    RP.push({ ic: IC.bulb, t: t('L’essentiel', 'الأساسي'), cls: 'intro', h: `<p class="rk-lead">${ch.intro}</p>`
+      + (ch.sections.length ? `<p class="rk-plan">${t('Au programme de ce chapitre :', 'في هذا الدرس :')}</p><ol class="rk-parts">${ch.sections.map((x, j) => `<li><button type="button" data-go="${j + 1}"><span>${j + 1}</span>${strip(x.titre)}</button></li>`).join('')}</ol>` : '') });
+    ch.sections.forEach((x, j) => RP.push({ n: j + 1, t: strip(x.titre), h: x.html + (x.sim && SIMS[x.sim] ? seeExp(x.sim) : '') }));
+    if (ch.etapes) RP.push({ ic: IC.book, t: t('Le cours pas à pas', 'الدرس خطوة بخطوة'), h: timeline(ch.etapes) });
+    if (ch.details.length) RP.push({ ic: IC.atom, t: t('Pour bien comprendre', 'لفهم أعمق'), h: ch.details.map(d => `<details class="detail"><summary>${esc(d.t)}</summary><div class="dbody">${d.h}${d.sim && SIMS[d.sim] ? seeExp(d.sim) : ''}</div></details>`).join('') });
+    RP.push({ ic: IC.sigma, t: t('Formules à connaître', 'العلاقات الأساسية'), cls: 'formules', h: `<div class="formulas">${ch.formules.map(x => `<div class="fm"><div class="eq" dir="ltr" data-tex="${esc(x.tex)}"></div><div class="mean">${esc(x.sens)}</div></div>`).join('')}</div>` });
+    RP.push({ ic: IC.star, t: t('À retenir', 'يجب حفظه'), cls: 'retenir', h: ch.retenirTl ? timeline(ch.retenir) : `<ul class="rk-list">${ch.retenir.map(x => `<li>${x}</li>`).join('')}</ul>` });
+    RP.push({ ic: IC.warn, t: t('Erreurs fréquentes', 'أخطاء شائعة'), cls: 'erreurs', h: ch.erreurs.length ? `<ul class="rk-list">${ch.erreurs.map(x => `<li>${x}</li>`).join('')}</ul>` : todo(t('Liste des erreurs fréquentes', 'الأخطاء الشائعة')) });
+    RP.push({ ic: IC.sheet, t: t('Résumé à imprimer', 'ملخص للطبع'), cls: 'print', h: `<div class="pdfs"><a class="pdfb" href="resumes/pdf/${l.id}.pdf" download>${IC.sheet}<span><b>${t('Résumé PDF', 'الملخص PDF')}</b><small>${t('une page, à imprimer', 'صفحة واحدة للطبع')}</small></span></a>
           <a class="pdfb cor" href="resumes/resume.html?c=${l.id}">${IC.book}<span><b>${t('Voir le résumé', 'شاهد الملخص')}</b><small>${t('en ligne', 'على الموقع')}</small></span></a></div>
         ${fic.map(x => `<figure class="fiche"><button type="button" class="fopen" data-f="${FICHES.indexOf(x)}"><img src="${x.src}" alt="${esc(x.titre)}" loading="lazy" width="2400" height="1697"></button>
-          <figcaption><span>${t('Fiche du professeur', 'ملخص الأستاذ')} : ${esc(x.titre)}</span><a class="lb-btn" href="${x.src}" download>${t('Télécharger', 'تحميل')}</a></figcaption></figure>`).join('')}</div>`;
+          <figcaption><span>${t('Fiche du professeur', 'ملخص الأستاذ')} : ${esc(x.titre)}</span><a class="lb-btn" href="${x.src}" download>${t('Télécharger', 'تحميل')}</a></figcaption></figure>`).join('')}` });
+    const rkMode = store.get('rk-mode') === 'all' ? 'all' : 'pages';
+    const pResume = `
+      <div class="reader" data-mode="${rkMode}">
+        <aside class="rk-toc" aria-label="${t('Sommaire', 'الفهرس')}">
+          <div class="rk-head"><b>${IC.book}${t('Sommaire', 'الفهرس')}</b>
+            <button type="button" class="rk-mode" aria-pressed="${rkMode === 'all'}">${rkMode === 'all' ? t('Une partie à la fois', 'جزء بجزء') : t('Tout afficher', 'عرض الكل')}</button></div>
+          <ol>${RP.map((x, j) => `<li><button type="button" data-go="${j}"><span class="rk-n">${x.n ? x.n : x.ic}</span><span class="rk-tt" dir="auto">${x.t}</span></button></li>`).join('')}</ol>
+          <div class="rk-bar" aria-hidden="true"><i></i></div>
+        </aside>
+        <div class="rk-main">
+          <div class="rk-stage">
+            ${RP.map((x, j) => `<article class="rk-page ${x.cls || ''}" data-i="${j}" aria-label="${esc(strip(x.t))}">
+              <header class="rk-ph"><span class="rk-badge">${x.n ? x.n : x.ic}</span><div><small>${x.n ? t('Partie', 'الجزء') + ' ' + x.n + ' / ' + ch.sections.length : x.cls === 'intro' ? t('Introduction', 'مقدمة') : t('Synthèse', 'خلاصة')}</small><h2 dir="auto">${x.t}</h2></div>
+                <span class="rk-pg">${j + 1}<i>/${RP.length}</i></span></header>
+              <div class="rk-body" dir="ltr" lang="fr">${x.h}</div></article>`).join('')}
+          </div>
+          <nav class="rk-nav" aria-label="${t('Navigation dans le résumé', 'التنقل في الملخص')}">
+            <button type="button" class="rk-prev"><span class="rk-ar">‹</span><span class="rk-lb"><small>${t('Précédent', 'السابق')}</small><b></b></span></button>
+            <span class="rk-dots">${RP.map((x, j) => `<i data-go="${j}"></i>`).join('')}</span>
+            <button type="button" class="rk-next"><span class="rk-lb"><small>${t('Suivant', 'التالي')}</small><b></b></span><span class="rk-ar">›</span></button>
+          </nav>
+        </div>
+      </div>`;
 
     const P = ch.protocole;
     const lst = v => Array.isArray(v) ? `<ul>${v.map(e => `<li>${e}</li>`).join('')}</ul>` : (/^\s*</.test(v) ? v : `<p>${v}</p>`);
@@ -379,6 +408,55 @@
       const b = $(`.tabs3d [data-t="${id}"]`); if (b && b.scrollIntoView) b.scrollIntoView({ block: 'nearest', inline: 'center' });
     }
     $$('.tabs3d button').forEach(b => b.addEventListener('click', () => show(b.dataset.t)));
+    const rd = $('.reader');
+    if (rd) {
+      const pages = $$('.rk-page', rd), N = pages.length, tocB = $$('.rk-toc [data-go]', rd), dots = $$('.rk-dots i', rd);
+      const skey = 'rk-' + l.id; let cur = 0;
+      try { cur = clamp(+(sessionStorage.getItem(skey) || 0), 0, N - 1); } catch (e) { /* stockage indisponible */ }
+      const title = j => pages[j] ? $('h2', pages[j]).textContent : '';
+      const top = () => { const y = rd.getBoundingClientRect().top; if (y < 70 || y > innerHeight * 0.6) scrollTo({ top: y + scrollY - 140, behavior: 'smooth' }); };
+      function paint(anim) {
+        const all = rd.dataset.mode === 'all';
+        pages.forEach((p, j) => { const on = all || j === cur; p.classList.toggle('on', on); p.classList.remove('in-next', 'in-prev'); if (on && anim && !all) { void p.offsetWidth; p.classList.add(anim); } });
+        tocB.forEach(b => b.setAttribute('aria-current', !all && +b.dataset.go === cur ? 'step' : 'false'));
+        tocB.forEach(b => b.classList.toggle('done', !all && +b.dataset.go < cur));
+        dots.forEach((d, j) => d.classList.toggle('on', j === cur));
+        const ol = $('.rk-toc ol', rd), cb = tocB[cur]; if (!all && cb && ol.scrollWidth > ol.clientWidth + 2) ol.scrollTo({ left: cb.parentNode.offsetLeft - (ol.clientWidth - cb.offsetWidth) / 2, behavior: anim ? 'smooth' : 'auto' });
+        $('.rk-bar i', rd).style.width = all ? '100%' : ((cur + 1) / N * 100) + '%';
+        const pv = $('.rk-prev', rd), nx = $('.rk-next', rd);
+        pv.disabled = cur === 0; $('b', pv).textContent = cur > 0 ? title(cur - 1) : '';
+        $('b', nx).textContent = cur < N - 1 ? title(cur + 1) : t('Passer aux expériences', 'انتقل إلى التجارب');
+        nx.classList.toggle('last', cur === N - 1);
+        try { sessionStorage.setItem(skey, cur); } catch (e) { /* stockage indisponible */ }
+      }
+      function go(j, scroll = true) {
+        if (rd.dataset.mode === 'all') { const p = pages[j]; if (p) scrollTo({ top: p.getBoundingClientRect().top + scrollY - 130, behavior: 'smooth' }); return; }
+        if (j < 0) return; if (j >= N) { show('experiences'); scrollTo({ top: 0, behavior: 'smooth' }); return; }
+        if (j === cur) return;
+        if (stopSim) { stopSim(); stopSim = null; } closeSteps();
+        const dir = j > cur ? 'in-next' : 'in-prev'; cur = j; paint(dir); if (scroll) top();
+      }
+      rd.__go = d => go(cur + d);
+      $('.rk-prev', rd).addEventListener('click', () => go(cur - 1));
+      $('.rk-next', rd).addEventListener('click', () => go(cur + 1));
+      $$('[data-go]', rd).forEach(b => b.addEventListener('click', () => go(+b.dataset.go)));
+      $('.rk-mode', rd).addEventListener('click', e => {
+        const all = rd.dataset.mode !== 'all'; rd.dataset.mode = all ? 'all' : 'pages'; store.set('rk-mode', all ? 'all' : 'pages');
+        e.currentTarget.setAttribute('aria-pressed', all); e.currentTarget.textContent = all ? t('Une partie à la fois', 'جزء بجزء') : t('Tout afficher', 'عرض الكل');
+        paint(); top();
+      });
+      // glisser du doigt (téléphone)
+      let sx = null, sy = 0;
+      const stage = $('.rk-stage', rd);
+      stage.addEventListener('touchstart', e => { if (rd.dataset.mode === 'all' || e.target.closest('.sim, input, select, .katex-display, .formulas, .tl')) { sx = null; return; } sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+      stage.addEventListener('touchend', e => { if (sx === null) return; const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null; if (Math.abs(dx) > 70 && Math.abs(dy) < 50) go(cur + (dx < 0 ? 1 : -1) * (document.dir === 'rtl' ? -1 : 1)); }, { passive: true });
+      // léger relief 3D au survol de la souris
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches && matchMedia('(hover: hover)').matches) {
+        stage.addEventListener('pointermove', e => { if (e.pointerType !== 'mouse' || rd.dataset.mode === 'all') return; const p = pages[cur], r = p.getBoundingClientRect(); p.style.setProperty('--rx', (((e.clientY - r.top) / r.height - 0.5) * -2.2).toFixed(2) + 'deg'); p.style.setProperty('--ry', (((e.clientX - r.left) / r.width - 0.5) * 2.6).toFixed(2) + 'deg'); });
+        stage.addEventListener('pointerleave', () => pages.forEach(p => { p.style.removeProperty('--rx'); p.style.removeProperty('--ry'); }));
+      }
+      paint();
+    }
     $$('.simtabs button').forEach(b => b.addEventListener('click', () => {
       $$('.simtabs button').forEach(x => x.setAttribute('aria-selected', x === b));
       if (stopSim) stopSim();
