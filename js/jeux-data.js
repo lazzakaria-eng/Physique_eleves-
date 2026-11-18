@@ -109,3 +109,23 @@ var JEUX_DATA = {
     { n: '2bac', m: 'MODULATION', d: 'Transport d’un signal par une onde porteuse' }, { n: '2bac', m: 'PENDULE', d: 'Oscillateur formé d’une masse suspendue' }, { n: '2bac', m: 'SAVON', d: 'Produit de la saponification' },
   ],
 };
+
+/* Chapitres du programme de chaque élément (même ordre que les listes ci-dessus) */
+(() => {
+  const TAGS = {
+    quisuisje: [['tc-gravitation', 'tc-actions'], ['tc-gravitation'], ['tc-inertie'], ['tcc-especes', 'tc-2forces'], ['tcc-mole'], ['tcc-mole'], ['tc-passifs'], ['tc-passifs'], ['tc-transistor'], ['tcc-especes', 'tcc-extraction'],
+      ['tcc-molecules'], ['tcc-atome'], ['1b-travail'], ['1b-ec'], ['1b-champb', '1b-champb-courant'], ['1b-laplace'], ['1b-instruments', '1b-lentille'], ['1bc-acidobase'], ['1bc-redox'], ['1bc-dosages', '2bc-dosage'],
+      ['2b-ondes'], ['2b-ondes-per'], ['2b-ondes-per', '2b-lumiere'], ['2b-radioactivite'], ['2b-radioactivite'], ['2b-noyaux'], ['2b-rc', '2b-rl'], ['2b-rlc-force'], ['2bc-deuxsens', '2bc-equilibre'], ['2bc-equilibre', '2bc-spontanee'],
+      ['2bc-electrolyse'], ['2bc-ester'], ['2b-newton'], ['2b-satellites']],
+    intrus: [['tc-actions', 'tc-gravitation'], ['tcc-classification'], ['tcc-molecules'], ['tc-passifs', 'tc-actif'], ['tc-actions'], ['tcc-extraction', 'tcc-transformation'], ['tc-courant', 'tc-tension'], ['tcc-atome'],
+      ['1b-travail', '1b-global'], ['1bc-acidobase'], ['1bc-redox'], ['1bc-groupes'], ['1b-instruments'], ['1bc-squelettes'], ['1b-ec', '1b-epp'],
+      ['2b-ondes', '2b-lumiere'], ['2b-radioactivite', '2b-noyaux'], ['2b-rc', '2b-rl', '2b-rlc'], ['2bc-ester', '2bc-controle', '2bc-deuxsens'], ['2bc-lentes', '2bc-equilibre'], ['2bc-piles', '2bc-electrolyse'], ['2b-lumiere', '2b-atome'],
+      ['2b-satellites'], ['2b-rlc']],
+    defis: [['tc-gravitation'], ['tc-gravitation'], ['tc-association'], ['tcc-concentration'], ['tc-mouvement'], ['tc-2forces'], ['tcc-mole'], ['1b-ec'], ['1b-epp'], ['1b-travail'], ['1b-lentille'], ['1b-thermique'], ['1bc-dosages'], ['1b-global'],
+      ['2b-radioactivite'], ['2b-satellites'], ['2b-rc'], ['2b-rlc'], ['2b-ondes-per'], ['2b-plans'], ['2bc-deuxsens', '2bc-acidebase'], ['2bc-spontanee'], ['2bc-electrolyse'], ['2b-noyaux']],
+    mots: [['tc-actions'], ['tc-gravitation'], ['tc-inertie'], ['tcc-mole'], ['tcc-atome'], ['tc-mouvement'], ['tc-passifs'], ['tc-tension'], ['tcc-molecules'], ['tcc-concentration'], ['tcc-concentration'], ['tcc-atome'],
+      ['1b-travail'], ['1b-travail'], ['1b-lentille'], ['1b-laplace'], ['1b-champb'], ['1bc-redox'], ['1bc-dosages'], ['1bc-squelettes'], ['1bc-conductimetrie'],
+      ['2b-ondes-per', '2b-lumiere'], ['2b-ondes-per'], ['2b-noyaux'], ['2b-noyaux'], ['2b-radioactivite'], ['2b-rc'], ['2b-rl'], ['2b-rlc-force'], ['2b-satellites'], ['2bc-ester'], ['2bc-lentes', '2bc-ester'], ['2bc-electrolyse'], ['2b-modulation'], ['2b-oscillants'], ['2bc-controle']],
+  };
+  Object.keys(TAGS).forEach(k => JEUX_DATA[k].forEach((x, i) => { x.c = TAGS[k][i] || []; }));
+})();
