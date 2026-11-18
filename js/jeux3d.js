@@ -7,6 +7,7 @@ window.JEUX3D = (() => {
   const A = () => JEUX.api, T = (fr, ar) => A().C().t(fr, ar), esc = s => A().C().esc(s);
   const app = () => $('#app');
   const list = [
+    ['roue', '🎡', 'Roue des élèves', 'عجلة التلاميذ', 'Entre le nombre d’élèves (ou leurs prénoms) et fais tourner la roue : qui va au tableau ? qui gagne ?', 'أدخل عدد التلاميذ (أو أسماءهم) وأدر العجلة : من يذهب إلى السبورة ؟ من يفوز ؟', 'x5'],
     ['morpion3d', '🧊', 'Morpion 3D', 'إكس-أو ثلاثي الأبعاد', 'Un cube de 3×3×3 cases à faire tourner du doigt. Aligne 3 boules dans n’importe quelle direction de l’espace !', 'مكعب 3×3×3 تديره بإصبعك. اصنع صفا من 3 كرات في أي اتجاه في الفضاء !', 'x1'],
     ['bulles', '🫧', 'Bulles 3D', 'الفقاعات', 'Chacun sa moitié d’écran : éclate seulement les bulles de la couleur demandée. Attention aux bombes !', 'لكل لاعب نصف الشاشة : فجّر فقط فقاعات اللون المطلوب. احذر القنابل !', 'x2'],
     ['sequence', '🎶', 'Séquence lumineuse', 'التسلسل المضيء', 'Mémorise la suite de lumières et de sons, puis reproduis-la. Elle s’allonge à chaque tour !', 'احفظ تسلسل الأضواء والأصوات ثم أعده. يطول في كل دور !', 'x3'],
@@ -221,10 +222,130 @@ window.JEUX3D = (() => {
     round();
   }
 
+  /* ================= Roue des élèves (tirage au sort) ================= */
+  let AC2 = null;
+  const ac = () => (AC2 = AC2 || new (window.AudioContext || window.webkitAudioContext)());
+  const sonOn = () => A().get('jx-son', true);
+  function note(f, t, len, type, vol, bend) {
+    const c = ac(), o = c.createOscillator(), g = c.createGain(); o.type = type || 'triangle'; o.frequency.setValueAtTime(f, t);
+    if (bend) o.frequency.linearRampToValueAtTime(bend, t + len);
+    o.connect(g); g.connect(c.destination); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol || 0.25, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + len); o.start(t); o.stop(t + len + 0.05);
+  }
+  function tick() { if (!sonOn()) return; try { note(1400, ac().currentTime, 0.03, 'square', 0.08); } catch (e) { /* audio */ } }
+  function sadTrombone() { // « wah wah wah waaah » puis rires
+    if (!sonOn()) return;
+    try {
+      const c = ac(), t = c.currentTime, lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1200; lp.connect(c.destination);
+      [[294, 0, .38], [277, .42, .38], [262, .84, .38], [247, 1.26, 1.3]].forEach(([f, d, len], i) => {
+        const o = c.createOscillator(), g = c.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(f, t + d);
+        if (i === 3) { const lfo = c.createOscillator(), lg = c.createGain(); lfo.frequency.value = 6; lg.gain.value = 9; lfo.connect(lg); lg.connect(o.frequency); lfo.start(t + d + 0.3); lfo.stop(t + d + len); o.frequency.linearRampToValueAtTime(f * 0.94, t + d + len); }
+        o.connect(g); g.connect(lp); g.gain.setValueAtTime(0.0001, t + d); g.gain.exponentialRampToValueAtTime(0.22, t + d + 0.05); g.gain.setValueAtTime(0.2, t + d + len - 0.1); g.gain.exponentialRampToValueAtTime(0.0001, t + d + len); o.start(t + d); o.stop(t + d + len + 0.05);
+      });
+      laugh(t + 2.7);
+    } catch (e) { /* audio */ }
+  }
+  function laugh(t0) { // « ha ha ha ha » : voyelle « a » par filtres de formants
+    const c = ac(); const base = [310, 300, 285, 270, 255, 240, 225];
+    base.forEach((f, i) => {
+      const t = t0 + i * 0.17, o = c.createOscillator(), f1 = c.createBiquadFilter(), f2 = c.createBiquadFilter(), g = c.createGain(), mix = c.createGain();
+      o.type = 'sawtooth'; o.frequency.setValueAtTime(f, t); o.frequency.linearRampToValueAtTime(f * 0.85, t + 0.13);
+      f1.type = 'bandpass'; f1.frequency.value = 850; f1.Q.value = 6; f2.type = 'bandpass'; f2.frequency.value = 1250; f2.Q.value = 7;
+      o.connect(f1); o.connect(f2); f1.connect(mix); f2.connect(mix); mix.gain.value = 1.6; mix.connect(g); g.connect(c.destination);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.5, t + 0.025); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
+      o.start(t); o.stop(t + 0.16);
+    });
+  }
+  function fanfare() { // fanfare + applaudissements
+    if (!sonOn()) return;
+    try {
+      const c = ac(), t = c.currentTime;
+      [[523, 0, .16], [659, .16, .16], [784, .32, .16], [1047, .48, .5], [784, .98, .14], [1047, 1.12, .8]].forEach(([f, d, len]) => { note(f, t + d, len, 'square', 0.12); note(f / 2, t + d, len, 'triangle', 0.15); });
+      const N = c.sampleRate * 2.5, buf = c.createBuffer(1, N, c.sampleRate), ch = buf.getChannelData(0);
+      for (let i = 0; i < N; i++) { const clap = Math.random() < 0.004 ? 1 : 0; ch[i] = (Math.random() * 2 - 1) * (0.25 + clap) * Math.pow(1 - i / N, 0.6); }
+      const src = c.createBufferSource(), bp = c.createBiquadFilter(), g = c.createGain(); src.buffer = buf; bp.type = 'bandpass'; bp.frequency.value = 1800; bp.Q.value = 0.8; g.gain.value = 0.5;
+      src.connect(bp); bp.connect(g); g.connect(c.destination); src.start(t + 0.5);
+    } catch (e) { /* audio */ }
+  }
+  function rouePage() {
+    const api = A(), st = A().get('jx-roue', { n: 30, noms: '', retirer: true, sortis: [] });
+    const items = () => { const noms = st.noms.split('\n').map(x => x.trim()).filter(Boolean); const all = noms.length ? noms : Array.from({ length: Math.max(2, Math.min(60, +st.n || 30)) }, (_, i) => String(i + 1)); return all.filter(x => !(st.retirer && st.sortis.includes(x))); };
+    const save = () => A().put('jx-roue', st);
+    api.full(true);
+    app().innerHTML = `<section class="jx-stage jx-roue">${api.bar()}
+      <div class="jx-rw"><div class="jx-wheelbox"><div class="jx-ptr"></div><canvas width="900" height="900"></canvas><button type="button" class="jx-hub" aria-label="${T('Tourner', 'أدر')}">${T('TOURNE', 'أدر')}</button></div>
+        <aside class="jx-rpanel">
+          <div class="jx-rbtns"><button type="button" class="jx-btn huge lose" data-m="lose">😅 ${T('Qui va au tableau ?', 'من سيصحح ؟')}</button>
+            <button type="button" class="jx-btn huge win" data-m="win">🏆 ${T('Qui gagne ?', 'من يفوز ؟')}</button></div>
+          <label class="jx-f"><span>${T('Nombre d’élèves', 'عدد التلاميذ')}</span><input id="rn" type="number" min="2" max="60" value="${st.n}"></label>
+          <label class="jx-f"><span>${T('Ou les prénoms (un par ligne)', 'أو الأسماء (اسم في كل سطر)')}</span><textarea id="rnoms" rows="4" placeholder="Yasmine&#10;Amine&#10;…">${esc(st.noms)}</textarea></label>
+          <label class="jx-chk"><input type="checkbox" id="rret"${st.retirer ? ' checked' : ''}> ${T('Retirer de la roue l’élève tiré', 'حذف التلميذ المختار من العجلة')}</label>
+          <div class="jx-sortis"></div>
+          <button type="button" class="jx-btn ghost" id="rraz">↺ ${T('Remettre tout le monde', 'إرجاع الجميع')}</button></aside></div>
+      <div class="jx-rres" hidden></div></section>`;
+    api.wireBar();
+    const cv = $('.jx-wheelbox canvas'), ctx = cv.getContext('2d'), COLS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#3b82f6', '#6366f1', '#a855f7', '#ec4899', '#0ea5e9'];
+    let rot = 0, spinning = false, list = items();
+    function draw() {
+      const N = list.length, R = 430, cx = 450, cy = 450, a = 2 * Math.PI / Math.max(N, 1);
+      ctx.clearRect(0, 0, 900, 900);
+      ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot);
+      for (let i = 0; i < N; i++) {
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, R, i * a, (i + 1) * a); ctx.closePath();
+        const g = ctx.createRadialGradient(0, 0, 40, 0, 0, R); g.addColorStop(0, '#fff'); g.addColorStop(0.25, COLS[i % COLS.length]); g.addColorStop(1, COLS[i % COLS.length]);
+        ctx.fillStyle = g; ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 3; ctx.stroke();
+        ctx.save(); ctx.rotate((i + 0.5) * a); ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff';
+        const fs = Math.max(16, Math.min(58, 700 / N + 8)); ctx.font = `900 ${fs}px Inter, Arial, sans-serif`; ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 6;
+        const txt = list[i].length > 14 ? list[i].slice(0, 13) + '…' : list[i];
+        if (Math.cos(rot + (i + 0.5) * a) < 0) { ctx.rotate(Math.PI); ctx.textAlign = 'left'; ctx.fillText(txt, -R + 22, 0); } else ctx.fillText(txt, R - 22, 0);
+        ctx.restore();
+      }
+      ctx.restore();
+      ctx.beginPath(); ctx.arc(cx, cy, R + 8, 0, 2 * Math.PI); ctx.lineWidth = 16; ctx.strokeStyle = '#1e293b'; ctx.stroke();
+      for (let i = 0; i < 36; i++) { const b = i * Math.PI / 18; ctx.beginPath(); ctx.arc(cx + Math.cos(b) * (R + 8), cy + Math.sin(b) * (R + 8), 5, 0, 2 * Math.PI); ctx.fillStyle = i % 2 ? '#fde68a' : '#fff'; ctx.fill(); }
+    }
+    const sortis = () => { $('.jx-sortis').innerHTML = st.sortis.length ? `<b>${T('Déjà tirés', 'تم اختيارهم')} :</b> ${st.sortis.map(x => `<span>${esc(x)}</span>`).join('')}` : ''; };
+    const refresh = () => { list = items(); draw(); sortis(); };
+    function spin(mode) {
+      if (spinning) return; list = items(); if (list.length < 1) return;
+      spinning = true; $('.jx-rres').hidden = true; $$('.jx-rbtns button, .jx-hub').forEach(b => { b.disabled = true; });
+      const N = list.length, a = 2 * Math.PI / N, k = Math.floor(Math.random() * N);
+      // le pointeur est en haut (−π/2) : on vise le milieu de la case k
+      const target = -Math.PI / 2 - (k + 0.5) * a + (Math.random() - 0.5) * a * 0.6;
+      const start = rot, turns = 6 + Math.floor(Math.random() * 3);
+      const total = start + ((((target - start) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)) + 2 * Math.PI * turns, dur = 5200, t0 = performance.now();
+      let lastSeg = -1;
+      const step = now => {
+        const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 4); rot = start + (total - start) * e; draw();
+        const seg = Math.floor(((((-Math.PI / 2 - rot) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)) / a); if (seg !== lastSeg) { lastSeg = seg; tick(); $('.jx-ptr').classList.remove('hit'); void $('.jx-ptr').offsetWidth; $('.jx-ptr').classList.add('hit'); }
+        if (p < 1) return raf = requestAnimationFrame(step);
+        spinning = false; $$('.jx-rbtns button, .jx-hub').forEach(b => { b.disabled = false; });
+        const who = list[k]; if (st.retirer) { st.sortis.push(who); save(); }
+        show(who, mode); sortis();
+      };
+      let raf = requestAnimationFrame(step); A().hook(() => cancelAnimationFrame(raf));
+    }
+    function show(who, mode) {
+      const r = $('.jx-rres'); r.hidden = false; r.className = 'jx-rres ' + mode;
+      r.innerHTML = mode === 'lose' ? `<div><p>😂 ${T('Au tableau !', 'إلى السبورة !')}</p><b>${esc(who)}</b><small>${T('C’est à toi de corriger…', 'دورك في التصحيح…')}</small><button type="button" class="jx-btn big" id="rok">${T('OK', 'حسنا')}</button></div>`
+        : `<div><p>🏆 ${T('Bravo !', 'برافو !')}</p><b>${esc(who)}</b><small>${T('Tu as gagné !', 'لقد فزت !')}</small><button type="button" class="jx-btn big" id="rok">${T('OK', 'حسنا')}</button></div>`;
+      if (mode === 'lose') { sadTrombone(); r.classList.add('shake'); } else { fanfare(); A().confetti(); }
+      $('#rok').addEventListener('click', () => { r.hidden = true; refresh(); });
+    }
+    $$('.jx-rbtns button').forEach(b => b.addEventListener('click', () => spin(b.dataset.m)));
+    $('.jx-hub').addEventListener('click', () => spin('lose'));
+    $('#rn').addEventListener('change', e => { st.n = Math.max(2, Math.min(60, +e.target.value || 30)); e.target.value = st.n; st.sortis = []; save(); refresh(); });
+    $('#rnoms').addEventListener('change', e => { st.noms = e.target.value; st.sortis = []; save(); refresh(); });
+    $('#rret').addEventListener('change', e => { st.retirer = e.target.checked; save(); refresh(); });
+    $('#rraz').addEventListener('click', () => { st.sortis = []; save(); refresh(); });
+    api.onKey(e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); spin('lose'); } });
+    refresh();
+  }
+
   return {
     list,
     page(id) {
       const go3 = f => async (names, opt) => { await loadThree(); const run = () => f(names, run, opt); run(); };
+      if (id === 'roue') return rouePage();
       if (id === 'morpion3d') setup(id, '', go3(morpionPlay));
       else if (id === 'bulles') setup(id, optSel(T('Durée', 'المدة'), [['30', '30 s'], ['45', '45 s'], ['60', '60 s']], '45'), go3(bullesPlay));
       else if (id === 'sequence') setup(id, '', async names => { const run = () => sequencePlay(names, run); run(); });
