@@ -15,11 +15,24 @@
 
   /* ---------- formules (KaTeX) ---------- */
   const KX = { throwOnError: false, strict: false };
+  // indices écrits en texte simple (Q_r, E_c, pK_A, x_max…) → vrais indices
+  const SUBRE = /(^|[^\w\\/.-])([A-Za-zΔτθσλωμρ][A-Za-z′']{0,2})_(\{[^}]+\}|[A-Za-z0-9]+(?:,[a-zA-Z]+)?)/g;
+  function subs(root) {
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n => n.nodeValue.includes('_') && !n.parentNode.closest('.katex, script, style, textarea, input, code') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT });
+    const list = []; while (w.nextNode()) list.push(w.currentNode);
+    list.forEach(n => {
+      if (!SUBRE.test(n.nodeValue)) return; SUBRE.lastIndex = 0;
+      const span = document.createElement('span');
+      span.innerHTML = n.nodeValue.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])).replace(SUBRE, (m, a, b, c) => a + b + '<sub>' + c.replace(/^\{|\}$/g, '') + '</sub>');
+      n.replaceWith(...span.childNodes);
+    });
+  }
   function typeset(root) {
     root = root || $('#app');
     if (!root || !window.katex) return;
     $$('[data-tex]', root).forEach(el => { try { katex.render(el.dataset.tex, el, KX); } catch (e) { console.error(e); } el.removeAttribute('data-tex'); el.classList.add('mj'); });
     if (window.renderMathInElement) renderMathInElement(root, Object.assign({ delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }], ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option', 'input'] }, KX));
+    subs(root);
   }
 
   /* ---------- programme : niveaux, filières, matières, unités ---------- */

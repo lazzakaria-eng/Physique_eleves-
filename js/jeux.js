@@ -59,7 +59,7 @@ window.JEUX = (() => {
   const opts = q => shuffle(q.o.map((o, i) => ({ o, ok: i === q.r })));
 
   /* ---------- habillage commun ---------- */
-  const LET = ['A', 'B', 'C', 'D', 'E'];
+  const LET = ['A', 'B', 'C', 'D', 'E', 'F'];
   const sel = (id, lab, list, v) => `<label class="jx-f"><span>${lab}</span><select id="${id}">${list.map(x => `<option value="${x[0]}"${x[0] === v ? ' selected' : ''}>${C.esc(x[1])}</option>`).join('')}</select></label>`;
   const nivList = () => [['all', C.t('Tous les niveaux', 'كل المستويات')]].concat(NIVS());
   const matList = () => [['all', C.t('Physique et chimie', 'الفيزياء والكيمياء')], ['physique', C.t('Physique', 'الفيزياء')], ['chimie', C.t('Chimie', 'الكيمياء')]];
@@ -94,6 +94,10 @@ window.JEUX = (() => {
     ['chrono', '⏱️', 'Course contre la montre', 'سباق ضد الساعة', '60 secondes par équipe, les unes après les autres. Les séries rapportent des bonus.', '60 ثانية لكل فريق بالتناوب. السلاسل تمنح نقاطا إضافية.', 'g1'],
     ['memory', '🧩', 'Memory des formules', 'ذاكرة العلاقات', 'Une paire trouvée = 10 points et on rejoue. Une erreur : la main passe à l’équipe suivante.', 'زوج صحيح = 10 نقاط ويعيد اللعب. خطأ : ينتقل الدور للفريق الموالي.', 'g3'],
     ['unites', '📏', 'Unités express', 'الوحدات السريعة', 'Unités des grandeurs et conversions, chaque équipe à son tour.', 'وحدات المقادير والتحويلات، كل فريق في دوره.', 'g4'],
+    ['enigmes', '🕵️', 'Qui suis-je ?', 'من أنا ؟', 'Des indices de plus en plus faciles. Moins l’équipe utilise d’indices, plus elle gagne de points.', 'مؤشرات تصبح أسهل فأسهل. كلما استعمل الفريق مؤشرات أقل ربح نقاطا أكثر.', 'g5'],
+    ['defis', '🧠', 'Défis de réflexion', 'تحديات التفكير', 'Des problèmes courts où il faut raisonner. Un indice est disponible… mais il coûte 5 points.', 'مسائل قصيرة تتطلب التفكير. يوجد مؤشر… لكنه يكلف 5 نقاط.', 'g7'],
+    ['intrus', '🔍', 'L’intrus', 'الدخيل', 'Quatre éléments : un seul n’est pas comme les autres. Trouvez-le, puis justifiez !', 'أربعة عناصر : واحد فقط مختلف. جدوه ثم عللوا !', 'g6'],
+    ['mots', '🔤', 'Lettres mélangées', 'الحروف المبعثرة', 'Remettez les lettres dans l’ordre pour retrouver le mot scientifique défini.', 'رتبوا الحروف لإيجاد الكلمة العلمية المعرّفة.', 'g8'],
   ];
   function hub() {
     full(false);
@@ -144,8 +148,10 @@ window.JEUX = (() => {
         <div class="jx-turnrow"><div class="jx-turn" style="--c:${COLORS[cur]}">${C.t('À', 'دور')} <b>${C.esc(T[cur].n)}</b> ${C.t('de répondre', '')} · ${Math.floor(i / N) + 1}/${perTeam}</div>
         <div class="jx-ring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45"/><circle class="v" cx="50" cy="50" r="45" style="--c:${COLORS[cur]}"/></svg><span>${secs}</span></div></div>
         <div class="jx-q" dir="ltr" lang="fr">${q.ch ? `<p class="jx-ch">${C.esc(q.ch)}</p>` : ''}<div class="jx-qt">${q.q}</div>
+        ${q.h ? `<div class="jx-hintbox"><button type="button" class="jx-hint">💡 ${C.t('Indice (−5 points)', 'مؤشر (−5 نقاط)')}</button><p hidden>${q.h}</p></div>` : ''}
         <div class="jx-os">${os.map((o, k) => `<button type="button" data-k="${k}"><i>${LET[k]}</i><span>${o.o}</span></button>`).join('')}</div><div class="jx-after"></div></div></section>`;
       wireBar(); C.typeset($('.jx-q'));
+      let hinted = false; const hb = $('.jx-hint'); if (hb) hb.addEventListener('click', () => { hinted = true; hb.hidden = true; hb.nextElementSibling.hidden = false; });
       const ring = $('.jx-ring .v'), rs = $('.jx-ring span');
       const tick = () => { left = Math.max(0, left - 0.1); ring.style.strokeDashoffset = 283 * (1 - left / secs); rs.textContent = Math.ceil(left); if (left > 0 && left <= 5 && Math.abs(left - Math.round(left)) < 0.05) beep('tick'); if (left <= 0) answer(null); };
       const reveal = () => $$('.jx-os button').forEach((x, j) => { if (os[j].ok) x.classList.add('ok'); });
@@ -155,7 +161,7 @@ window.JEUX = (() => {
         if (lock) return; lock = true; stop();
         const ok = k !== null && os[k].ok;
         if (k !== null) $$('.jx-os button')[k].classList.add(ok ? 'ok' : 'ko');
-        if (ok) { sc[steal === false ? cur : steal] += steal === false ? 10 + Math.ceil(left / 3) : 5; beep('ok'); reveal(); $('.jx-board').outerHTML = board(T, sc, cur); return nextBtn(); }
+        if (ok) { sc[steal === false ? cur : steal] += steal === false ? Math.max(2, 10 + Math.ceil(left / 3) - (hinted ? 5 : 0)) : 5; beep('ok'); reveal(); $('.jx-board').outerHTML = board(T, sc, cur); return nextBtn(); }
         beep('ko');
         if (steal === false && N > 1) { // une autre équipe peut voler la question
           const a = $('.jx-after');
@@ -292,9 +298,126 @@ window.JEUX = (() => {
     });
   }
 
+  /* ---------- jeux de réflexion ---------- */
+  const D = () => window.JEUX_DATA || { quisuisje: [], intrus: [], defis: [], mots: [] };
+  const byNiv = (arr, niv) => { const a = arr.filter(x => niv === 'all' || x.n === niv); return a.length >= 4 ? a : arr; };
+  const nivF = () => sel('niv', C.t('Niveau', 'المستوى'), nivList(), C.store.get('jx-niv', 'all'));
+  const nbF = (d) => sel('nb', C.t('Manches par équipe', 'جولات لكل فريق'), [['2', '2'], ['3', '3'], ['5', '5'], ['8', '8']], d || '3');
+
+  function intrusSetup() {
+    setup('intrus', nivF() + nbF() + sel('sec', C.t('Temps par question', 'الوقت لكل سؤال'), [['30', '30 s'], ['45', '45 s'], ['60', '60 s']], '45'), async () => {
+      const niv = $('#niv').value, nb = +$('#nb').value, sec = +$('#sec').value; C.store.set('jx-niv', niv);
+      const mk = () => shuffle(byNiv(D().intrus, niv)).map(x => ({ q: C.t('Trouvez l’intrus, puis justifiez à voix haute :', 'أوجدوا الدخيل ثم عللوا بصوت مرتفع :'), os: shuffle(x.o.map((o, i) => ({ o, ok: i === x.r }))), e: x.e }));
+      const run = () => turns('intrus', mk(), nb, sec, run); run();
+    });
+  }
+  function defisSetup() {
+    setup('defis', nivF() + nbF() + sel('sec', C.t('Temps par question', 'الوقت لكل سؤال'), [['45', '45 s'], ['60', '60 s'], ['90', '90 s']], '60'), async () => {
+      const niv = $('#niv').value, nb = +$('#nb').value, sec = +$('#sec').value; C.store.set('jx-niv', niv);
+      const run = () => turns('defis', shuffle(byNiv(D().defis, niv)), nb, sec, run); run();
+    });
+  }
+
+  /* Qui suis-je ? : indices successifs, la main passe en cas d’erreur */
+  function enigmesSetup() {
+    setup('enigmes', nivF() + nbF('2'), async () => {
+      const niv = $('#niv').value, nb = +$('#nb').value; C.store.set('jx-niv', niv);
+      const run = () => enigmesPlay(shuffle(byNiv(D().quisuisje, niv)), nb, run); run();
+    });
+  }
+  function enigmesPlay(Q, perTeam, again) {
+    const T = teams(), N = T.length, sc = T.map(() => 0), PTS = [40, 30, 20, 10]; let i = 0; full(true);
+    function round() {
+      stop(); if (i >= perTeam * N || i >= Q.length) return podium('enigmes', T, sc, again);
+      const e = Q[i], os = shuffle([e.r].concat(e.o).slice(0, 6)); let cur = i % N, c = 0, done = false;
+      app().innerHTML = `<section class="jx-stage">${bar()}${board(T, sc, cur)}<div class="jx-turn"></div>
+        <div class="jx-q jx-enig" dir="ltr" lang="fr"><p class="jx-ch">🕵️ ${C.t('Qui suis-je ?', 'من أنا ؟')} · ${Math.floor(i / N) + 1}/${perTeam}</p><ol class="jx-clues"></ol>
+        <div class="jx-cluebar"><button type="button" class="jx-hint" id="more">💡 ${C.t('Indice suivant', 'المؤشر التالي')}</button><span class="jx-pts"></span></div>
+        <div class="jx-os six">${os.map((o, k) => `<button type="button" data-k="${k}"><i>${LET[k] || k + 1}</i><span>${o}</span></button>`).join('')}</div><div class="jx-after"></div></div></section>`;
+      wireBar();
+      const paint = () => {
+        $('.jx-clues').innerHTML = e.i.slice(0, c + 1).map((x, j) => `<li class="${j === c ? 'new' : ''}">${x}</li>`).join('');
+        $('.jx-pts').textContent = C.t('Bonne réponse maintenant : ', 'جواب صحيح الآن : ') + PTS[c] + ' pts';
+        $('#more').hidden = c >= e.i.length - 1 || done;
+        const tn = $('.jx-turn'); tn.style.setProperty('--c', COLORS[cur]); tn.innerHTML = `${C.t('À', 'دور')} <b>${C.esc(T[cur].n)}</b> ${C.t('de répondre', '')}`;
+        $('.jx-board').outerHTML = board(T, sc, cur);
+      };
+      $('#more').addEventListener('click', () => { if (c < e.i.length - 1) { c++; beep('flip'); paint(); } });
+      const end = () => { done = true; $$('.jx-os button').forEach((x, k) => { if (os[k] === e.r) x.classList.add('ok'); }); $('#more').hidden = true;
+        $('.jx-after').innerHTML = `<button type="button" class="jx-btn big" id="nx">${C.t('Énigme suivante', 'اللغز التالي')} ›</button>`; $('#nx').addEventListener('click', () => { i++; round(); });
+        onKey(ev => { if (ev.key === 'Enter') { i++; round(); } }); };
+      const answer = k => {
+        if (done) return; const b = $$('.jx-os button')[k]; if (b.classList.contains('ko')) return;
+        if (os[k] === e.r) { b.classList.add('ok'); sc[cur] += PTS[c]; beep('ok'); paint(); end(); return; }
+        b.classList.add('ko'); beep('ko');
+        if ($$('.jx-os button:not(.ko)').length <= 1) return end();
+        cur = (cur + 1) % N; if (c < e.i.length - 1) c++; paint();
+      };
+      $$('.jx-os button').forEach(b => b.addEventListener('click', () => answer(+b.dataset.k)));
+      onKey(ev => { const k = '123456'.indexOf(ev.key); if (k >= 0 && k < os.length) answer(k); else if (ev.key === ' ' && !done) { ev.preventDefault(); $('#more').click(); } });
+      paint();
+    }
+    round();
+  }
+
+  /* Lettres mélangées : on touche les lettres dans l’ordre */
+  function motsSetup() {
+    setup('mots', nivF() + nbF() + sel('sec', C.t('Temps par mot', 'الوقت لكل كلمة'), [['30', '30 s'], ['45', '45 s'], ['60', '60 s']], '45'), async () => {
+      const niv = $('#niv').value, nb = +$('#nb').value, sec = +$('#sec').value; C.store.set('jx-niv', niv);
+      const run = () => motsPlay(shuffle(byNiv(D().mots, niv)), nb, sec, run); run();
+    });
+  }
+  function motsPlay(W, perTeam, SEC, again) {
+    const T = teams(), N = T.length, sc = T.map(() => 0); let i = 0; full(true);
+    function round() {
+      stop(); if (i >= perTeam * N) return podium('mots', T, sc, again);
+      const cur = i % N, w = W[i % W.length], word = w.m; let letters = word.split(''), mix;
+      do { mix = shuffle(letters.map((ch, k) => ({ ch, k }))); } while (word.length > 1 && mix.map(x => x.ch).join('') === word);
+      let placed = [], left = SEC, hints = 0, done = false;
+      app().innerHTML = `<section class="jx-stage">${bar()}${board(T, sc, cur)}
+        <div class="jx-turnrow"><div class="jx-turn" style="--c:${COLORS[cur]}">${C.t('À', 'دور')} <b>${C.esc(T[cur].n)}</b> · ${Math.floor(i / N) + 1}/${perTeam}</div>
+        <div class="jx-ring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45"/><circle class="v" cx="50" cy="50" r="45" style="--c:${COLORS[cur]}"/></svg><span>${SEC}</span></div></div>
+        <div class="jx-q jx-words" dir="ltr" lang="fr"><p class="jx-def">« ${C.esc(w.d)} »</p><div class="jx-slots"></div><div class="jx-tiles"></div>
+        <div class="jx-cluebar"><button type="button" class="jx-hint" id="hint">💡 ${C.t('Une lettre (−3)', 'حرف (−3)')}</button><button type="button" class="jx-hint" id="clr">⌫ ${C.t('Effacer', 'مسح')}</button></div><div class="jx-after"></div></div></section>`;
+      wireBar();
+      const paint = () => {
+        $('.jx-slots').innerHTML = letters.map((_, k) => `<span class="${placed[k] ? 'on' : ''}">${placed[k] ? placed[k].ch : ''}</span>`).join('');
+        $('.jx-tiles').innerHTML = mix.map((x, k) => `<button type="button" data-k="${k}"${placed.includes(x) ? ' disabled' : ''}>${x.ch}</button>`).join('');
+        $$('.jx-tiles button').forEach(b => b.addEventListener('click', () => put(mix[+b.dataset.k])));
+      };
+      const finish = ok => {
+        done = true; stop();
+        $('.jx-slots').innerHTML = letters.map(ch => `<span class="on ${ok ? 'ok' : 'rev'}">${ch}</span>`).join(''); $('.jx-tiles').innerHTML = ''; $('.jx-cluebar').innerHTML = '';
+        if (ok) { sc[cur] += Math.max(3, 10 + Math.ceil(left / 5) - hints * 3); beep('ok'); } else beep('ko');
+        $('.jx-board').outerHTML = board(T, sc, cur);
+        $('.jx-after').innerHTML = `<button type="button" class="jx-btn big" id="nx">${C.t('Mot suivant', 'الكلمة التالية')} ›</button>`; $('#nx').addEventListener('click', () => { i++; round(); });
+        onKey(ev => { if (ev.key === 'Enter') { i++; round(); } });
+      };
+      function put(x) {
+        if (done || placed.includes(x)) return; const k = placed.findIndex(p => !p); placed[k === -1 ? placed.length : k] = x; beep('flip'); paint();
+        if (placed.filter(Boolean).length === letters.length) {
+          if (placed.map(p => p.ch).join('') === word) finish(true);
+          else { beep('ko'); $('.jx-slots').classList.add('shake'); later(() => { $('.jx-slots').classList.remove('shake'); placed = placed.map((p, j) => p && p.fixed ? p : null); paint(); }, 700); }
+        }
+      }
+      $('#clr').addEventListener('click', () => { placed = placed.map(p => p && p.fixed ? p : null); paint(); });
+      $('#hint').addEventListener('click', () => {
+        const k = letters.findIndex((ch, j) => !(placed[j] && placed[j].fixed)); if (k < 0) return;
+        placed = placed.map(p => p && p.fixed ? p : null);
+        const t = mix.find(x => x.ch === letters[k] && !placed.includes(x)); if (!t) return; t.fixed = true; placed[k] = t; hints++; paint();
+        if (placed.filter(Boolean).length === letters.length) finish(placed.map(p => p.ch).join('') === word);
+      });
+      onKey(ev => { if (done) return; if (ev.key === 'Backspace') { $('#clr').click(); return; } const L = ev.key.toUpperCase(); const t = mix.find(x => x.ch === L && !placed.includes(x)); if (t) put(t); });
+      const ring = $('.jx-ring .v'), rs = $('.jx-ring span');
+      every(() => { left = Math.max(0, left - 0.1); ring.style.strokeDashoffset = 283 * (1 - left / SEC); rs.textContent = Math.ceil(left); if (left <= 0 && !done) finish(false); }, 100);
+      paint();
+    }
+    round();
+  }
+
   return {
     init(ctx) { C = ctx; },
     stop() { stop(); document.body.classList.remove('jx-full'); },
-    page(sub) { stop(); ({ match: matchSetup, duel: matchSetup, chrono: chronoSetup, memory: memorySetup, unites: unitesSetup }[sub] || hub)(); },
+    page(sub) { stop(); ({ match: matchSetup, duel: matchSetup, chrono: chronoSetup, memory: memorySetup, unites: unitesSetup, enigmes: enigmesSetup, defis: defisSetup, intrus: intrusSetup, mots: motsSetup }[sub] || hub)(); },
   };
 })();
