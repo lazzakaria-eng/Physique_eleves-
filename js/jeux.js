@@ -1,5 +1,6 @@
-/* Espace Jeux & Défis : Défi chrono, Duel à deux, Memory des formules, Unités express.
-   Profil du joueur (pseudo, points d’expérience, rang, trophées) et tableau d’honneur enregistrés dans le navigateur. */
+/* Espace Jeux & Défis — conçu pour l’écran interactif de la classe (TNI) :
+   jeux par équipes, très grands caractères, plein écran, sons, podium et tournoi de la séance.
+   Jeux : Match des équipes, Course contre la montre, Memory des formules, Unités express. */
 'use strict';
 window.JEUX = (() => {
   let C; // contexte fourni par app.js : t, esc, IC, typeset, loadContenu, chapter, ALL, store
@@ -8,250 +9,259 @@ window.JEUX = (() => {
   const app = () => $('#app');
   const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const pick = (a, n) => shuffle(a).slice(0, n);
-  let timers = [];
-  const stop = () => { timers.forEach(x => { clearInterval(x); clearTimeout(x); }); timers = []; };
+  let timers = [], keyH = null;
+  const stop = () => { timers.forEach(x => { clearInterval(x); clearTimeout(x); }); timers = []; if (keyH) { document.removeEventListener('keydown', keyH); keyH = null; } };
   const later = (f, ms) => timers.push(setTimeout(f, ms));
   const every = (f, ms) => timers.push(setInterval(f, ms));
+  const onKey = f => { if (keyH) document.removeEventListener('keydown', keyH); keyH = e => { if (!e.target.closest('input, select, textarea')) f(e); }; document.addEventListener('keydown', keyH); };
+  const get = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v === null ? d : v; } catch (e) { return d; } };
+  const put = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* stockage indisponible */ } };
 
-  /* ---------- profil ---------- */
-  const KEY = 'jeux-profil';
-  function load() { try { return Object.assign({ pseudo: '', xp: 0, best: {}, hall: {}, badges: [], played: {} }, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { return { pseudo: '', xp: 0, best: {}, hall: {}, badges: [], played: {} }; } }
-  function save(p) { try { localStorage.setItem(KEY, JSON.stringify(p)); } catch (e) { /* stockage indisponible */ } }
-  const RANKS = [[0, 'Apprenti', 'متعلم', '🧪'], [200, 'Explorateur', 'مستكشف', '🔭'], [600, 'Chercheur', 'باحث', '🔬'], [1500, 'Savant', 'عالم', '🧠'], [3000, 'Prix Nobel', 'جائزة نوبل', '🏅']];
-  const rank = xp => { let r = RANKS[0], nx = null; RANKS.forEach((x, i) => { if (xp >= x[0]) { r = x; nx = RANKS[i + 1] || null; } }); return { r, nx }; };
-  const BADGES = {
-    premier: ['🎉', 'Première partie', 'أول لعبة'], chrono100: ['⏱️', '100 points au Défi chrono', '100 نقطة في تحدي الوقت'],
-    chrono300: ['🚀', '300 points au Défi chrono', '300 نقطة في تحدي الوقت'], serie10: ['🔥', 'Série de 10 bonnes réponses', '10 أجوبة صحيحة متتالية'],
-    memory: ['🧩', 'Memory terminé', 'إتمام لعبة الذاكرة'], memoryparfait: ['💎', 'Memory sans erreur', 'الذاكرة بدون خطأ'],
-    duel: ['⚔️', 'Premier duel', 'أول مبارزة'], unites: ['📏', '12/15 aux Unités express', '12/15 في الوحدات'],
-    unites15: ['🎯', '15/15 aux Unités express', '15/15 في الوحدات'], tous: ['🌟', 'Les 4 jeux essayés', 'جربت الألعاب الأربع'],
-    xp1000: ['🏆', '1000 points d’expérience', '1000 نقطة خبرة'],
-  };
-  // enregistre une partie ; renvoie les nouveaux trophées
-  function record(game, score, xp, earned, label) {
-    const p = load(), nb = [];
-    const give = b => { if (!p.badges.includes(b)) { p.badges.push(b); nb.push(b); } };
-    p.xp += Math.max(0, Math.round(xp)); p.played[game] = (p.played[game] || 0) + 1;
-    const k = game + (label ? ':' + label : '');
-    const record = !(k in p.best) || score > p.best[k]; if (record) p.best[k] = score;
-    const h = p.hall[game] = (p.hall[game] || []).concat([{ n: p.pseudo || C.t('Anonyme', 'مجهول'), s: score, d: new Date().toISOString().slice(0, 10), l: label || '' }]).sort((a, b) => b.s - a.s).slice(0, 8);
-    give('premier'); (earned || []).forEach(give);
-    if (['chrono', 'duel', 'memory', 'unites'].every(g => p.played[g])) give('tous');
-    if (p.xp >= 1000) give('xp1000');
-    save(p); return { nb, record, best: p.best[k], hall: h };
+  /* ---------- équipes, tournoi, palmarès ---------- */
+  const COLORS = ['#2563eb', '#dc2626', '#16a34a', '#d97706'];
+  const DEF = () => [{ n: C.t('Équipe bleue', 'الفريق الأزرق') }, { n: C.t('Équipe rouge', 'الفريق الأحمر') }];
+  const teams = () => get('jx-equipes', null) || DEF();
+  const setTeams = T => put('jx-equipes', T.slice(0, 4));
+  const tournoi = () => get('jx-tournoi', {});
+  function addTournoi(sc, T) { const tr = tournoi(); T.forEach((x, i) => { tr[x.n] = (tr[x.n] || 0) + sc[i]; }); put('jx-tournoi', tr); }
+  function addPalmares(game, T, sc) {
+    const best = sc.indexOf(Math.max(...sc)), p = get('jx-palmares', []);
+    p.unshift({ g: game, w: sc.filter(x => x === sc[best]).length > 1 ? C.t('Égalité', 'تعادل') : T[best].n, s: T.map((x, i) => x.n + ' ' + sc[i]).join(' · '), d: new Date().toLocaleDateString('fr-FR') });
+    put('jx-palmares', p.slice(0, 12));
   }
 
-  /* ---------- questions des quiz (contenus des chapitres) ---------- */
+  /* ---------- son et plein écran ---------- */
+  let AC = null;
+  const sonOn = () => get('jx-son', true);
+  function beep(kind) {
+    if (!sonOn()) return;
+    try {
+      AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+      const seq = { ok: [[660, 0], [880, .09], [1320, .18]], ko: [[220, 0], [160, .14]], tick: [[1000, 0]], win: [[523, 0], [659, .12], [784, .24], [1047, .36]], flip: [[500, 0]] }[kind];
+      seq.forEach(([f, d]) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = kind === 'ko' ? 'sawtooth' : 'triangle'; o.frequency.value = f; o.connect(g); g.connect(AC.destination);
+        const t0 = AC.currentTime + d, len = kind === 'tick' || kind === 'flip' ? .05 : .16; g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(.25, t0 + .01); g.gain.exponentialRampToValueAtTime(.0001, t0 + len); o.start(t0); o.stop(t0 + len + .02); });
+    } catch (e) { /* audio indisponible */ }
+  }
+  function full(on) {
+    document.body.classList.toggle('jx-full', on);
+    try { if (on && !document.fullscreenElement && document.documentElement.requestFullscreen && get('jx-pe', true)) document.documentElement.requestFullscreen().catch(() => {}); if (!on && document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch (e) { /* plein écran indisponible */ }
+  }
+
+  /* ---------- questions ---------- */
   const NIVS = () => PROGRAMME.map(n => [n.id, C.t(n.titre, n.ar)]);
-  function lessons(niv, mat) { return C.ALL.filter(l => (niv === 'all' || l.niv.id === niv) && (mat === 'all' || l.mat === mat)); }
-  async function pool(niv, mat) {
-    const ls = lessons(niv, mat);
+  async function pool(niv, mat, ch) {
+    const ls = C.ALL.filter(l => ch ? l.id === ch : (niv === 'all' || l.niv.id === niv) && (mat === 'all' || l.mat === mat));
     await Promise.all(ls.map(l => C.loadContenu(l)));
     const out = [];
-    ls.forEach(l => (C.chapter(l).quiz || []).forEach(q => { if (q && q.o && q.o.length > 1) out.push(Object.assign({ ch: C.t(l.fr, l.ar) }, q)); }));
+    ls.forEach(l => (C.chapter(l).quiz || []).forEach(q => { if (q && q.o && q.o.length > 1) out.push({ q: q.q, o: q.o, r: q.r, e: q.e, ch: C.t(l.fr, l.ar) }); }));
     return out;
   }
   const opts = q => shuffle(q.o.map((o, i) => ({ o, ok: i === q.r })));
 
-  /* ---------- habillage ---------- */
-  const back = () => `<a class="jx-back" href="#/jeux">‹ ${C.t('Espace Jeux', 'فضاء الألعاب')}</a>`;
+  /* ---------- habillage commun ---------- */
+  const LET = ['A', 'B', 'C', 'D', 'E'];
   const sel = (id, lab, list, v) => `<label class="jx-f"><span>${lab}</span><select id="${id}">${list.map(x => `<option value="${x[0]}"${x[0] === v ? ' selected' : ''}>${C.esc(x[1])}</option>`).join('')}</select></label>`;
   const nivList = () => [['all', C.t('Tous les niveaux', 'كل المستويات')]].concat(NIVS());
   const matList = () => [['all', C.t('Physique et chimie', 'الفيزياء والكيمياء')], ['physique', C.t('Physique', 'الفيزياء')], ['chimie', C.t('Chimie', 'الكيمياء')]];
+  const chList = niv => [['', C.t('Tous les chapitres', 'كل الدروس')]].concat(C.ALL.filter(l => niv === 'all' || l.niv.id === niv).map(l => [l.id, C.t(l.fr, l.ar)]));
+  const bar = () => `<div class="jx-topbar"><button type="button" class="jx-quit">✕ ${C.t('Quitter', 'خروج')}</button><span class="jx-tt"></span>
+    <button type="button" class="jx-snd" aria-pressed="${sonOn()}">${sonOn() ? '🔊' : '🔇'}</button><button type="button" class="jx-fs">⛶</button></div>`;
+  function wireBar() {
+    $('.jx-quit').addEventListener('click', () => { stop(); full(false); location.hash = '#/jeux'; });
+    $('.jx-snd').addEventListener('click', e => { put('jx-son', !sonOn()); e.currentTarget.textContent = sonOn() ? '🔊' : '🔇'; });
+    $('.jx-fs').addEventListener('click', () => { try { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); } catch (e) { /* indisponible */ } });
+  }
+  const board = (T, sc, cur) => `<div class="jx-board">${T.map((x, i) => `<div class="jx-team${i === cur ? ' on' : ''}" style="--c:${COLORS[i]}"><b>${C.esc(x.n)}</b><span>${sc[i]}</span></div>`).join('')}</div>`;
   function confetti() {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const box = document.createElement('div'); box.className = 'jx-confetti'; box.setAttribute('aria-hidden', 'true');
-    const cols = ['#ff7a1a', '#1f6fe0', '#12946a', '#d93a4a', '#f2c230', '#8b5cf6'];
-    for (let i = 0; i < 70; i++) { const s = document.createElement('i'); s.style.left = Math.random() * 100 + '%'; s.style.background = cols[i % cols.length]; s.style.animationDelay = Math.random() * 0.6 + 's'; s.style.setProperty('--dx', (Math.random() * 200 - 100) + 'px'); box.appendChild(s); }
-    document.body.appendChild(box); setTimeout(() => box.remove(), 3200);
+    for (let i = 0; i < 120; i++) { const s = document.createElement('i'); s.style.left = Math.random() * 100 + '%'; s.style.background = ['#f97316', '#2563eb', '#16a34a', '#dc2626', '#facc15', '#8b5cf6'][i % 6]; s.style.animationDelay = Math.random() * 0.8 + 's'; s.style.setProperty('--dx', (Math.random() * 300 - 150) + 'px'); box.appendChild(s); }
+    document.body.appendChild(box); setTimeout(() => box.remove(), 3800);
   }
-  function endCard(title, big, lines, res, again) {
-    const p = load();
-    app().innerHTML = `<section class="jx-page">${back()}<div class="jx-end">
-      <div class="jx-trophy">${res.record ? '🏆' : '⭐'}</div><h1>${title}</h1><p class="jx-big">${big}</p>
-      ${res.record ? `<p class="jx-rec">${C.t('Nouveau record personnel !', 'رقم قياسي شخصي جديد !')}</p>` : `<p class="jx-sub">${C.t('Ton record', 'رقمك القياسي')} : ${res.best}</p>`}
-      ${lines.map(x => `<p class="jx-sub">${x}</p>`).join('')}
-      ${res.nb.length ? `<div class="jx-newb"><b>${C.t('Nouveaux trophées', 'كؤوس جديدة')}</b>${res.nb.map(b => `<span>${BADGES[b][0]} ${C.t(BADGES[b][1], BADGES[b][2])}</span>`).join('')}</div>` : ''}
-      <p class="jx-sub">${C.t('Rang', 'الرتبة')} : ${rank(p.xp).r[3]} ${C.t(rank(p.xp).r[1], rank(p.xp).r[2])} · ${p.xp} XP</p>
-      <div class="jx-acts"><button type="button" class="jx-btn" id="again">↻ ${C.t('Rejouer', 'أعد اللعب')}</button><a class="jx-btn ghost" href="#/jeux">${C.t('Autres jeux', 'ألعاب أخرى')}</a></div></div>
-      <div id="review"></div></section>`;
-    $('#again').addEventListener('click', again);
-    if (res.record || res.nb.length) confetti();
+  function podium(game, T, sc, again) {
+    stop(); addTournoi(sc, T); addPalmares(game, T, sc); beep('win'); confetti();
+    const order = T.map((x, i) => ({ n: x.n, s: sc[i], c: COLORS[i] })).sort((a, b) => b.s - a.s);
+    const place = [1, 0, 2, 3].filter(i => order[i]);
+    app().innerHTML = `<section class="jx-stage">${bar()}<h1 class="jx-h">${order.length > 1 && order[0].s === order[1].s ? C.t('Égalité !', 'تعادل !') : '🏆 ' + C.esc(order[0].n)}</h1>
+      <div class="jx-podium">${place.map(i => `<div class="jx-pod p${i + 1}" style="--c:${order[i].c}"><b>${C.esc(order[i].n)}</b><span>${order[i].s} pts</span><div class="jx-step">${i + 1}</div></div>`).join('')}</div>
+      <div class="jx-acts"><button type="button" class="jx-btn big" id="again">↻ ${C.t('Rejouer', 'أعد اللعب')}</button><button type="button" class="jx-btn big ghost" id="menu">${C.t('Autres jeux', 'ألعاب أخرى')}</button></div></section>`;
+    wireBar(); $('#again').addEventListener('click', again); $('#menu').addEventListener('click', () => { full(false); location.hash = '#/jeux'; });
   }
 
-  /* ---------- page d’accueil des jeux ---------- */
+  /* ---------- accueil des jeux ---------- */
   const GAMES = [
-    ['chrono', '⏱️', 'Défi chrono', 'تحدي الوقت', 'Un maximum de bonnes réponses en 60 secondes. Les séries rapportent des bonus !', 'أكبر عدد من الأجوبة الصحيحة في 60 ثانية. السلاسل تمنح نقاطا إضافية !', 'g1'],
-    ['duel', '⚔️', 'Duel à deux', 'مبارزة ثنائية', 'Deux joueurs sur le même appareil, chacun son tour. Le plus rapide gagne plus de points.', 'لاعبان على نفس الجهاز، بالتناوب. الأسرع يربح نقاطا أكثر.', 'g2'],
-    ['memory', '🧩', 'Memory des formules', 'ذاكرة العلاقات', 'Retourne les cartes et associe chaque formule à sa signification.', 'اقلب البطاقات واربط كل علاقة بمعناها.', 'g3'],
-    ['unites', '📏', 'Unités express', 'الوحدات السريعة', 'Unités des grandeurs et conversions : 15 questions contre la montre.', 'وحدات المقادير والتحويلات : 15 سؤالا ضد الساعة.', 'g4'],
+    ['match', '⚔️', 'Match des équipes', 'مباراة الفرق', 'Chaque équipe répond à son tour. Mauvaise réponse : une autre équipe peut voler la question !', 'كل فريق يجيب في دوره. جواب خاطئ : يمكن لفريق آخر سرقة السؤال !', 'g2'],
+    ['chrono', '⏱️', 'Course contre la montre', 'سباق ضد الساعة', '60 secondes par équipe, les unes après les autres. Les séries rapportent des bonus.', '60 ثانية لكل فريق بالتناوب. السلاسل تمنح نقاطا إضافية.', 'g1'],
+    ['memory', '🧩', 'Memory des formules', 'ذاكرة العلاقات', 'Une paire trouvée = 10 points et on rejoue. Une erreur : la main passe à l’équipe suivante.', 'زوج صحيح = 10 نقاط ويعيد اللعب. خطأ : ينتقل الدور للفريق الموالي.', 'g3'],
+    ['unites', '📏', 'Unités express', 'الوحدات السريعة', 'Unités des grandeurs et conversions, chaque équipe à son tour.', 'وحدات المقادير والتحويلات، كل فريق في دوره.', 'g4'],
   ];
   function hub() {
-    const p = load(), rk = rank(p.xp), pct = rk.nx ? (p.xp - rk.r[0]) / (rk.nx[0] - rk.r[0]) * 100 : 100;
-    const bestOf = g => { const v = Object.entries(p.best).filter(([k]) => k.split(':')[0] === g).map(x => x[1]); return v.length ? Math.max(...v) : null; };
+    full(false);
+    const T = teams(), tr = tournoi(), pal = get('jx-palmares', []);
+    const totals = Object.entries(tr).sort((a, b) => b[1] - a[1]);
     app().innerHTML = `<section class="jx-page">
-      <div class="jx-hero"><div><p class="jx-kick">${C.t('Réviser en s’amusant', 'راجع وأنت تستمتع')}</p><h1>${C.t('Espace Jeux & Défis', 'فضاء الألعاب والتحديات')}</h1>
-        <p>${C.t('Toutes les questions viennent des chapitres de la bibliothèque. Gagne des points d’expérience, monte en rang et débloque des trophées.', 'كل الأسئلة مأخوذة من دروس المكتبة. اجمع نقاط الخبرة، ارتق في الرتب واحصل على الكؤوس.')}</p></div>
-        <div class="jx-player"><div class="jx-av">${rk.r[3]}</div><div class="jx-pi">
-          <label><span>${C.t('Ton pseudo', 'اسمك المستعار')}</span><input id="pseudo" maxlength="18" value="${C.esc(p.pseudo)}" placeholder="${C.t('ex. Yasmine', 'مثلا ياسمين')}" autocomplete="nickname"></label>
-          <b>${C.t(rk.r[1], rk.r[2])} · ${p.xp} XP</b><div class="jx-xp"><i style="width:${pct}%"></i></div>
-          <small>${rk.nx ? C.t('Prochain rang', 'الرتبة التالية') + ' : ' + C.t(rk.nx[1], rk.nx[2]) + ' (' + rk.nx[0] + ' XP)' : C.t('Rang maximal atteint !', 'بلغت أعلى رتبة !')}</small></div></div></div>
-      <div class="jx-games">${GAMES.map(g => `<a class="jx-game tilt ${g[6]}" href="#/jeux/${g[0]}"><span class="jx-ic">${g[1]}</span><b>${C.t(g[2], g[3])}</b><span>${C.t(g[4], g[5])}</span>
-        <span class="jx-meta">${bestOf(g[0]) !== null ? C.t('Record', 'الرقم القياسي') + ' : ' + bestOf(g[0]) : C.t('Pas encore joué', 'لم تلعب بعد')}<em>${C.t('Jouer', 'العب')} ›</em></span></a>`).join('')}</div>
+      <div class="jx-hero"><div><p class="jx-kick">${C.t('Pour l’écran interactif de la classe', 'للسبورة التفاعلية في القسم')}</p><h1>${C.t('Espace Jeux & Défis', 'فضاء الألعاب والتحديات')}</h1>
+        <p>${C.t('Formez les équipes, choisissez un jeu : il s’ouvre en plein écran avec de très grands caractères. Les points s’ajoutent au tournoi de la séance.', 'كوّن الفرق واختر لعبة : تفتح في ملء الشاشة بحروف كبيرة جدا. النقاط تضاف إلى دوري الحصة.')}</p>
+        <p class="jx-keys">${C.t('Au clavier ou à la télécommande : touches 1 à 4 (ou A à D) pour répondre, Entrée pour continuer.', 'بلوحة المفاتيح : الأزرار 1 إلى 4 (أو A إلى D) للإجابة، و Entrée للمتابعة.')}</p></div>
+        <div class="jx-teams-ed"><h2>${C.t('Équipes', 'الفرق')}</h2>
+          ${T.map((x, i) => `<div class="jx-ted" style="--c:${COLORS[i]}"><i></i><input data-i="${i}" maxlength="18" value="${C.esc(x.n)}">${T.length > 2 ? `<button type="button" data-del="${i}" aria-label="${C.t('Supprimer', 'حذف')}">✕</button>` : ''}</div>`).join('')}
+          ${T.length < 4 ? `<button type="button" class="jx-add">＋ ${C.t('Ajouter une équipe', 'أضف فريقا')}</button>` : ''}
+          <div class="jx-opts"><label><input type="checkbox" id="pe"${get('jx-pe', true) ? ' checked' : ''}> ${C.t('Plein écran', 'ملء الشاشة')}</label><label><input type="checkbox" id="son"${sonOn() ? ' checked' : ''}> ${C.t('Sons', 'الأصوات')}</label></div></div></div>
+      <div class="jx-games">${GAMES.map(g => `<a class="jx-game tilt ${g[6]}" href="#/jeux/${g[0]}"><span class="jx-ic">${g[1]}</span><b>${C.t(g[2], g[3])}</b><span>${C.t(g[4], g[5])}</span><span class="jx-meta"><em>${C.t('Lancer', 'ابدأ')} ›</em></span></a>`).join('')}</div>
       <div class="jx-two">
-        <section class="jx-card"><h2>🏆 ${C.t('Trophées', 'الكؤوس')} <small>${p.badges.length}/${Object.keys(BADGES).length}</small></h2>
-          <div class="jx-badges">${Object.entries(BADGES).map(([k, b]) => `<span class="jx-b${p.badges.includes(k) ? ' on' : ''}" title="${C.esc(C.t(b[1], b[2]))}"><i>${b[0]}</i><small>${C.t(b[1], b[2])}</small></span>`).join('')}</div></section>
-        <section class="jx-card"><h2>📋 ${C.t('Tableau d’honneur', 'لوحة الشرف')} <small>${C.t('sur cet appareil', 'على هذا الجهاز')}</small></h2>
-          ${GAMES.map(g => { const h = p.hall[g[0]] || []; return `<div class="jx-hall"><b>${g[1]} ${C.t(g[2], g[3])}</b>${h.length ? `<ol>${h.slice(0, 3).map(x => `<li><span>${C.esc(x.n)}</span><em>${x.s}</em></li>`).join('')}</ol>` : `<p>${C.t('Aucun score', 'لا توجد نتائج')}</p>`}</div>`; }).join('')}</section>
-      </div>
-      <p class="jx-note">${C.t('Les scores et trophées sont enregistrés dans ce navigateur uniquement.', 'النتائج والكؤوس محفوظة في هذا المتصفح فقط.')}</p></section>`;
-    $('#pseudo').addEventListener('change', e => { const q = load(); q.pseudo = e.target.value.trim().slice(0, 18); save(q); });
+        <section class="jx-card"><h2>🏆 ${C.t('Tournoi de la séance', 'دوري الحصة')}</h2>
+          ${totals.length ? `<ol class="jx-tour">${totals.map(([n, s]) => `<li><span>${C.esc(n)}</span><em>${s} pts</em></li>`).join('')}</ol><button type="button" class="jx-btn ghost" id="raz">↺ ${C.t('Nouveau tournoi', 'دوري جديد')}</button>` : `<p class="jx-note">${C.t('Les points de chaque partie s’ajoutent ici.', 'نقاط كل لعبة تضاف هنا.')}</p>`}</section>
+        <section class="jx-card"><h2>📋 ${C.t('Palmarès', 'سجل الفائزين')}</h2>
+          ${pal.length ? `<ul class="jx-pal">${pal.map(p => `<li><b>${C.esc(p.w)}</b><small>${C.esc(C.t(GAMES.find(g => g[0] === p.g)[2], GAMES.find(g => g[0] === p.g)[3]))} · ${p.d}</small><span>${C.esc(p.s)}</span></li>`).join('')}</ul>` : `<p class="jx-note">${C.t('Aucune partie jouée pour l’instant.', 'لم تلعب أي مباراة بعد.')}</p>`}</section></div></section>`;
+    $$('.jx-ted input').forEach(inp => inp.addEventListener('change', () => { const T2 = teams(); T2[+inp.dataset.i].n = inp.value.trim() || T2[+inp.dataset.i].n; setTeams(T2); }));
+    $$('[data-del]').forEach(b => b.addEventListener('click', () => { const T2 = teams(); T2.splice(+b.dataset.del, 1); setTeams(T2); hub(); }));
+    const add = $('.jx-add'); if (add) add.addEventListener('click', () => { const T2 = teams(); T2.push({ n: [C.t('Équipe verte', 'الفريق الأخضر'), C.t('Équipe orange', 'الفريق البرتقالي')][T2.length - 2] }); setTeams(T2); hub(); });
+    $('#pe').addEventListener('change', e => put('jx-pe', e.target.checked));
+    $('#son').addEventListener('change', e => put('jx-son', e.target.checked));
+    const raz = $('#raz'); if (raz) raz.addEventListener('click', () => { put('jx-tournoi', {}); hub(); });
   }
 
-  /* ---------- 1. Défi chrono ---------- */
-  function chronoSetup() {
-    const st = C.store;
-    app().innerHTML = `<section class="jx-page">${back()}<div class="jx-setup g1"><span class="jx-ic">⏱️</span><h1>${C.t('Défi chrono', 'تحدي الوقت')}</h1>
-      <p>${C.t('60 secondes. +10 points par bonne réponse, et un bonus qui grandit avec la série. Une erreur coûte 5 secondes.', '60 ثانية. +10 نقاط لكل جواب صحيح، ومكافأة تكبر مع السلسلة. الخطأ يكلف 5 ثوان.')}</p>
-      <div class="jx-form">${sel('niv', C.t('Niveau', 'المستوى'), nivList(), st.get('jx-niv', 'all'))}${sel('mat', C.t('Matière', 'المادة'), matList(), st.get('jx-mat', 'all'))}</div>
-      <button type="button" class="jx-btn big" id="go">▶ ${C.t('C’est parti !', 'هيا بنا !')}</button></div></section>`;
-    $('#go').addEventListener('click', async () => {
-      const niv = $('#niv').value, mat = $('#mat').value; st.set('jx-niv', niv); st.set('jx-mat', mat);
-      $('#go').disabled = true; $('#go').textContent = C.t('Chargement…', 'جار التحميل…');
-      const P = shuffle(await pool(niv, mat)); if (!P.length) { $('#go').textContent = C.t('Aucune question', 'لا أسئلة'); return; }
-      chronoPlay(P, niv + '-' + mat);
-    });
+  /* ---------- écran de réglage ---------- */
+  function setup(g, fields, go) {
+    const G = GAMES.find(x => x[0] === g);
+    app().innerHTML = `<section class="jx-page"><a class="jx-back" href="#/jeux">‹ ${C.t('Espace Jeux', 'فضاء الألعاب')}</a><div class="jx-setup ${G[6]}"><span class="jx-ic">${G[1]}</span><h1>${C.t(G[2], G[3])}</h1><p>${C.t(G[4], G[5])}</p>
+      <p class="jx-teamsline">${teams().map((x, i) => `<span style="--c:${COLORS[i]}">${C.esc(x.n)}</span>`).join('')} <a href="#/jeux">${C.t('modifier', 'تعديل')}</a></p>
+      <div class="jx-form">${fields}</div><button type="button" class="jx-btn big" id="go">▶ ${C.t('Lancer en plein écran', 'ابدأ في ملء الشاشة')}</button></div></section>`;
+    const n = $('#niv'), ch = $('#ch');
+    if (n && ch) { const fill = () => { ch.innerHTML = chList(n.value).map(x => `<option value="${x[0]}">${C.esc(x[1])}</option>`).join(''); }; fill(); n.addEventListener('change', fill); }
+    $('#go').addEventListener('click', async () => { $('#go').disabled = true; $('#go').textContent = C.t('Chargement…', 'جار التحميل…'); try { await go(); } catch (e) { console.error(e); $('#go').disabled = false; $('#go').textContent = '▶'; } });
   }
-  function chronoPlay(P, label) {
-    const T = 60; let left = T, score = 0, serie = 0, maxSerie = 0, i = 0, good = 0, n = 0, lock = false; const missed = [];
-    app().innerHTML = `<section class="jx-page jx-play g1">${back()}<div class="jx-hud"><span class="jx-score">0 <small>pts</small></span><span class="jx-serie" hidden></span><span class="jx-time">60</span></div>
-      <div class="jx-timer"><i></i></div><div class="jx-q" dir="ltr" lang="fr"></div></section>`;
-    const hud = $('.jx-score'), tm = $('.jx-time'), bar = $('.jx-timer i'), sr = $('.jx-serie');
-    function show() {
-      if (left <= 0) return; const q = P[i % P.length]; i++; lock = false;
-      const os = opts(q);
-      $('.jx-q').innerHTML = `<p class="jx-ch">${C.esc(q.ch)}</p><div class="jx-qt">${q.q}</div><div class="jx-os">${os.map((o, k) => `<button type="button" data-k="${k}">${o.o}</button>`).join('')}</div>`;
-      C.typeset($('.jx-q'));
-      $$('.jx-os button').forEach(b => b.addEventListener('click', () => {
-        if (lock || left <= 0) return; lock = true; n++;
-        const ok = os[+b.dataset.k].ok;
-        $$('.jx-os button').forEach((x, k) => { if (os[k].ok) x.classList.add('ok'); });
-        if (ok) { good++; serie++; maxSerie = Math.max(maxSerie, serie); score += 10 + Math.min(20, (serie - 1) * 2); b.classList.add('ok'); }
-        else { b.classList.add('ko'); serie = 0; left = Math.max(0, left - 5); missed.push(q); }
-        hud.innerHTML = score + ' <small>pts</small>'; sr.hidden = serie < 2; sr.textContent = '🔥 ×' + serie;
-        later(show, ok ? 450 : 1300);
-      }));
-    }
-    every(() => {
-      left = Math.max(0, left - 0.1); tm.textContent = Math.ceil(left); bar.style.width = (left / T * 100) + '%'; bar.classList.toggle('low', left < 10);
-      if (left <= 0) { stop(); finish(); }
-    }, 100);
-    show();
-    function finish() {
-      const earned = []; if (score >= 100) earned.push('chrono100'); if (score >= 300) earned.push('chrono300'); if (maxSerie >= 10) earned.push('serie10');
-      const res = record('chrono', score, score / 2, earned, label);
-      endCard(C.t('Temps écoulé !', 'انتهى الوقت !'), score + ' pts', [C.t('Bonnes réponses', 'أجوبة صحيحة') + ' : ' + good + ' / ' + n, C.t('Meilleure série', 'أفضل سلسلة') + ' : ' + maxSerie], res, () => chronoPlay(shuffle(P), label));
-      if (missed.length) {
-        $('#review').innerHTML = `<section class="jx-card" dir="ltr" lang="fr"><h2>📖 ${C.t('À revoir', 'للمراجعة')}</h2>${missed.slice(0, 10).map(q => `<div class="jx-rev"><small>${C.esc(q.ch)}</small><div>${q.q}</div><p>✔ ${q.o[q.r]}</p>${q.e ? `<p class="jx-e">${q.e}</p>` : ''}</div>`).join('')}</section>`;
-        C.typeset($('#review'));
-      }
-    }
-  }
+  const qFields = () => sel('niv', C.t('Niveau', 'المستوى'), nivList(), C.store.get('jx-niv', 'all')) + `<label class="jx-f"><span>${C.t('Chapitre', 'الدرس')}</span><select id="ch"></select></label>` + sel('mat', C.t('Matière', 'المادة'), matList(), 'all');
 
-  /* ---------- 2. Duel à deux ---------- */
-  function duelSetup() {
-    const st = C.store;
-    app().innerHTML = `<section class="jx-page">${back()}<div class="jx-setup g2"><span class="jx-ic">⚔️</span><h1>${C.t('Duel à deux', 'مبارزة ثنائية')}</h1>
-      <p>${C.t('Chacun son tour, 20 secondes par question. Bonne réponse : 10 points + bonus de rapidité.', 'كل واحد في دوره، 20 ثانية لكل سؤال. الجواب الصحيح : 10 نقاط + مكافأة السرعة.')}</p>
-      <div class="jx-form"><label class="jx-f p1"><span>${C.t('Joueur 1', 'اللاعب 1')}</span><input id="j1" maxlength="14" value="${C.esc(st.get('jx-j1', ''))}" placeholder="${C.t('Prénom', 'الاسم')}"></label>
-        <label class="jx-f p2"><span>${C.t('Joueur 2', 'اللاعب 2')}</span><input id="j2" maxlength="14" value="${C.esc(st.get('jx-j2', ''))}" placeholder="${C.t('Prénom', 'الاسم')}"></label>
-        ${sel('niv', C.t('Niveau', 'المستوى'), nivList(), st.get('jx-niv', 'all'))}${sel('nb', C.t('Questions par joueur', 'أسئلة لكل لاعب'), [['5', '5'], ['8', '8'], ['10', '10']], '5')}</div>
-      <button type="button" class="jx-btn big" id="go">▶ ${C.t('Commencer le duel', 'ابدأ المبارزة')}</button></div></section>`;
-    $('#go').addEventListener('click', async () => {
-      const names = [$('#j1').value.trim() || C.t('Joueur 1', 'اللاعب 1'), $('#j2').value.trim() || C.t('Joueur 2', 'اللاعب 2')];
-      st.set('jx-j1', $('#j1').value.trim()); st.set('jx-j2', $('#j2').value.trim()); st.set('jx-niv', $('#niv').value);
-      $('#go').disabled = true; $('#go').textContent = C.t('Chargement…', 'جار التحميل…');
-      const P = pick(await pool($('#niv').value, 'all'), 2 * +$('#nb').value); if (P.length < 2) return;
-      duelPlay(P, names);
-    });
-  }
-  function duelPlay(P, names) {
-    const sc = [0, 0], ok = [0, 0]; let i = 0;
-    app().innerHTML = `<section class="jx-page jx-play g2">${back()}<div class="jx-duel"><div class="jx-pl p1"><b>${C.esc(names[0])}</b><span>0</span></div><div class="jx-vs">VS</div><div class="jx-pl p2"><b>${C.esc(names[1])}</b><span>0</span></div></div>
-      <div class="jx-turn"></div><div class="jx-timer"><i></i></div><div class="jx-q" dir="ltr" lang="fr"></div></section>`;
-    function show() {
-      stop(); if (i >= P.length) return finish();
-      const pl = i % 2, q = P[i], os = opts(q); let left = 20, lock = false;
-      $$('.jx-pl').forEach((x, k) => x.classList.toggle('on', k === pl));
-      $('.jx-turn').innerHTML = `${C.t('Au tour de', 'دور')} <b class="c${pl + 1}">${C.esc(names[pl])}</b> · ${C.t('question', 'سؤال')} ${Math.floor(i / 2) + 1}/${P.length / 2}`;
-      $('.jx-q').innerHTML = `<p class="jx-ch">${C.esc(q.ch)}</p><div class="jx-qt">${q.q}</div><div class="jx-os">${os.map((o, k) => `<button type="button" data-k="${k}">${o.o}</button>`).join('')}</div>`;
-      C.typeset($('.jx-q'));
-      const bar = $('.jx-timer i');
-      const answer = k => {
+  /* ---------- moteur « chacun son tour » (Match, Unités) ---------- */
+  function turns(game, Q, perTeam, secs, again) {
+    const T = teams(), N = T.length, sc = T.map(() => 0); let i = 0;
+    full(true);
+    function question() {
+      stop(); if (i >= perTeam * N) return podium(game, T, sc, again);
+      const cur = i % N, q = Q[i % Q.length], os = q.os || opts(q); let left = secs, lock = false, steal = false;
+      app().innerHTML = `<section class="jx-stage">${bar()}${board(T, sc, cur)}
+        <div class="jx-turnrow"><div class="jx-turn" style="--c:${COLORS[cur]}">${C.t('À', 'دور')} <b>${C.esc(T[cur].n)}</b> ${C.t('de répondre', '')} · ${Math.floor(i / N) + 1}/${perTeam}</div>
+        <div class="jx-ring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45"/><circle class="v" cx="50" cy="50" r="45" style="--c:${COLORS[cur]}"/></svg><span>${secs}</span></div></div>
+        <div class="jx-q" dir="ltr" lang="fr">${q.ch ? `<p class="jx-ch">${C.esc(q.ch)}</p>` : ''}<div class="jx-qt">${q.q}</div>
+        <div class="jx-os">${os.map((o, k) => `<button type="button" data-k="${k}"><i>${LET[k]}</i><span>${o.o}</span></button>`).join('')}</div><div class="jx-after"></div></div></section>`;
+      wireBar(); C.typeset($('.jx-q'));
+      const ring = $('.jx-ring .v'), rs = $('.jx-ring span');
+      const tick = () => { left = Math.max(0, left - 0.1); ring.style.strokeDashoffset = 283 * (1 - left / secs); rs.textContent = Math.ceil(left); if (left > 0 && left <= 5 && Math.abs(left - Math.round(left)) < 0.05) beep('tick'); if (left <= 0) answer(null); };
+      const reveal = () => $$('.jx-os button').forEach((x, j) => { if (os[j].ok) x.classList.add('ok'); });
+      const next = () => { i++; question(); };
+      const nextBtn = () => { const a = $('.jx-after'); a.innerHTML = `${q.e ? `<p class="jx-e">${q.e}</p>` : ''}<button type="button" class="jx-btn big" id="nx">${C.t('Question suivante', 'السؤال التالي')} ›</button>`; C.typeset(a); $('#nx').addEventListener('click', next); onKey(e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); next(); } }); };
+      function answer(k) {
         if (lock) return; lock = true; stop();
-        $$('.jx-os button').forEach((x, j) => { if (os[j].ok) x.classList.add('ok'); else if (j === k) x.classList.add('ko'); });
-        if (k !== null && os[k].ok) { ok[pl]++; sc[pl] += 10 + Math.ceil(left / 4); }
-        $$('.jx-pl span').forEach((x, j) => { x.textContent = sc[j]; });
-        i++; later(show, 1400);
-      };
-      $$('.jx-os button').forEach(b => b.addEventListener('click', () => answer(+b.dataset.k)));
-      every(() => { left = Math.max(0, left - 0.1); bar.style.width = (left / 20 * 100) + '%'; bar.classList.toggle('low', left < 5); if (left <= 0) answer(null); }, 100);
+        const ok = k !== null && os[k].ok;
+        if (k !== null) $$('.jx-os button')[k].classList.add(ok ? 'ok' : 'ko');
+        if (ok) { sc[steal === false ? cur : steal] += steal === false ? 10 + Math.ceil(left / 3) : 5; beep('ok'); reveal(); $('.jx-board').outerHTML = board(T, sc, cur); return nextBtn(); }
+        beep('ko');
+        if (steal === false && N > 1) { // une autre équipe peut voler la question
+          const a = $('.jx-after');
+          a.innerHTML = `<p class="jx-steal">${C.t('Une autre équipe veut tenter ? (5 points)', 'هل يريد فريق آخر المحاولة ؟ (5 نقاط)')}</p><div class="jx-stealb">${T.map((x, j) => j === cur ? '' : `<button type="button" data-t="${j}" style="--c:${COLORS[j]}">${C.esc(x.n)}</button>`).join('')}<button type="button" class="no">${C.t('Personne', 'لا أحد')}</button></div>`;
+          $$('.jx-stealb button').forEach(b => b.addEventListener('click', () => {
+            if (b.classList.contains('no')) { reveal(); return nextBtn(); }
+            steal = +b.dataset.t; lock = false; a.innerHTML = `<p class="jx-steal" style="color:${COLORS[steal]}">${C.esc(T[steal].n)} ${C.t('répond !', 'يجيب !')}</p>`;
+          }));
+        } else { reveal(); nextBtn(); }
+      }
+      $$('.jx-os button').forEach(b => b.addEventListener('click', () => { if (!b.classList.contains('ko')) answer(+b.dataset.k); }));
+      onKey(e => { const k = '1234'.indexOf(e.key) >= 0 ? '1234'.indexOf(e.key) : 'abcd'.indexOf(e.key.toLowerCase()); if (k >= 0 && k < os.length && !lock) answer(k); });
+      every(tick, 100);
     }
-    function finish() {
-      const w = sc[0] === sc[1] ? -1 : sc[0] > sc[1] ? 0 : 1;
-      const res = record('duel', Math.max(...sc), (sc[0] + sc[1]) / 4, ['duel']);
-      endCard(w < 0 ? C.t('Égalité !', 'تعادل !') : C.t('Victoire de ', 'فوز ') + names[w] + ' !', sc[0] + ' – ' + sc[1],
-        [names[0] + ' : ' + ok[0] + ' ' + C.t('bonnes réponses', 'أجوبة صحيحة'), names[1] + ' : ' + ok[1] + ' ' + C.t('bonnes réponses', 'أجوبة صحيحة')], res, () => duelPlay(shuffle(P), names));
-      confetti();
-    }
-    show();
+    question();
   }
 
-  /* ---------- 3. Memory des formules ---------- */
-  function memorySetup() {
-    const st = C.store, niv = st.get('jx-mniv', '2bac');
-    const chs = n => [['', C.t('Au hasard dans le niveau', 'عشوائيا من المستوى')]].concat(C.ALL.filter(l => l.niv.id === n).map(l => [l.id, C.t(l.fr, l.ar)]));
-    app().innerHTML = `<section class="jx-page">${back()}<div class="jx-setup g3"><span class="jx-ic">🧩</span><h1>${C.t('Memory des formules', 'ذاكرة العلاقات')}</h1>
-      <p>${C.t('12 cartes face cachée : 6 formules et leurs 6 significations. Retrouve toutes les paires avec le moins de coups possible.', '12 بطاقة مقلوبة : 6 علاقات و6 معانيها. جد كل الأزواج بأقل عدد من المحاولات.')}</p>
-      <div class="jx-form">${sel('niv', C.t('Niveau', 'المستوى'), NIVS(), niv)}<label class="jx-f"><span>${C.t('Chapitre', 'الدرس')}</span><select id="ch"></select></label></div>
-      <button type="button" class="jx-btn big" id="go">▶ ${C.t('Jouer', 'العب')}</button></div></section>`;
-    const fill = () => { $('#ch').innerHTML = chs($('#niv').value).map(x => `<option value="${x[0]}">${C.esc(x[1])}</option>`).join(''); };
-    fill(); $('#niv').addEventListener('change', fill);
-    $('#go').addEventListener('click', async () => {
-      const n = $('#niv').value, id = $('#ch').value; st.set('jx-mniv', n);
-      const ls = C.ALL.filter(l => l.niv.id === n); await Promise.all(ls.map(l => C.loadContenu(l)));
-      const fm = l => C.chapter(l).formules.filter(f => f.tex && f.sens).map(f => ({ tex: f.tex, sens: f.sens, ch: C.t(l.fr, l.ar) }));
-      let F = id ? fm(C.ALL.find(l => l.id === id)) : [];
-      const seen = new Set(F.map(f => f.sens));
-      if (F.length < 6) shuffle(ls).forEach(l => fm(l).forEach(f => { if (F.length < 30 && !seen.has(f.sens)) { seen.add(f.sens); F.push(f); } }));
-      memoryPlay(pick(F, 6), id || n);
+  /* ---------- 1. Match des équipes ---------- */
+  function matchSetup() {
+    setup('match', qFields() + sel('nb', C.t('Questions par équipe', 'أسئلة لكل فريق'), [['3', '3'], ['5', '5'], ['8', '8'], ['10', '10']], '5') + sel('sec', C.t('Temps par question', 'الوقت لكل سؤال'), [['20', '20 s'], ['30', '30 s'], ['45', '45 s'], ['60', '60 s']], '30'), async () => {
+      C.store.set('jx-niv', $('#niv').value);
+      const nb = +$('#nb').value, sec = +$('#sec').value, P = await pool($('#niv').value, $('#mat').value, $('#ch').value);
+      if (!P.length) throw new Error('aucune question');
+      const run = () => turns('match', shuffle(P), nb, sec, run); run();
     });
   }
-  function memoryPlay(F, label) {
-    const cards = shuffle(F.flatMap((f, k) => [{ k, tex: f.tex }, { k, txt: f.sens }]));
-    let open = [], found = 0, moves = 0, errs = 0, t0 = Date.now(), lock = false;
-    app().innerHTML = `<section class="jx-page jx-play g3">${back()}<div class="jx-hud"><span class="jx-score">0 <small>${C.t('coups', 'محاولة')}</small></span><span class="jx-time">0 s</span></div>
-      <div class="jx-mem">${cards.map((c, i) => `<button type="button" class="jx-card3" data-i="${i}" aria-label="${C.t('Carte', 'بطاقة')} ${i + 1}"><span class="f back">?</span><span class="f front ${c.tex ? 'tex' : 'txt'}" dir="ltr">${c.tex ? `<span data-tex="${C.esc(c.tex)}"></span>` : C.esc(c.txt)}</span></button>`).join('')}</div></section>`;
-    C.typeset($('.jx-mem'));
-    every(() => { $('.jx-time').textContent = Math.round((Date.now() - t0) / 1000) + ' s'; }, 500);
+
+  /* ---------- 2. Course contre la montre (une équipe après l’autre) ---------- */
+  function chronoSetup() {
+    setup('chrono', qFields() + sel('sec', C.t('Durée par équipe', 'المدة لكل فريق'), [['45', '45 s'], ['60', '60 s'], ['90', '90 s']], '60'), async () => {
+      C.store.set('jx-niv', $('#niv').value);
+      const sec = +$('#sec').value, P = await pool($('#niv').value, $('#mat').value, $('#ch').value);
+      if (!P.length) throw new Error('aucune question');
+      const run = () => chronoPlay(shuffle(P), sec, run); run();
+    });
+  }
+  function chronoPlay(P, SEC, again) {
+    const T = teams(), sc = T.map(() => 0); let team = 0, qi = 0;
+    full(true);
+    function ready() {
+      stop(); if (team >= T.length) return podium('chrono', T, sc, again);
+      app().innerHTML = `<section class="jx-stage">${bar()}${board(T, sc, team)}<div class="jx-ready" style="--c:${COLORS[team]}"><p>${C.t('Au tour de', 'دور')}</p><h1>${C.esc(T[team].n)}</h1><p>${SEC} ${C.t('secondes', 'ثانية')}</p>
+        <button type="button" class="jx-btn huge" id="start">▶ ${C.t('Partez !', 'انطلقوا !')}</button></div></section>`;
+      wireBar(); $('#start').addEventListener('click', play); onKey(e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); play(); } });
+    }
+    function play() {
+      stop(); let left = SEC, serie = 0, lock = false;
+      app().innerHTML = `<section class="jx-stage">${bar()}${board(T, sc, team)}<div class="jx-hud"><span class="jx-score" style="color:${COLORS[team]}">${sc[team]} <small>pts</small></span><span class="jx-serie" hidden></span><span class="jx-time">${SEC}</span></div>
+        <div class="jx-timer"><i></i></div><div class="jx-q" dir="ltr" lang="fr"></div></section>`;
+      wireBar();
+      const show = () => {
+        if (left <= 0) return; const q = P[qi++ % P.length], os = opts(q); lock = false;
+        $('.jx-q').innerHTML = `<p class="jx-ch">${C.esc(q.ch)}</p><div class="jx-qt">${q.q}</div><div class="jx-os">${os.map((o, k) => `<button type="button" data-k="${k}"><i>${LET[k]}</i><span>${o.o}</span></button>`).join('')}</div>`;
+        C.typeset($('.jx-q'));
+        const ans = k => {
+          if (lock || left <= 0) return; lock = true; const ok = os[k].ok;
+          $$('.jx-os button').forEach((x, j) => { if (os[j].ok) x.classList.add('ok'); }); if (!ok) $$('.jx-os button')[k].classList.add('ko');
+          if (ok) { serie++; sc[team] += 10 + Math.min(20, (serie - 1) * 2); beep('ok'); } else { serie = 0; left = Math.max(0, left - 5); beep('ko'); }
+          $('.jx-score').innerHTML = sc[team] + ' <small>pts</small>'; const s = $('.jx-serie'); s.hidden = serie < 2; s.textContent = '🔥 ×' + serie;
+          later(show, ok ? 500 : 1400);
+        };
+        $$('.jx-os button').forEach(b => b.addEventListener('click', () => ans(+b.dataset.k)));
+        onKey(e => { const k = '1234'.indexOf(e.key) >= 0 ? '1234'.indexOf(e.key) : 'abcd'.indexOf(e.key.toLowerCase()); if (k >= 0 && k < os.length) ans(k); });
+      };
+      every(() => {
+        left = Math.max(0, left - 0.1); $('.jx-time').textContent = Math.ceil(left); const b = $('.jx-timer i'); b.style.width = (left / SEC * 100) + '%'; b.classList.toggle('low', left < 10);
+        if (left <= 0) { stop(); beep('win'); team++; later(ready, 1200); }
+      }, 100);
+      show();
+    }
+    ready();
+  }
+
+  /* ---------- 3. Memory des formules par équipes ---------- */
+  function memorySetup() {
+    setup('memory', sel('niv', C.t('Niveau', 'المستوى'), NIVS(), C.store.get('jx-mniv', '2bac')) + `<label class="jx-f"><span>${C.t('Chapitre', 'الدرس')}</span><select id="ch"></select></label>`
+      + sel('nb', C.t('Nombre de paires', 'عدد الأزواج'), [['6', '6 (12 cartes)'], ['8', '8 (16 cartes)'], ['10', '10 (20 cartes)']], '8'), async () => {
+      const n = $('#niv').value, id = $('#ch').value, nb = +$('#nb').value; C.store.set('jx-mniv', n);
+      const ls = C.ALL.filter(l => l.niv.id === n); await Promise.all(ls.map(l => C.loadContenu(l)));
+      const fm = l => C.chapter(l).formules.filter(f => f.tex && f.sens).map(f => ({ tex: f.tex, sens: f.sens }));
+      const F = id ? fm(C.ALL.find(l => l.id === id)) : [], seen = new Set(F.map(f => f.sens));
+      shuffle(ls).forEach(l => fm(l).forEach(f => { if (!seen.has(f.sens)) { seen.add(f.sens); F.push(f); } }));
+      const sel6 = id ? F.slice(0, nb) : pick(F, nb);
+      const run = () => memoryPlay(shuffle(sel6), run); run();
+    });
+  }
+  function memoryPlay(F, again) {
+    const T = teams(), sc = T.map(() => 0), cards = shuffle(F.flatMap((f, k) => [{ k, tex: f.tex }, { k, txt: f.sens }]));
+    let cur = 0, open = [], found = 0, lock = false; full(true);
+    const cols = cards.length <= 12 ? 4 : cards.length <= 16 ? 4 : 5;
+    app().innerHTML = `<section class="jx-stage">${bar()}${board(T, sc, cur)}<div class="jx-turn" style="--c:${COLORS[cur]}">${C.t('À', 'دور')} <b>${C.esc(T[cur].n)}</b> ${C.t('de jouer', '')}</div>
+      <div class="jx-mem" style="--cols:${cols}">${cards.map((c, i) => `<button type="button" class="jx-card3" data-i="${i}" aria-label="${C.t('Carte', 'بطاقة')} ${i + 1}"><span class="f back">${i + 1}</span><span class="f front ${c.tex ? 'tex' : 'txt'}" dir="ltr">${c.tex ? `<span data-tex="${C.esc(c.tex)}"></span>` : C.esc(c.txt)}</span></button>`).join('')}</div></section>`;
+    wireBar(); C.typeset($('.jx-mem'));
+    const refresh = () => { $('.jx-board').outerHTML = board(T, sc, cur); const tn = $('.jx-turn'); tn.style.setProperty('--c', COLORS[cur]); tn.innerHTML = `${C.t('À', 'دور')} <b>${C.esc(T[cur].n)}</b> ${C.t('de jouer', '')}`; };
     $$('.jx-card3').forEach(b => b.addEventListener('click', () => {
       if (lock || b.classList.contains('up') || b.classList.contains('done')) return;
-      b.classList.add('up'); open.push(b);
-      if (open.length < 2) return;
-      moves++; $('.jx-score').innerHTML = moves + ` <small>${C.t('coups', 'محاولة')}</small>`;
+      b.classList.add('up'); beep('flip'); open.push(b); if (open.length < 2) return;
       const [a, c] = open; open = [];
-      if (cards[+a.dataset.i].k === cards[+c.dataset.i].k) { a.classList.add('done'); c.classList.add('done'); found++; if (found === F.length) later(finish, 600); }
-      else { errs++; lock = true; later(() => { a.classList.remove('up'); c.classList.remove('up'); lock = false; }, 1100); }
+      if (cards[+a.dataset.i].k === cards[+c.dataset.i].k) {
+        a.classList.add('done'); c.classList.add('done'); a.style.setProperty('--c', COLORS[cur]); c.style.setProperty('--c', COLORS[cur]);
+        sc[cur] += 10; found++; beep('ok'); refresh(); if (found === F.length) later(() => podium('memory', T, sc, again), 900);
+      } else { lock = true; beep('ko'); later(() => { a.classList.remove('up'); c.classList.remove('up'); cur = (cur + 1) % T.length; refresh(); lock = false; }, 1500); }
     }));
-    function finish() {
-      stop(); const s = Math.round((Date.now() - t0) / 1000), score = Math.max(50, 1000 - errs * 60 - s * 4);
-      const earned = ['memory']; if (!errs) earned.push('memoryparfait');
-      const res = record('memory', score, score / 5, earned, label);
-      endCard(C.t('Bravo, toutes les paires !', 'أحسنت، كل الأزواج !'), score + ' pts', [moves + ' ' + C.t('coups', 'محاولة') + ' · ' + s + ' s · ' + errs + ' ' + C.t('erreur(s)', 'خطأ')], res, () => memoryPlay(shuffle(F), label));
-    }
   }
 
-  /* ---------- 4. Unités express ---------- */
+  /* ---------- 4. Unités express par équipes ---------- */
   const UN = [['une force', 'N'], ['une énergie', 'J'], ['une puissance', 'W'], ['une pression', 'Pa'], ['une fréquence', 'Hz'], ['une résistance', 'Ω'], ['une capacité', 'F'],
     ['une inductance', 'H'], ['un champ magnétique', 'T'], ['une charge électrique', 'C'], ['une tension', 'V'], ['une intensité du courant', 'A'], ['un champ électrique', 'V/m'],
     ['une concentration molaire', 'mol/L'], ['une quantité de matière', 'mol'], ['une masse molaire', 'g/mol'], ['une conductivité', 'S/m'], ['une conductance', 'S'],
@@ -259,61 +269,32 @@ window.JEUX = (() => {
     ['une accélération', 'm/s²'], ['une masse volumique', 'kg/m³'], ['un moment d’inertie', 'kg·m²'], ['une constante de temps τ', 's'], ['une vitesse', 'm/s']];
   const sup = n => String(n).replace(/[-0-9]/g, d => '⁻⁰¹²³⁴⁵⁶⁷⁸⁹'['-0123456789'.indexOf(d)]);
   const num = x => { if (x === 0) return '0'; const e = Math.floor(Math.log10(Math.abs(x))); if (e >= -2 && e <= 4) return String(+x.toPrecision(4)).replace('.', ','); const m = +(x / 10 ** e).toPrecision(3); return (m === 1 ? '' : String(m).replace('.', ',') + '×') + '10' + sup(e); };
-  const CONV = [[v => [v, 'km/h'], v => v / 3.6, 'm/s', [36, 72, 90, 108, 54]], [v => [v, 'mA'], v => v / 1000, 'A', [20, 150, 250, 5, 400]], [v => [v, 'µF'], v => v * 1e-6, 'F', [10, 47, 100, 2.2, 220]],
-    [v => [v, 'nm'], v => v * 1e-9, 'm', [400, 589, 633, 750]], [v => [v, 'kJ'], v => v * 1000, 'J', [2, 4.5, 12, 0.3]], [v => [v, 'mL'], v => v / 1000, 'L', [20, 250, 100, 10]],
-    [v => [v, 'cm²'], v => v * 1e-4, 'm²', [5, 20, 150, 2]], [v => [v, 'g'], v => v / 1000, 'kg', [250, 50, 1500, 5]], [v => [v, 'ms'], v => v / 1000, 's', [20, 5, 400, 40]],
-    [v => [v, 'MeV'], v => v * 1.6e-13, 'J', [1, 5, 200]], [v => [v, 'mmol/L'], v => v / 1000, 'mol/L', [10, 2, 50]], [v => [v, '°C'], v => v + 273, 'K', [25, 100, 0, 37]],
-    [v => [v, 'mH'], v => v / 1000, 'H', [10, 200, 50]], [v => [v, 'kΩ'], v => v * 1000, 'Ω', [1, 4.7, 10, 2.2]], [v => [v, 'mm'], v => v / 1000, 'm', [5, 0.5, 12]]];
+  const CONV = [['km/h', v => v / 3.6, 'm/s', [36, 72, 90, 108, 54]], ['mA', v => v / 1000, 'A', [20, 150, 250, 5, 400]], ['µF', v => v * 1e-6, 'F', [10, 47, 100, 2.2, 220]],
+    ['nm', v => v * 1e-9, 'm', [400, 589, 633, 750]], ['kJ', v => v * 1000, 'J', [2, 4.5, 12, 0.3]], ['mL', v => v / 1000, 'L', [20, 250, 100, 10]],
+    ['cm²', v => v * 1e-4, 'm²', [5, 20, 150, 2]], ['g', v => v / 1000, 'kg', [250, 50, 1500, 5]], ['ms', v => v / 1000, 's', [20, 5, 400, 40]],
+    ['MeV', v => v * 1.6e-13, 'J', [1, 5, 200]], ['mmol/L', v => v / 1000, 'mol/L', [10, 2, 50]], ['°C', v => v + 273, 'K', [25, 100, 0, 37]],
+    ['mH', v => v / 1000, 'H', [10, 200, 50]], ['kΩ', v => v * 1000, 'Ω', [1, 4.7, 10, 2.2]], ['mm', v => v / 1000, 'm', [5, 0.5, 12]]];
   function unitQ() {
     if (Math.random() < 0.45) {
-      const [g, u] = UN[Math.floor(Math.random() * UN.length)], wr = pick(UN.filter(x => x[1] !== u), 3).map(x => x[1]);
-      return { q: C.t('Quelle est l’unité de ', 'ما وحدة ') + g + ' ?', o: shuffle([u].concat(wr)), r: u };
+      const [g, u] = UN[Math.floor(Math.random() * UN.length)], o = shuffle([u].concat(pick(UN.filter(x => x[1] !== u), 3).map(x => x[1])));
+      return { q: C.t('Quelle est l’unité de ', 'ما وحدة ') + g + ' ?', os: o.map(x => ({ o: x, ok: x === u })) };
     }
-    const c = CONV[Math.floor(Math.random() * CONV.length)], v = c[3][Math.floor(Math.random() * c[3].length)], [a, ua] = c[0](v), res = c[1](v);
-    const good = num(res) + ' ' + c[2];
-    const wrong = [res * 10, res / 10, res * 1000, res / 1000, res * 100].filter(x => num(x) !== num(res)).map(x => num(x) + ' ' + c[2]);
-    if (c[2] === 'K') wrong.splice(0, 3, num(v - 273) + ' K', num(v + 173) + ' K', num(v * 273) + ' K');
-    const o = shuffle([good].concat(pick([...new Set(wrong)], 3)));
-    return { q: C.t('Convertis : ', 'حول : ') + String(a).replace('.', ',') + ' ' + ua + ' = ?', o, r: good };
-  }
-  function unitesPlay() {
-    const N = 15; let i = 0, good = 0, score = 0, q, left, lock;
-    app().innerHTML = `<section class="jx-page jx-play g4">${back()}<div class="jx-hud"><span class="jx-score">0 <small>pts</small></span><span class="jx-time">1/${N}</span></div>
-      <div class="jx-timer"><i></i></div><div class="jx-q" dir="ltr" lang="fr"></div></section>`;
-    const bar = $('.jx-timer i');
-    function show() {
-      stop(); if (i >= N) return finish();
-      q = unitQ(); left = 12; lock = false; i++; $('.jx-time').textContent = i + '/' + N;
-      $('.jx-q').innerHTML = `<div class="jx-qt big">${q.q}</div><div class="jx-os">${q.o.map(o => `<button type="button">${o}</button>`).join('')}</div>`;
-      const answer = b => {
-        if (lock) return; lock = true; stop();
-        $$('.jx-os button').forEach(x => { if (x.textContent === q.r) x.classList.add('ok'); });
-        if (b && b.textContent === q.r) { good++; score += 10 + Math.ceil(left); } else if (b) b.classList.add('ko');
-        $('.jx-score').innerHTML = score + ' <small>pts</small>'; later(show, b && b.textContent === q.r ? 500 : 1300);
-      };
-      $$('.jx-os button').forEach(b => b.addEventListener('click', () => answer(b)));
-      every(() => { left = Math.max(0, left - 0.1); bar.style.width = (left / 12 * 100) + '%'; bar.classList.toggle('low', left < 4); if (left <= 0) answer(null); }, 100);
-    }
-    function finish() {
-      const earned = []; if (good >= 12) earned.push('unites'); if (good === N) earned.push('unites15');
-      const res = record('unites', score, score / 2, earned);
-      endCard(C.t('Série terminée !', 'انتهت السلسلة !'), good + ' / ' + N, [score + ' pts'], res, unitesPlay);
-    }
-    show();
+    const c = CONV[Math.floor(Math.random() * CONV.length)], v = c[3][Math.floor(Math.random() * c[3].length)], res = c[1](v), good = num(res) + ' ' + c[2];
+    let wrong = [res * 10, res / 10, res * 1000, res / 1000, res * 100].map(x => num(x) + ' ' + c[2]);
+    if (c[2] === 'K') wrong = [num(v - 273) + ' K', num(v + 173) + ' K', num(v * 273) + ' K'];
+    const o = shuffle([good].concat(pick([...new Set(wrong)].filter(x => x !== good), 3)));
+    return { q: C.t('Convertis : ', 'حوّل : ') + String(v).replace('.', ',') + ' ' + c[0] + ' = ?', os: o.map(x => ({ o: x, ok: x === good })) };
   }
   function unitesSetup() {
-    app().innerHTML = `<section class="jx-page">${back()}<div class="jx-setup g4"><span class="jx-ic">📏</span><h1>${C.t('Unités express', 'الوحدات السريعة')}</h1>
-      <p>${C.t('15 questions : unité d’une grandeur ou conversion (km/h → m/s, µF → F, MeV → J…). 12 secondes par question ; plus tu es rapide, plus tu gagnes de points.', '15 سؤالا : وحدة مقدار أو تحويل (km/h → m/s، µF → F، MeV → J…). 12 ثانية لكل سؤال ؛ كلما كنت أسرع ربحت نقاطا أكثر.')}</p>
-      <button type="button" class="jx-btn big" id="go">▶ ${C.t('C’est parti !', 'هيا بنا !')}</button></div></section>`;
-    $('#go').addEventListener('click', unitesPlay);
+    setup('unites', sel('nb', C.t('Questions par équipe', 'أسئلة لكل فريق'), [['3', '3'], ['5', '5'], ['8', '8']], '5') + sel('sec', C.t('Temps par question', 'الوقت لكل سؤال'), [['15', '15 s'], ['20', '20 s'], ['30', '30 s']], '20'), async () => {
+      const nb = +$('#nb').value, sec = +$('#sec').value;
+      const run = () => turns('unites', Array.from({ length: nb * teams().length }, unitQ), nb, sec, run); run();
+    });
   }
 
   return {
     init(ctx) { C = ctx; },
-    stop,
-    page(sub) {
-      stop();
-      ({ chrono: chronoSetup, duel: duelSetup, memory: memorySetup, unites: unitesSetup }[sub] || hub)();
-    },
+    stop() { stop(); document.body.classList.remove('jx-full'); },
+    page(sub) { stop(); ({ match: matchSetup, duel: matchSetup, chrono: chronoSetup, memory: memorySetup, unites: unitesSetup }[sub] || hub)(); },
   };
 })();
