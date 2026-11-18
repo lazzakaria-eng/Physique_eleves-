@@ -1074,3 +1074,5 @@ body.jx-full::before, body.jx-full::after { display: none; }
 .jx-chp-list input { accent-color: var(--g, #4f46e5); width: 18px; height: 18px; flex: none; }
 .jx-chp-acts { display: flex; gap: 6px; margin-top: 10px; }
 .jx-setup:has(.jx-chp) { max-width: 820px; }
+.jx-chp-sep { flex: 1; } .jx-chp-tabs button.m.on { background: var(--ink); color: var(--card); }
+.jx-chp-list small { opacity: .8; }
