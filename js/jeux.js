@@ -10,7 +10,8 @@ window.JEUX = (() => {
   const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const pick = (a, n) => shuffle(a).slice(0, n);
   let timers = [], keyH = null;
-  const stop = () => { timers.forEach(x => { clearInterval(x); clearTimeout(x); }); timers = []; if (keyH) { document.removeEventListener('keydown', keyH); keyH = null; } };
+  let hooks = [];
+  const stop = () => { hooks.forEach(f => { try { f(); } catch (e) { /* déjà arrêté */ } }); hooks = []; timers.forEach(x => { clearInterval(x); clearTimeout(x); }); timers = []; if (keyH) { document.removeEventListener('keydown', keyH); keyH = null; } };
   const later = (f, ms) => timers.push(setTimeout(f, ms));
   const every = (f, ms) => timers.push(setInterval(f, ms));
   const onKey = f => { if (keyH) document.removeEventListener('keydown', keyH); keyH = e => { if (!e.target.closest('input, select, textarea')) f(e); }; document.addEventListener('keydown', keyH); };
@@ -105,7 +106,8 @@ window.JEUX = (() => {
     ['fusees', '🚀', 'Course de fusées', 'سباق الصواريخ', 'Chacun ses questions : chaque bonne réponse fait monter ta fusée. La première en haut gagne.', 'لكل لاعب أسئلته : كل جواب صحيح يرفع صاروخك. الأول في القمة يفوز.', 'd3'],
     ['vraifaux', '✅', 'Vrai ou faux réflexe', 'صحيح أم خطأ', 'Une affirmation au centre : le plus rapide à répondre juste marque. Une erreur donne le point à l’adversaire !', 'عبارة في الوسط : الأسرع بالجواب الصحيح يربح. الخطأ يمنح النقطة للخصم !', 'd4'],
   ];
-  const gName = id => { const g = GAMES.concat(DUO).find(x => x[0] === id); return g ? C.t(g[2], g[3]) : id; };
+  const G3 = () => (window.JEUX3D ? JEUX3D.list : []);
+  const gName = id => { const g = GAMES.concat(DUO, G3()).find(x => x[0] === id); return g ? C.t(g[2], g[3]) : id; };
   function hub() {
     full(false);
     const T = teams(), tr = tournoi(), pal = get('jx-palmares', []);
@@ -122,6 +124,8 @@ window.JEUX = (() => {
       <div class="jx-games">${GAMES.map(g => `<a class="jx-game tilt ${g[6]}" href="#/jeux/${g[0]}"><span class="jx-ic">${g[1]}</span><b>${C.t(g[2], g[3])}</b><span>${C.t(g[4], g[5])}</span><span class="jx-meta"><em>${C.t('Lancer', 'ابدأ')} ›</em></span></a>`).join('')}</div>
       <h2 class="jx-sec">🆚 ${C.t('Jeux à 2 joueurs — face à face sur l’écran', 'ألعاب لاعبين اثنين — وجها لوجه على الشاشة')}</h2>
       <div class="jx-games">${DUO.map(g => `<a class="jx-game tilt duo ${g[6]}" href="#/jeux/${g[0]}"><span class="jx-ic">${g[1]}</span><b>${C.t(g[2], g[3])}</b><span>${C.t(g[4], g[5])}</span><span class="jx-meta"><em>${C.t('Lancer', 'ابدأ')} ›</em></span></a>`).join('')}</div>
+      ${G3().length ? `<h2 class="jx-sec">🧊 ${C.t('Jeux 3D — stratégie, mémoire et réflexes', 'ألعاب ثلاثية الأبعاد — ذكاء، ذاكرة وسرعة بديهة')}</h2>
+      <div class="jx-games">${G3().map(g => `<a class="jx-game tilt g3d ${g[6]}" href="#/jeux/${g[0]}"><span class="jx-ic">${g[1]}</span><b>${C.t(g[2], g[3])}</b><span>${C.t(g[4], g[5])}</span><span class="jx-meta"><em>${C.t('Lancer', 'ابدأ')} ›</em></span></a>`).join('')}</div>` : ''}
       <div class="jx-two">
         <section class="jx-card"><h2>🏆 ${C.t('Tournoi de la séance', 'دوري الحصة')}</h2>
           ${totals.length ? `<ol class="jx-tour">${totals.map(([n, s]) => `<li><span>${C.esc(n)}</span><em>${s} pts</em></li>`).join('')}</ol><button type="button" class="jx-btn ghost" id="raz">↺ ${C.t('Nouveau tournoi', 'دوري جديد')}</button>` : `<p class="jx-note">${C.t('Les points de chaque partie s’ajoutent ici.', 'نقاط كل لعبة تضاف هنا.')}</p>`}</section>
@@ -546,6 +550,7 @@ window.JEUX = (() => {
   return {
     init(ctx) { C = ctx; },
     stop() { stop(); document.body.classList.remove('jx-full'); },
-    page(sub) { stop(); ({ match: matchSetup, duel: matchSetup, chrono: chronoSetup, memory: memorySetup, unites: unitesSetup, enigmes: enigmesSetup, defis: defisSetup, intrus: intrusSetup, mots: motsSetup }[sub] || (DUO.some(g => g[0] === sub) ? () => duoSetup(sub) : hub))(); },
+    api: { bar: () => bar(), wireBar: () => wireBar(), full, beep, confetti, onKey, later, every, hook: f => hooks.push(f), duoWin: (g, n, sc, a) => duoWin(g, n, sc, a), duoNames: () => duoNames(), put, get, PC: ['#2563eb', '#dc2626'], C: () => C },
+    page(sub) { stop(); if (window.JEUX3D && JEUX3D.list.some(g => g[0] === sub)) return JEUX3D.page(sub); ({ match: matchSetup, duel: matchSetup, chrono: chronoSetup, memory: memorySetup, unites: unitesSetup, enigmes: enigmesSetup, defis: defisSetup, intrus: intrusSetup, mots: motsSetup }[sub] || (DUO.some(g => g[0] === sub) ? () => duoSetup(sub) : hub))(); },
   };
 })();
