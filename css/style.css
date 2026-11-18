@@ -931,3 +931,34 @@ body.jx-full::before, body.jx-full::after { display: none; }
 .jx-vf .v { background: linear-gradient(145deg, #4ade80, #16a34a); box-shadow: 0 8px 0 #15803d; } .jx-vf .f { background: linear-gradient(145deg, #f87171, #dc2626); box-shadow: 0 8px 0 #991b1b; }
 .jx-vf button:active { transform: translateY(5px); } .jx-vf button.ok { outline: 6px solid #facc15; } .jx-vf button.ko { opacity: .5; }
 .jx-sos button span, .jx-os button span { overflow: visible; overflow-wrap: anywhere; }
+/* ===== jeux 3D ===== */
+.x1 { --g: #0ea5e9; } .x2 { --g: #a855f7; } .x3 { --g: #ec4899; } .x4 { --g: #16a34a; }
+.jx-game.g3d { background: radial-gradient(120% 120% at 100% 0, color-mix(in srgb, var(--g) 16%, var(--card)), var(--card) 60%); }
+.jx-3dhead { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr) minmax(0, 1fr); gap: 1.2vw; align-items: center; }
+.jx-3dmsg { text-align: center; font-size: 1.4em; font-weight: 700; }
+.jx-tgt { display: inline-block; color: #111; padding: .05em .5em; border-radius: .4em; box-shadow: 0 3px 0 rgba(0, 0, 0, .25); }
+.jx-3d { position: relative; flex: 1; min-height: 0; border-radius: 1.2em; overflow: hidden; background: radial-gradient(120% 100% at 50% 0, #1e3a8a, #0f172a 75%); box-shadow: inset 0 0 60px rgba(0, 0, 0, .5); }
+.jx-3d canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+.jx-3dtip { position: absolute; left: 0; right: 0; bottom: 1vh; margin: 0; text-align: center; color: #cbd5e1; font-size: .9em; pointer-events: none; }
+.jx-stage > .jx-3d { flex: 1; }
+.jx-duo.b3 .jx-side { padding: .6vh .6vw; } .jx-duo.b3 .jx-3d { height: 100%; }
+.jx-seqwrap { --c: #7c3aed; flex: 1; display: grid; place-items: center; perspective: 1400px; }
+.jx-seq { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.6vw; width: min(60vh, 46vw); aspect-ratio: 1; transform: rotateX(28deg); transform-style: preserve-3d; padding: 1.6vw; border-radius: 1.4em;
+  background: linear-gradient(145deg, #1e293b, #0f172a); box-shadow: 0 40px 60px -20px rgba(0, 0, 0, .6), 0 0 0 6px var(--c); transition: box-shadow .3s; }
+.jx-seq.watch { box-shadow: 0 40px 60px -20px rgba(0, 0, 0, .6), 0 0 0 6px #64748b; }
+.jx-seq button { border: 0; border-radius: .8em; cursor: pointer; background: color-mix(in srgb, var(--c) 35%, #0f172a); box-shadow: 0 10px 0 color-mix(in srgb, var(--c) 30%, #000); transform: translateZ(0); transition: transform .12s, background .12s, box-shadow .12s; touch-action: manipulation; }
+.jx-seq button.lit { background: var(--c); transform: translateZ(26px); box-shadow: 0 0 40px var(--c), 0 6px 0 color-mix(in srgb, var(--c) 50%, #000); }
+.jx-seq button.ko { background: #fff; }
+.jx-feu { flex: 1; display: grid; grid-template-columns: 1fr auto 1fr; gap: 2vw; align-items: stretch; perspective: 1200px; }
+.jx-pad { --c: #2563eb; display: grid; place-content: center; gap: 1vh; font: inherit; font-size: 2.4em; font-weight: 900; color: #fff; cursor: pointer; border: 0; border-radius: .6em;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--c) 70%, #fff), var(--c)); box-shadow: 0 12px 0 color-mix(in srgb, var(--c) 55%, #000), 0 30px 50px -20px var(--c); touch-action: manipulation; transition: transform .1s; }
+.jx-pad small { font-size: .45em; opacity: .85; } .jx-pad:active { transform: translateY(8px); }
+.jx-pad.win { outline: 10px solid #facc15; } .jx-pad.foul { filter: grayscale(1) brightness(.7); }
+.jx-light { align-self: center; display: grid; gap: 2.2vh; padding: 2.4vh 1.6vw; border-radius: 2em; background: linear-gradient(90deg, #111827, #374151 45%, #111827); box-shadow: 0 30px 50px -20px rgba(0, 0, 0, .7), inset 0 2px 0 rgba(255, 255, 255, .15); transform: rotateY(-12deg); animation: jxsway 6s ease-in-out infinite; }
+.jx-light i { display: block; width: 15vh; height: 15vh; border-radius: 50%; background: #1f2937; box-shadow: inset 0 6px 14px rgba(0, 0, 0, .7); }
+.jx-light.red .r { background: radial-gradient(circle at 35% 30%, #fecaca, #dc2626 60%); box-shadow: 0 0 50px #ef4444; }
+.jx-light.orange .o { background: radial-gradient(circle at 35% 30%, #fed7aa, #f97316 60%); box-shadow: 0 0 50px #f97316; }
+.jx-light.green .g { background: radial-gradient(circle at 35% 30%, #bbf7d0, #16a34a 60%); box-shadow: 0 0 70px #22c55e; }
+.jx-rt { margin: 0; min-height: 1.4em; text-align: center; color: #fff; font-size: 1.6em; font-weight: 900; }
+@keyframes jxsway { 50% { transform: rotateY(12deg); } }
+@media (prefers-reduced-motion: reduce) { .jx-light { animation: none; } }
