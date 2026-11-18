@@ -176,6 +176,9 @@
         <span class="pill">${n.list.filter(l => l.mat === 'physique').length} ${t('chap. de physique', 'دروس فيزياء')} · ${n.list.filter(l => l.mat === 'chimie').length} ${t('de chimie', 'كيمياء')} ${IC.arrow}</span></a>`).join('')}</nav>
 
 
+      <a class="jx-banner tilt" href="#/jeux"><span class="jx-bi">🎮</span><span><b>${t('Espace Jeux & Défis', 'فضاء الألعاب والتحديات')}</b>
+        <small>${t('Défi chrono, duel à deux, memory des formules, unités express : révise en jouant, gagne des trophées.', 'تحدي الوقت، مبارزة ثنائية، ذاكرة العلاقات، الوحدات السريعة : راجع وأنت تلعب واربح الكؤوس.')}</small></span><em>${t('Jouer', 'العب')} ›</em></a>
+
       <h2 class="sec">${t('Comment réviser un chapitre ?', 'كيف أراجع درسا ؟')}</h2>
       <ol class="journey">${[['sheet', t('Résumé du cours', 'ملخص الدرس'), t('Définitions, lois, formules', 'تعاريف، قوانين، علاقات')],
         ['flask', t('Expériences', 'التجارب'), t('Simulations à curseurs', 'محاكاة تفاعلية')],
@@ -586,6 +589,8 @@
   let seq = 0;
   function route() {
     if (stopSim) { stopSim(); stopSim = null; }
+    if (window.JEUX) JEUX.stop();
+    $('#jeuxbtn').setAttribute('aria-label', t('Jeux & Défis', 'الألعاب والتحديات'));
     document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
     $('#lang').textContent = lang === 'ar' ? 'Français' : 'العربية';
     if (theme) document.documentElement.dataset.theme = theme; else delete document.documentElement.dataset.theme;
@@ -610,8 +615,11 @@
       niveau(NIV[m[1]], m[2]); document.title = t(NIV[m[1]].titre, NIV[m[1]].ar) + ' — ' + site;
     } else if ((m = h.match(/^#\/recherche\/?(.*)$/))) {
       search(m[1] || ''); document.title = t('Recherche', 'بحث') + ' — ' + site;
+    } else if ((m = h.match(/^#\/jeux\/?(\w*)/)) && window.JEUX) {
+      JEUX.page(m[1]); document.title = t('Jeux & Défis', 'الألعاب والتحديات') + ' — ' + site;
     } else { home(); document.title = site + ' | Prof. Zakaria Lazrak'; }
   }
+  if (window.JEUX) JEUX.init({ t, esc, IC, typeset, loadContenu, chapter, ALL, store });
   window.__typeset = () => typeset();
   $('#lang').addEventListener('click', () => { lang = lang === 'ar' ? 'fr' : 'ar'; store.set('lang', lang); route(); });
   $('#theme').addEventListener('click', () => {
