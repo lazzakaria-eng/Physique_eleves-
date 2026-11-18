@@ -893,3 +893,41 @@ body.jx-full::before, body.jx-full::after { display: none; }
 .jx-tiles button:active { transform: translateY(4px); box-shadow: 0 2px 0 #92400e; }
 .jx-tiles button:disabled { opacity: .15; box-shadow: none; }
 @media (max-width: 900px) { .jx-stage .jx-os.six { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .jx-slots span { font-size: 1.6em; } .jx-tiles button { font-size: 1.8em; } }
+/* ===== jeux à 2 joueurs face à face ===== */
+.jx-sec { margin: 26px 0 0; font-size: 1.25rem; }
+.d1 { --g: #7c3aed; } .d2 { --g: #b45309; } .d3 { --g: #0369a1; } .d4 { --g: #15803d; }
+.jx-game.duo { background: linear-gradient(90deg, color-mix(in srgb, #2563eb 7%, var(--card)), var(--card) 45%, var(--card) 55%, color-mix(in srgb, #dc2626 7%, var(--card))); }
+.jx-mid { text-align: center; padding: 1.4vh 2vw; border-radius: 1.2em; background: var(--card); border: 1px solid var(--line); box-shadow: 0 5px 0 var(--line); }
+.jx-mid .jx-qt { font-size: 2em; margin: .3em 0; }
+.jx-prop { display: inline-block; margin-top: .2em; padding: .1em .6em; border-radius: .4em; background: #fef3c7; color: #78350f; font-weight: 800; }
+.jx-duo { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.6vw; min-height: 0; }
+.jx-side { --c: #2563eb; display: flex; flex-direction: column; gap: 1.2vh; padding: 1.2vh 1.2vw; border-radius: 1.2em; background: color-mix(in srgb, var(--c) 7%, var(--card)); border: 4px solid color-mix(in srgb, var(--c) 45%, var(--line)); transition: all .25s; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.jx-side.win { border-color: var(--c); box-shadow: 0 0 0 6px color-mix(in srgb, var(--c) 30%, transparent), 0 20px 40px -20px var(--c); }
+.jx-side.out { opacity: .45; filter: grayscale(.6); }
+.jx-sh { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.jx-sh b { font-size: 1.5em; color: var(--c); } .jx-ssc { font-size: 2.6em; font-weight: 900; color: var(--c); line-height: 1; }
+.jx-sos { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1vw; grid-auto-rows: minmax(10vh, 1fr); }
+.jx-sos button { display: flex; align-items: center; gap: .5em; font: inherit; font-size: 1.35em; text-align: start; cursor: pointer; color: var(--ink); padding: .5em .7em; border-radius: .6em; background: var(--card); border: 3px solid var(--line); box-shadow: 0 5px 0 var(--line); min-width: 0; touch-action: manipulation; }
+.jx-sos button span { min-width: 0; overflow-x: auto; }
+.jx-sos button i { flex: none; display: grid; place-items: center; width: 1.6em; height: 1.6em; border-radius: .4em; font-style: normal; font-weight: 900; color: #fff; background: var(--c); font-size: .8em; }
+.jx-sos button.ok { border-color: #16a34a; background: #dcfce7; color: #14532d; box-shadow: 0 5px 0 #16a34a; animation: jxpop .35s; }
+.jx-sos button.ko { border-color: #dc2626; background: #fee2e2; color: #7f1d1d; box-shadow: 0 5px 0 #dc2626; animation: jxshake .35s; }
+.jx-sbox { flex: 1; display: flex; flex-direction: column; gap: 1vh; min-height: 0; }
+.jx-sq { font-size: 1.45em; font-weight: 600; line-height: 1.4; padding: .4em .6em; border-radius: .6em; background: var(--card); }
+.jx-rope { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 1.4vw; }
+.jx-camp { font-weight: 900; font-size: 1.3em; color: #fff; background: var(--c); padding: .3em .8em; border-radius: .6em; }
+.jx-track { position: relative; height: 3.4em; }
+.jx-line { position: absolute; left: 0; right: 0; top: 50%; height: .45em; transform: translateY(-50%); border-radius: 99px; background: repeating-linear-gradient(90deg, #a16207 0 14px, #ca8a04 14px 28px); box-shadow: 0 3px 6px rgba(0, 0, 0, .25); }
+.jx-mark { position: absolute; top: 0; bottom: 0; width: 4px; border-radius: 2px; } .jx-mark.l { left: 4%; background: #2563eb; } .jx-mark.r { right: 4%; background: #dc2626; }
+.jx-knot { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.6em; transition: left .5s cubic-bezier(.3, 1.4, .5, 1); filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .3)); }
+.jx-knot.pull { animation: jxpop .5s; }
+.jx-side.rk .jx-race { flex: 1; display: grid; grid-template-columns: 5.5em minmax(0, 1fr); gap: 1vw; min-height: 0; }
+.jx-sky { position: relative; border-radius: .8em; background: linear-gradient(0deg, #93c5fd, #1e3a8a 70%, #0f172a); overflow: hidden; }
+.jx-rocket { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%) rotate(-45deg); font-size: 2.6em; transition: bottom .6s cubic-bezier(.3, 1.3, .5, 1); }
+.jx-moon { position: absolute; top: 2%; left: 50%; transform: translateX(-50%); font-size: 2em; font-style: normal; }
+.jx-side.rk .jx-sos { grid-template-columns: minmax(0, 1fr); grid-auto-rows: minmax(7vh, 1fr); }
+.jx-vf { flex: 1; display: grid; grid-template-rows: 1fr 1fr; gap: 1.4vh; }
+.jx-vf button { font: inherit; font-size: 3em; font-weight: 900; cursor: pointer; color: #fff; border: 0; border-radius: .4em; touch-action: manipulation; }
+.jx-vf .v { background: linear-gradient(145deg, #4ade80, #16a34a); box-shadow: 0 8px 0 #15803d; } .jx-vf .f { background: linear-gradient(145deg, #f87171, #dc2626); box-shadow: 0 8px 0 #991b1b; }
+.jx-vf button:active { transform: translateY(5px); } .jx-vf button.ok { outline: 6px solid #facc15; } .jx-vf button.ko { opacity: .5; }
+.jx-sos button span, .jx-os button span { overflow: visible; overflow-wrap: anywhere; }

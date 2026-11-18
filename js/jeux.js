@@ -99,6 +99,13 @@ window.JEUX = (() => {
     ['intrus', '🔍', 'L’intrus', 'الدخيل', 'Quatre éléments : un seul n’est pas comme les autres. Trouvez-le, puis justifiez !', 'أربعة عناصر : واحد فقط مختلف. جدوه ثم عللوا !', 'g6'],
     ['mots', '🔤', 'Lettres mélangées', 'الحروف المبعثرة', 'Remettez les lettres dans l’ordre pour retrouver le mot scientifique défini.', 'رتبوا الحروف لإيجاد الكلمة العلمية المعرّفة.', 'g8'],
   ];
+  const DUO = [
+    ['duo', '⚡', 'Duel éclair', 'مبارزة خاطفة', 'Même question pour les deux joueurs : le premier qui touche la bonne réponse marque le point.', 'نفس السؤال للاعبين : أول من يلمس الجواب الصحيح يربح النقطة.', 'd1'],
+    ['corde', '🪢', 'Tir à la corde', 'شد الحبل', 'Chaque bonne réponse tire la corde de ton côté. Amène le nœud dans ton camp !', 'كل جواب صحيح يشد الحبل نحوك. اجلب العقدة إلى جهتك !', 'd2'],
+    ['fusees', '🚀', 'Course de fusées', 'سباق الصواريخ', 'Chacun ses questions : chaque bonne réponse fait monter ta fusée. La première en haut gagne.', 'لكل لاعب أسئلته : كل جواب صحيح يرفع صاروخك. الأول في القمة يفوز.', 'd3'],
+    ['vraifaux', '✅', 'Vrai ou faux réflexe', 'صحيح أم خطأ', 'Une affirmation au centre : le plus rapide à répondre juste marque. Une erreur donne le point à l’adversaire !', 'عبارة في الوسط : الأسرع بالجواب الصحيح يربح. الخطأ يمنح النقطة للخصم !', 'd4'],
+  ];
+  const gName = id => { const g = GAMES.concat(DUO).find(x => x[0] === id); return g ? C.t(g[2], g[3]) : id; };
   function hub() {
     full(false);
     const T = teams(), tr = tournoi(), pal = get('jx-palmares', []);
@@ -111,12 +118,15 @@ window.JEUX = (() => {
           ${T.map((x, i) => `<div class="jx-ted" style="--c:${COLORS[i]}"><i></i><input data-i="${i}" maxlength="18" value="${C.esc(x.n)}">${T.length > 2 ? `<button type="button" data-del="${i}" aria-label="${C.t('Supprimer', 'حذف')}">✕</button>` : ''}</div>`).join('')}
           ${T.length < 4 ? `<button type="button" class="jx-add">＋ ${C.t('Ajouter une équipe', 'أضف فريقا')}</button>` : ''}
           <div class="jx-opts"><label><input type="checkbox" id="pe"${get('jx-pe', true) ? ' checked' : ''}> ${C.t('Plein écran', 'ملء الشاشة')}</label><label><input type="checkbox" id="son"${sonOn() ? ' checked' : ''}> ${C.t('Sons', 'الأصوات')}</label></div></div></div>
+      <h2 class="jx-sec">👥 ${C.t('Jeux par équipes', 'ألعاب الفرق')}</h2>
       <div class="jx-games">${GAMES.map(g => `<a class="jx-game tilt ${g[6]}" href="#/jeux/${g[0]}"><span class="jx-ic">${g[1]}</span><b>${C.t(g[2], g[3])}</b><span>${C.t(g[4], g[5])}</span><span class="jx-meta"><em>${C.t('Lancer', 'ابدأ')} ›</em></span></a>`).join('')}</div>
+      <h2 class="jx-sec">🆚 ${C.t('Jeux à 2 joueurs — face à face sur l’écran', 'ألعاب لاعبين اثنين — وجها لوجه على الشاشة')}</h2>
+      <div class="jx-games">${DUO.map(g => `<a class="jx-game tilt duo ${g[6]}" href="#/jeux/${g[0]}"><span class="jx-ic">${g[1]}</span><b>${C.t(g[2], g[3])}</b><span>${C.t(g[4], g[5])}</span><span class="jx-meta"><em>${C.t('Lancer', 'ابدأ')} ›</em></span></a>`).join('')}</div>
       <div class="jx-two">
         <section class="jx-card"><h2>🏆 ${C.t('Tournoi de la séance', 'دوري الحصة')}</h2>
           ${totals.length ? `<ol class="jx-tour">${totals.map(([n, s]) => `<li><span>${C.esc(n)}</span><em>${s} pts</em></li>`).join('')}</ol><button type="button" class="jx-btn ghost" id="raz">↺ ${C.t('Nouveau tournoi', 'دوري جديد')}</button>` : `<p class="jx-note">${C.t('Les points de chaque partie s’ajoutent ici.', 'نقاط كل لعبة تضاف هنا.')}</p>`}</section>
         <section class="jx-card"><h2>📋 ${C.t('Palmarès', 'سجل الفائزين')}</h2>
-          ${pal.length ? `<ul class="jx-pal">${pal.map(p => `<li><b>${C.esc(p.w)}</b><small>${C.esc(C.t(GAMES.find(g => g[0] === p.g)[2], GAMES.find(g => g[0] === p.g)[3]))} · ${p.d}</small><span>${C.esc(p.s)}</span></li>`).join('')}</ul>` : `<p class="jx-note">${C.t('Aucune partie jouée pour l’instant.', 'لم تلعب أي مباراة بعد.')}</p>`}</section></div></section>`;
+          ${pal.length ? `<ul class="jx-pal">${pal.map(p => `<li><b>${C.esc(p.w)}</b><small>${C.esc(gName(p.g))} · ${p.d}</small><span>${C.esc(p.s)}</span></li>`).join('')}</ul>` : `<p class="jx-note">${C.t('Aucune partie jouée pour l’instant.', 'لم تلعب أي مباراة بعد.')}</p>`}</section></div></section>`;
     $$('.jx-ted input').forEach(inp => inp.addEventListener('change', () => { const T2 = teams(); T2[+inp.dataset.i].n = inp.value.trim() || T2[+inp.dataset.i].n; setTeams(T2); }));
     $$('[data-del]').forEach(b => b.addEventListener('click', () => { const T2 = teams(); T2.splice(+b.dataset.del, 1); setTeams(T2); hub(); }));
     const add = $('.jx-add'); if (add) add.addEventListener('click', () => { const T2 = teams(); T2.push({ n: [C.t('Équipe verte', 'الفريق الأخضر'), C.t('Équipe orange', 'الفريق البرتقالي')][T2.length - 2] }); setTeams(T2); hub(); });
@@ -127,7 +137,7 @@ window.JEUX = (() => {
 
   /* ---------- écran de réglage ---------- */
   function setup(g, fields, go) {
-    const G = GAMES.find(x => x[0] === g);
+    const G = GAMES.concat(DUO).find(x => x[0] === g);
     app().innerHTML = `<section class="jx-page"><a class="jx-back" href="#/jeux">‹ ${C.t('Espace Jeux', 'فضاء الألعاب')}</a><div class="jx-setup ${G[6]}"><span class="jx-ic">${G[1]}</span><h1>${C.t(G[2], G[3])}</h1><p>${C.t(G[4], G[5])}</p>
       <p class="jx-teamsline">${teams().map((x, i) => `<span style="--c:${COLORS[i]}">${C.esc(x.n)}</span>`).join('')} <a href="#/jeux">${C.t('modifier', 'تعديل')}</a></p>
       <div class="jx-form">${fields}</div><button type="button" class="jx-btn big" id="go">▶ ${C.t('Lancer en plein écran', 'ابدأ في ملء الشاشة')}</button></div></section>`;
@@ -415,9 +425,127 @@ window.JEUX = (() => {
     round();
   }
 
+  /* ---------- jeux à 2 joueurs face à face ---------- */
+  const PC = ['#2563eb', '#dc2626'];
+  const duoNames = () => get('jx-duo', [C.t('Joueur bleu', 'اللاعب الأزرق'), C.t('Joueur rouge', 'اللاعب الأحمر')]);
+  const KEYS = [['1', '2', '3', '4', 'a', 'z', 'e', 'r'], ['7', '8', '9', '0', 'u', 'i', 'o', 'p']];
+  function duoSetup(g) {
+    const nm = duoNames(), G = DUO.find(x => x[0] === g);
+    app().innerHTML = `<section class="jx-page"><a class="jx-back" href="#/jeux">‹ ${C.t('Espace Jeux', 'فضاء الألعاب')}</a><div class="jx-setup ${G[6]}"><span class="jx-ic">${G[1]}</span><h1>${C.t(G[2], G[3])}</h1><p>${C.t(G[4], G[5])}</p>
+      <p class="jx-note">${C.t('Les deux élèves se placent devant l’écran : le joueur bleu à gauche, le joueur rouge à droite. Chacun touche uniquement sa moitié.', 'يقف التلميذان أمام الشاشة : الأزرق على اليسار والأحمر على اليمين. كل واحد يلمس نصفه فقط.')}</p>
+      <div class="jx-form"><label class="jx-f p1"><span>${C.t('Joueur de gauche', 'لاعب اليسار')}</span><input id="n1" maxlength="16" value="${C.esc(nm[0])}"></label>
+        <label class="jx-f p2"><span>${C.t('Joueur de droite', 'لاعب اليمين')}</span><input id="n2" maxlength="16" value="${C.esc(nm[1])}"></label>${sel('niv', C.t('Niveau', 'المستوى'), nivList(), C.store.get('jx-niv', 'all'))}</div>
+      <button type="button" class="jx-btn big" id="go">▶ ${C.t('Lancer en plein écran', 'ابدأ في ملء الشاشة')}</button></div></section>`;
+    $('#go').addEventListener('click', async () => {
+      const names = [$('#n1').value.trim() || nm[0], $('#n2').value.trim() || nm[1]]; put('jx-duo', names);
+      const niv = $('#niv').value; C.store.set('jx-niv', niv); $('#go').disabled = true; $('#go').textContent = C.t('Chargement…', 'جار التحميل…');
+      const P = (await pool(niv, 'all', '')).filter(q => q.o.length >= 2 && q.o.length <= 4 && String(q.q).length < 260);
+      const run = () => ({ duo: duoPlay, corde: cordePlay, fusees: fuseesPlay, vraifaux: vfPlay })[g](shuffle(P), names, run); run();
+    });
+  }
+  function duoWin(game, names, sc, again) {
+    stop(); const w = sc[0] === sc[1] ? -1 : sc[0] > sc[1] ? 0 : 1;
+    const p = get('jx-palmares', []); p.unshift({ g: game, w: w < 0 ? C.t('Égalité', 'تعادل') : names[w], s: names[0] + ' ' + sc[0] + ' · ' + names[1] + ' ' + sc[1], d: new Date().toLocaleDateString('fr-FR') }); put('jx-palmares', p.slice(0, 12));
+    beep('win'); confetti();
+    app().innerHTML = `<section class="jx-stage">${bar()}<div class="jx-ready" style="--c:${w < 0 ? '#7c3aed' : PC[w]}"><p>🏆 ${w < 0 ? '' : C.t('Victoire de', 'فوز')}</p><h1>${w < 0 ? C.t('Égalité !', 'تعادل !') : C.esc(names[w])}</h1><p>${sc[0]} – ${sc[1]}</p>
+      <div class="jx-acts"><button type="button" class="jx-btn huge" id="again">↻ ${C.t('Revanche', 'إعادة المباراة')}</button><button type="button" class="jx-btn big ghost" id="menu">${C.t('Autres jeux', 'ألعاب أخرى')}</button></div></div></section>`;
+    wireBar(); $('#again').addEventListener('click', again); $('#menu').addEventListener('click', () => { full(false); location.hash = '#/jeux'; });
+  }
+  const sideHead = (names, k, sc, extra) => `<div class="jx-sh"><b>${C.esc(names[k])}</b><span class="jx-ssc">${sc}</span>${extra || ''}</div>`;
+  // une question indépendante dans la moitié k ; cb(ok)
+  function sideQuestion(box, q, k, cb) {
+    const os = q.os || opts(q); let lock = false;
+    box.innerHTML = `<div class="jx-sq" dir="ltr" lang="fr">${q.q}</div><div class="jx-sos">${os.map((o, j) => `<button type="button" data-j="${j}"><i>${LET[j]}</i><span>${o.o}</span></button>`).join('')}</div>`;
+    C.typeset(box);
+    const hit = j => {
+      if (lock) return; lock = true; const b = $$('button', box)[j], ok = os[j].ok;
+      b.classList.add(ok ? 'ok' : 'ko'); if (!ok) $$('button', box).forEach((x, i) => { if (os[i].ok) x.classList.add('ok'); });
+      beep(ok ? 'ok' : 'ko'); later(() => cb(ok), ok ? 350 : 1300);
+    };
+    $$('button', box).forEach(b => b.addEventListener('pointerdown', e => { e.preventDefault(); hit(+b.dataset.j); }));
+    box.__key = key => { const j = KEYS[k].indexOf(key) % 4; if (KEYS[k].includes(key) && j < os.length) hit(j); };
+  }
+  const mixQ = P => Math.random() < 0.3 ? unitQ() : P[Math.floor(Math.random() * P.length)];
+  const twoKeys = boxes => onKey(e => boxes.forEach(b => b && b.__key && b.__key(e.key.toLowerCase())));
+
+  // ⚡ Duel éclair : même question, deux claviers
+  function duoPlay(P, names, again) {
+    const sc = [0, 0], GOAL = 5; let qi = 0; full(true);
+    function round() {
+      stop(); if (sc[0] >= GOAL || sc[1] >= GOAL) return duoWin('duo', names, sc, again);
+      const q = P[qi++ % P.length], os = opts(q), out = [false, false]; let done = false;
+      app().innerHTML = `<section class="jx-stage">${bar()}<div class="jx-mid" dir="ltr" lang="fr"><p class="jx-ch">${C.esc(q.ch || '')} · ${C.t('premier à', 'الأول إلى')} ${GOAL}</p><div class="jx-qt">${q.q}</div></div>
+        <div class="jx-duo">${[0, 1].map(k => `<div class="jx-side" style="--c:${PC[k]}">${sideHead(names, k, sc[k])}<div class="jx-sos">${os.map((o, j) => `<button type="button" data-k="${k}" data-j="${j}"><i>${LET[j]}</i><span>${o.o}</span></button>`).join('')}</div></div>`).join('')}</div></section>`;
+      wireBar(); C.typeset(app());
+      const hit = (k, j) => {
+        if (done || out[k]) return; const ok = os[j].ok, b = $(`.jx-side:nth-child(${k + 1}) [data-j="${j}"]`);
+        if (ok) { done = true; sc[k]++; b.classList.add('ok'); beep('ok'); $$('.jx-side')[k].classList.add('win'); $$('.jx-ssc')[k].textContent = sc[k]; later(round, 1300); return; }
+        out[k] = true; b.classList.add('ko'); $$('.jx-side')[k].classList.add('out'); beep('ko');
+        if (out[0] && out[1]) { done = true; $$('.jx-sos button').forEach(x => { if (os[+x.dataset.j].ok) x.classList.add('ok'); }); later(round, 1800); }
+      };
+      $$('.jx-duo button').forEach(b => b.addEventListener('pointerdown', e => { e.preventDefault(); hit(+b.dataset.k, +b.dataset.j); }));
+      onKey(e => { const key = e.key.toLowerCase(); [0, 1].forEach(k => { const j = KEYS[k].indexOf(key); if (j >= 0 && j % 4 < os.length) hit(k, j % 4); }); });
+    }
+    round();
+  }
+
+  // 🪢 Tir à la corde : questions indépendantes, la corde bouge
+  function cordePlay(P, names, again) {
+    const N = 5; let pos = 0; const sc = [0, 0]; full(true);
+    app().innerHTML = `<section class="jx-stage">${bar()}<div class="jx-rope"><span class="jx-camp l" style="--c:${PC[0]}">${C.esc(names[0])}</span><div class="jx-track"><i class="jx-line"></i><b class="jx-knot">🪢</b><em class="jx-mark l"></em><em class="jx-mark r"></em></div><span class="jx-camp r" style="--c:${PC[1]}">${C.esc(names[1])}</span></div>
+      <div class="jx-duo">${[0, 1].map(k => `<div class="jx-side" style="--c:${PC[k]}">${sideHead(names, k, 0)}<div class="jx-sbox"></div></div>`).join('')}</div></section>`;
+    wireBar();
+    const knot = $('.jx-knot'), boxes = $$('.jx-sbox');
+    const move = () => { knot.style.left = (50 + pos / N * 46) + '%'; };
+    const ask = k => sideQuestion(boxes[k], mixQ(P), k, ok => {
+      if (ok) { sc[k]++; $$('.jx-ssc')[k].textContent = sc[k]; pos += k === 0 ? -1 : 1; move(); knot.classList.remove('pull'); void knot.offsetWidth; knot.classList.add('pull'); }
+      if (Math.abs(pos) >= N) return duoWin('corde', names, pos < 0 ? [1, 0] : [0, 1], again);
+      ask(k);
+    });
+    move(); ask(0); ask(1); twoKeys(boxes);
+  }
+
+  // 🚀 Course de fusées
+  function fuseesPlay(P, names, again) {
+    const GOAL = 8, h = [0, 0]; full(true);
+    app().innerHTML = `<section class="jx-stage">${bar()}<div class="jx-duo">${[0, 1].map(k => `<div class="jx-side rk" style="--c:${PC[k]}">${sideHead(names, k, 0 + ' / ' + GOAL)}<div class="jx-race"><div class="jx-sky"><b class="jx-rocket">🚀</b><i class="jx-moon">🌕</i></div><div class="jx-sbox"></div></div></div>`).join('')}</div></section>`;
+    wireBar();
+    const boxes = $$('.jx-sbox'), rk = $$('.jx-rocket');
+    const ask = k => sideQuestion(boxes[k], mixQ(P), k, ok => {
+      if (ok) h[k]++; else h[k] = Math.max(0, h[k] - 1);
+      rk[k].style.bottom = (h[k] / GOAL * 82) + '%'; $$('.jx-ssc')[k].textContent = h[k] + ' / ' + GOAL;
+      if (h[k] >= GOAL) return duoWin('fusees', names, h.slice(), again);
+      ask(k);
+    });
+    ask(0); ask(1); twoKeys(boxes);
+  }
+
+  // ✅ Vrai ou faux réflexe
+  function vfPlay(P, names, again) {
+    const sc = [0, 0], GOAL = 7; let qi = 0; full(true);
+    function round() {
+      stop(); if (sc[0] >= GOAL || sc[1] >= GOAL) return duoWin('vraifaux', names, sc, again);
+      const q = P[qi++ % P.length], truth = Math.random() < 0.5, others = q.o.filter((_, i) => i !== q.r), prop = truth ? q.o[q.r] : others[Math.floor(Math.random() * others.length)];
+      let done = false;
+      app().innerHTML = `<section class="jx-stage">${bar()}<div class="jx-mid" dir="ltr" lang="fr"><p class="jx-ch">${C.t('Vrai ou faux ?', 'صحيح أم خطأ ؟')} · ${C.t('premier à', 'الأول إلى')} ${GOAL}</p><div class="jx-qt">${q.q} <span class="jx-prop">${prop}</span></div><div class="jx-after"></div></div>
+        <div class="jx-duo">${[0, 1].map(k => `<div class="jx-side" style="--c:${PC[k]}">${sideHead(names, k, sc[k])}<div class="jx-vf"><button type="button" class="v" data-k="${k}" data-v="1">✔ ${C.t('VRAI', 'صحيح')}</button><button type="button" class="f" data-k="${k}" data-v="0">✘ ${C.t('FAUX', 'خطأ')}</button></div></div>`).join('')}</div></section>`;
+      wireBar(); C.typeset(app());
+      const hit = (k, v) => {
+        if (done) return; done = true; const ok = (v === 1) === truth, win = ok ? k : 1 - k; sc[win]++;
+        $$('.jx-side')[win].classList.add('win'); $$('.jx-ssc')[win].textContent = sc[win]; beep(ok ? 'ok' : 'ko');
+        $(`.jx-side:nth-child(${k + 1}) [data-v="${v}"]`).classList.add(ok ? 'ok' : 'ko');
+        $('.jx-after').innerHTML = `<p class="jx-e">${truth ? '✔ ' + C.t('C’était VRAI', 'كان صحيحا') : '✘ ' + C.t('C’était FAUX — bonne réponse : ', 'كان خطأ — الجواب الصحيح : ') + q.o[q.r]}</p>`; C.typeset($('.jx-after'));
+        later(round, 2200);
+      };
+      $$('.jx-vf button').forEach(b => b.addEventListener('pointerdown', e => { e.preventDefault(); hit(+b.dataset.k, +b.dataset.v); }));
+      onKey(e => { const m = { a: [0, 1], z: [0, 0], o: [1, 1], p: [1, 0] }[e.key.toLowerCase()]; if (m) hit(m[0], m[1]); });
+    }
+    round();
+  }
+
   return {
     init(ctx) { C = ctx; },
     stop() { stop(); document.body.classList.remove('jx-full'); },
-    page(sub) { stop(); ({ match: matchSetup, duel: matchSetup, chrono: chronoSetup, memory: memorySetup, unites: unitesSetup, enigmes: enigmesSetup, defis: defisSetup, intrus: intrusSetup, mots: motsSetup }[sub] || hub)(); },
+    page(sub) { stop(); ({ match: matchSetup, duel: matchSetup, chrono: chronoSetup, memory: memorySetup, unites: unitesSetup, enigmes: enigmesSetup, defis: defisSetup, intrus: intrusSetup, mots: motsSetup }[sub] || (DUO.some(g => g[0] === sub) ? () => duoSetup(sub) : hub))(); },
   };
 })();
