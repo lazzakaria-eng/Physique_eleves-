@@ -1040,3 +1040,24 @@ body.jx-full::before, body.jx-full::after { display: none; }
 .jx-stage:has(.jx-drawwrap) .jx-drawwrap { min-height: 0; }
 .jx-drawwrap { grid-template-rows: minmax(0, 1fr); flex: 1 1 0; }
 .jx-pad2 { display: block; height: 100%; min-height: 0; }
+/* ===== Défi chimie organique : formules semi-développées ===== */
+.y4 { --g: #9333ea; }
+.sdbox { display: flex; justify-content: center; margin: 1.2vh 0 .4vh; }
+.sdf { display: inline-flex; align-items: stretch; font-weight: 700; line-height: 1; }
+.sdf .sc { display: inline-grid; grid-template-rows: 1.15em .9em 1.3em .9em 1.15em; justify-items: center; align-items: center; }
+.sdf .sc.b .m { padding: 0 .08em; }
+.sdf .tb, .sdf .bb { font-weight: 400; color: var(--mute); }
+.sdf sub { font-size: .62em; }
+.jx-orgq .jx-qt { font-size: 1.75em; }
+.jx-orgq .sdbox .sdf { font-size: 1.5em; }
+.jx-stage .jx-os.sd button { justify-content: center; font-size: 1.15em; }
+.jx-stage .jx-os.sd button .sdf { font-size: 1.15em; }
+.sdf .sc { grid-template-rows: var(--rows, 1.3em); }
+.sdf .t, .sdf .bo, .sdf .tb, .sdf .bb { width: 0; overflow: visible; white-space: nowrap; display: flex; justify-content: center; }
+.jx-orgq .jx-qt { margin-bottom: 1.4vh; }
+.jx-stage .jx-orgq .jx-os { grid-auto-rows: minmax(9vh, auto); }
+.jx-stage .jx-orgq .jx-os.sd { grid-auto-rows: minmax(12vh, 1fr); }
+.jx-orgq .jx-qt { font-size: 1.55em; }
+.jx-orgq .sdbox { margin: .6vh 0 0; } .jx-orgq .sdbox .sdf { font-size: 1.22em; }
+.jx-stage .jx-orgq .jx-os { grid-auto-rows: minmax(8vh, auto); }
+.jx-stage .jx-orgq { padding-top: 1.6vh; padding-bottom: 1.6vh; }

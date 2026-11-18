@@ -329,15 +329,19 @@ window.DEFIS = (() => {
     round();
   }
 
+  const EXTRA = {};
   return {
     list,
+    register(def, fn) { list.push(def); EXTRA[def[0]] = fn; },
     page(id) {
       const T2 = (s, opts, d) => sel('sec', T('Temps par question', 'الوقت لكل سؤال'), opts.map(x => [x, x + ' s']), d);
       if (id === 'equilibre') setup(id, sel('niv', T('Niveau', 'المستوى'), [['tc', 'Tronc commun'], ['1bac', '1re Bac (avec TC)'], ['seul1', '1re Bac seulement'], ['2bac', '2e Bac (avec TC et 1re Bac)'], ['seul2', '2e Bac seulement']], A().C().store.get('jx-eqniv', '2bac'))
         + sel('type', T('Type de réaction', 'نوع التفاعل'), [['all', T('Tous les types', 'كل الأنواع')]].concat(Object.entries(TY).map(([k, x]) => [k, T(x[0], x[1])])), 'all') + roundsF() + T2('sec', ['45', '60', '90', '120'], '60'), v => { A().C().store.set('jx-eqniv', v.niv); const run = () => equilibrePlay(v, run); run(); });
       else if (id === 'symboles') setup(id, roundsF() + T2('sec', ['20', '30', '45'], '30'), v => { const run = () => symbolesPlay(v, run); run(); });
       else if (id === 'dessin') dessinSetup();
+      else if (EXTRA[id]) EXTRA[id]();
     },
     _test: { parse, bilan, EQ, TY },
+    _h: { setup, sel, roundsF, board, ring, timer, fmt, shuffle },
   };
 })();
