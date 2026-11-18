@@ -655,3 +655,32 @@ mark { background: color-mix(in srgb, var(--gold) 70%, transparent); color: inhe
   .reader[data-mode="pages"] .rk-stage::before { inset: 10px 10px -8px; } .reader[data-mode="pages"] .rk-stage::after { inset: 20px 20px -16px; }
 }
 @media print { .rk-toc, .rk-nav { display: none !important; } .rk-page { display: block !important; box-shadow: none; } .reader { display: block; } }
+
+/* ================= Simulations PhET ================= */
+.phet .ptitle { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.phlogo { display: inline-grid; place-items: center; padding: 4px 10px; border-radius: 10px; font-weight: 900; letter-spacing: .02em; color: #fff;
+  background: linear-gradient(145deg, #2a9df4, #1565c0); box-shadow: 0 3px 0 #0d3f7a, 0 10px 18px -8px #1565c0; }
+.phgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; margin-top: 6px; }
+.phcard { display: flex; flex-direction: column; border-radius: 20px; overflow: hidden; background: var(--card); border: 1px solid var(--line);
+  box-shadow: 0 4px 0 var(--line), 0 18px 30px -20px rgba(13, 20, 36, .4); transition: transform .2s, box-shadow .2s; }
+.phcard:hover { transform: translateY(-3px); box-shadow: 0 6px 0 var(--line), 0 22px 36px -18px rgba(13, 20, 36, .45); }
+.phcard.on { border-color: #1f6fe0; box-shadow: 0 4px 0 #1f6fe0, 0 18px 30px -18px #1f6fe0; }
+.phimg { position: relative; aspect-ratio: 16 / 10; background: linear-gradient(145deg, #e8f2ff, #cfe2ff); display: grid; place-items: center; overflow: hidden; }
+.phimg span { font-weight: 900; font-size: 1.6rem; color: #1565c0; opacity: .35; }
+.phimg img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.phtx { padding: 10px 14px 4px; display: flex; flex-direction: column; gap: 3px; }
+.phtx b { font-size: .98rem; line-height: 1.3; } .phtx small { color: var(--mute); font-size: .84rem; line-height: 1.4; }
+.phbt { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px 14px; }
+.phbt a { font-size: .8rem; color: var(--mute); text-decoration: none; }
+.phgo { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-weight: 700; font-size: .88rem; cursor: pointer; color: #fff; border: 0; border-radius: 12px; padding: 8px 14px;
+  background: linear-gradient(145deg, #4aa8ff, #1f6fe0); box-shadow: 0 3px 0 #134a9a; }
+.phgo:active { transform: translateY(2px); box-shadow: 0 1px 0 #134a9a; }
+.phgo svg { width: 16px; height: 16px; }
+.phview { margin-top: 18px; border-radius: 22px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 24px 50px -24px rgba(13, 20, 36, .5); background: #fff; }
+.phbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 10px 14px; background: linear-gradient(90deg, #1565c0, #2a9df4); color: #fff; }
+.phbar span { display: flex; gap: 6px; }
+.phbar button { font: inherit; font-size: .82rem; font-weight: 700; cursor: pointer; color: #fff; background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .35); border-radius: 10px; padding: 5px 10px; }
+.phframe { aspect-ratio: 16 / 10; max-height: 78vh; width: 100%; }
+.phframe iframe { width: 100%; height: 100%; border: 0; display: block; }
+.phcred { margin: 12px 2px 0; font-size: .78rem; color: var(--mute); }
+@media (max-width: 600px) { .phframe { aspect-ratio: 3 / 4; } .phgrid { grid-template-columns: minmax(0, 1fr); } .phcard { flex-direction: row; flex-wrap: wrap; } .phimg { width: 38%; aspect-ratio: auto; min-height: 96px; } .phtx { width: 62%; } .phbt { width: 100%; padding-top: 4px; } }
