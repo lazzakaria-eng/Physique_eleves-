@@ -15,7 +15,7 @@ Object.assign(EXOS, {
     { d: 2, t: 'Travail du poids', q: TX`Un skieur de 70 kg descend une pente avec un dénivelé de 120 m en 60 s (\(g = 9{,}8\ \text{N/kg}\)).<br>1) Calculer le travail de son poids.<br>2) Calculer la puissance moyenne de ce travail.`,
       s: TX`1) \(W = mg\,h = 70\times9{,}8\times120 \approx 8{,}2\times10^{4}\ \text{J}\) (moteur).<br>2) \(P = \dfrac{W}{\Delta t} \approx 1{,}37\times10^{3}\ \text{W}\).` },
     { d: 3, t: 'Treuil', q: TX`Un treuil soulève une charge de 200 kg de 10 m, à vitesse constante, en 20 s. Le câble s’enroule sur un tambour de rayon 0,10 m (\(g = 9{,}8\ \text{N/kg}\)).<br>1) Calculer le travail et la puissance fournis.<br>2) Calculer le moment du couple moteur et la vitesse angulaire du tambour.<br>3) Vérifier que \(P = M\omega\).`,
-      s: TX`1) \(W = mgh = 19\,600\ \text{J}\) ; \(P = 980\ \text{W}\).<br>2) \(T = mg = 1960\ \text{N}\) ; \(M = T r = 196\ \text{N·m}\) ; \(v = 0{,}5\ \text{m/s}\) donc \(\omega = 5\ \text{rad/s}\).<br>3) \(M\omega = 196\times5 = 980\ \text{W}\).` },
+      s: TX`1) \(W = mgh = 19\,600\ \text{J}\) ; \(P = 980\ \text{W}\).<br>2) \(T = mg = 1960\ \text{N}\) ; \(M = T r = 196\ \text{N}\cdot\text{m}\) ; \(v = 0{,}5\ \text{m/s}\) donc \(\omega = 5\ \text{rad/s}\).<br>3) \(M\omega = 196\times5 = 980\ \text{W}\).` },
   ],
   '1b-ec': [
     { d: 1, t: 'Énergie cinétique d’une voiture', q: TX`Calculer l’énergie cinétique d’une voiture de 1000 kg roulant à 72 km/h. Que devient-elle si la vitesse double ?`,
@@ -38,15 +38,15 @@ Object.assign(EXOS, {
       s: TX`\(\Delta U = W + Q = 200 - 50 = 150\ \text{J}\).` },
     { d: 2, t: 'Compression d’un gaz', q: TX`Un gaz est comprimé sous une pression extérieure constante de \(10^5\ \text{Pa}\) de 2,0 L à 1,5 L.<br>Calculer le travail reçu par le gaz.`,
       s: TX`\(W = -P_{\text{ext}}\Delta V = -10^5\times(-0{,}5\times10^{-3}) = 50\ \text{J}\) (reçu).` },
-    { d: 3, t: 'Une brique qui glisse', q: TX`Une brique de 1 kg glisse à 4 m/s sur une table horizontale et s’arrête.<br>1) Que devient son énergie cinétique ?<br>2) Si toute cette énergie chauffait la brique (\(c = 840\ \text{J·kg}^{-1}\text{·K}^{-1}\)), de combien sa température augmenterait-elle ?`,
+    { d: 3, t: 'Une brique qui glisse', q: TX`Une brique de 1 kg glisse à 4 m/s sur une table horizontale et s’arrête.<br>1) Que devient son énergie cinétique ?<br>2) Si toute cette énergie chauffait la brique (\(c = 840\ \text{J}\cdot\text{kg}^{-1}\cdot\text{K}^{-1}\)), de combien sa température augmenterait-elle ?`,
       s: TX`1) \(E_c = 8\ \text{J}\) est transformée en énergie interne (brique et table s’échauffent).<br>2) \(\Delta\theta = \dfrac{8}{1\times840} \approx 0{,}01\ ^\circ\text{C}\) : effet très faible.` },
   ],
   '1b-thermique': [
-    { d: 1, t: 'Chauffer de l’eau', q: TX`Calculer l’énergie nécessaire pour chauffer 2 kg d’eau de 20 °C à 80 °C (\(c = 4185\ \text{J·kg}^{-1}\text{·K}^{-1}\)).`,
+    { d: 1, t: 'Chauffer de l’eau', q: TX`Calculer l’énergie nécessaire pour chauffer 2 kg d’eau de 20 °C à 80 °C (\(c = 4185\ \text{J}\cdot\text{kg}^{-1}\cdot\text{K}^{-1}\)).`,
       s: TX`\(Q = mc\Delta\theta = 2\times4185\times60 \approx 5{,}0\times10^{5}\ \text{J}\).` },
     { d: 2, t: 'Mélange d’eau', q: TX`On mélange 200 g d’eau à 20 °C et 100 g d’eau à 80 °C dans un calorimètre parfait.<br>Calculer la température finale.`,
       s: TX`\(\sum Q = 0\) : \(200(\theta - 20) + 100(\theta - 80) = 0\) donc \(\theta = 40\ ^\circ\text{C}\).` },
-    { d: 3, t: 'Glaçon dans l’eau', q: TX`On met un glaçon de 50 g à 0 °C dans 300 g d’eau à 30 °C (\(L_f = 3{,}34\times10^{5}\ \text{J/kg}\), \(c = 4185\ \text{J·kg}^{-1}\text{·K}^{-1}\)).<br>1) Le glaçon fond-il entièrement ? Justifier.<br>2) Calculer la température finale.`,
+    { d: 3, t: 'Glaçon dans l’eau', q: TX`On met un glaçon de 50 g à 0 °C dans 300 g d’eau à 30 °C (\(L_f = 3{,}34\times10^{5}\ \text{J/kg}\), \(c = 4185\ \text{J}\cdot\text{kg}^{-1}\cdot\text{K}^{-1}\)).<br>1) Le glaçon fond-il entièrement ? Justifier.<br>2) Calculer la température finale.`,
       s: TX`1) Fusion : \(Q = 0{,}05\times3{,}34\times10^5 = 16\,700\ \text{J}\) ; l’eau peut céder jusqu’à \(0{,}3\times4185\times30 \approx 37\,700\ \text{J}\) : oui.<br>2) \(0{,}3\times4185(30 - \theta) = 16\,700 + 0{,}05\times4185\,\theta\) donc \(\theta \approx 14{,}3\ ^\circ\text{C}\).` },
   ],
   '1b-champe': [
@@ -166,7 +166,7 @@ Object.assign(EXOS, {
       s: TX`\(G = \dfrac{I}{U} = 8\ \text{mS}\) ; \(R = 125\ \Omega\).` },
     { d: 2, t: 'Courbe d’étalonnage', q: TX`Pour une solution de NaCl, \(G = 2{,}4\ \text{mS}\) à 10 mmol/L (G proportionnelle à C). Une solution inconnue donne \(G = 1{,}5\ \text{mS}\).<br>Calculer sa concentration.`,
       s: TX`\(C = 10\times\dfrac{1{,}5}{2{,}4} \approx 6{,}25\ \text{mmol/L}\).` },
-    { d: 3, t: 'Conductivité du chlorure de potassium', q: TX`Une solution de KCl a une concentration de 2 mmol/L. \(\lambda(\text{K}^+) = 7{,}35\) et \(\lambda(\text{Cl}^-) = 7{,}63\ \text{mS·m}^2\text{/mol}\). La cellule a \(S = 1\ \text{cm}^2\) et \(L = 1\ \text{cm}\).<br>Calculer \(\sigma\) puis G.`,
+    { d: 3, t: 'Conductivité du chlorure de potassium', q: TX`Une solution de KCl a une concentration de 2 mmol/L. \(\lambda(\text{K}^+) = 7{,}35\) et \(\lambda(\text{Cl}^-) = 7{,}63\ \text{mS}\cdot\text{m}^2\text{/mol}\). La cellule a \(S = 1\ \text{cm}^2\) et \(L = 1\ \text{cm}\).<br>Calculer \(\sigma\) puis G.`,
       s: TX`\(C = 2\ \text{mol/m}^3\) ; \(\sigma = (7{,}35 + 7{,}63)\times10^{-3}\times2 \approx 3{,}0\times10^{-2}\ \text{S/m}\) ; \(G = \sigma\dfrac{S}{L} = 3{,}0\times10^{-4}\ \text{S}\).` },
   ],
   '1bc-acidobase': [

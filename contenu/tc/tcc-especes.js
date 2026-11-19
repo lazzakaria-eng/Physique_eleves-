@@ -15,7 +15,7 @@ CONTENU['tcc-especes'] = {
     formules: [
       { tex: TX`\rho = \dfrac{m}{V}`, sens: 'Masse volumique' },
       { tex: TX`d = \dfrac{\rho}{\rho_{eau}}`, sens: 'Densité (sans unité)' },
-      { tex: TX`\rho_{eau} = 1\ \text{g·cm}^{-3} = 1000\ \text{kg·m}^{-3}`, sens: 'Masse volumique de l’eau' },
+      { tex: TX`\rho_{eau} = 1\ \text{g}\cdot\text{cm}^{-3} = 1000\ \text{kg}\cdot\text{m}^{-3}`, sens: 'Masse volumique de l’eau' },
     ],
     retenir: [
       'Une espèce chimique est un ensemble d’entités identiques.',

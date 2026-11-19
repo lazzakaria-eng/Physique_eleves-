@@ -9,7 +9,7 @@ CONTENU['tc-gravitation'] = {
 <p>Unité astronomique : \(1\ \text{UA} = 1{,}5\times10^{11}\ \text{m}\) ; année-lumière : \(1\ \text{a.l.} \approx 9{,}5\times10^{15}\ \text{m}\).</p>` },
       { titre: '2. Loi de la gravitation universelle', sim: 'gravitation', html: TX`<p><b>Loi de Newton.</b> Deux corps ponctuels A et B, de masses \(m_A\) et \(m_B\), séparés par la distance \(d\), exercent l’un sur l’autre des forces attractives :</p>
 <p style="text-align:center">\(F_{A/B} = F_{B/A} = G\,\dfrac{m_A\,m_B}{d^2}\)</p>
-<p>avec \(G = 6{,}67\times10^{-11}\ \text{N·m}^2\text{·kg}^{-2}\) (constante de gravitation). Les deux forces ont la même droite d’action (AB), la même intensité et des sens opposés : \(\vec F_{A/B} = -\vec F_{B/A}\).</p>`
+<p>avec \(G = 6{,}67\times10^{-11}\ \text{N}\cdot\text{m}^2\cdot\text{kg}^{-2}\) (constante de gravitation). Les deux forces ont la même droite d’action (AB), la même intensité et des sens opposés : \(\vec F_{A/B} = -\vec F_{B/A}\).</p>`
         + FIG(460, 110, ARW('gv1') + `<circle cx="90" cy="55" r="26" fill="#1f6fe0"/><text x="90" y="60" text-anchor="middle" fill="#fff" font-weight="bold">A</text><circle cx="370" cy="55" r="18" fill="#d98200"/><text x="370" y="60" text-anchor="middle" fill="#fff" font-weight="bold">B</text>
           <line x1="90" y1="55" x2="370" y2="55" stroke="#9aa6bf" stroke-dasharray="4 4"/>${VEC(116, 55, 190, 55, 'F B/A', '#d93a4a', 'gv1')}${VEC(352, 55, 278, 55, 'F A/B', '#d93a4a', 'gv1')}<text x="230" y="100" text-anchor="middle">d</text>`)
         + TX`<p>La loi reste valable pour des corps à <b>répartition sphérique de masse</b> (planètes, étoiles, boules) : \(d\) est alors la distance entre leurs centres.</p>` },
@@ -20,7 +20,7 @@ CONTENU['tc-gravitation'] = {
     ],
     formules: [
       { tex: TX`F = G\,\dfrac{m_A\,m_B}{d^2}`, sens: 'Loi de la gravitation universelle (N)' },
-      { tex: TX`G = 6{,}67\times10^{-11}\ \text{N·m}^2\text{·kg}^{-2}`, sens: 'Constante de gravitation' },
+      { tex: TX`G = 6{,}67\times10^{-11}\ \text{N}\cdot\text{m}^2\cdot\text{kg}^{-2}`, sens: 'Constante de gravitation' },
       { tex: TX`P = m\cdot g`, sens: 'Intensité du poids (N)' },
       { tex: TX`g_0 = G\,\dfrac{M_T}{R_T^2}`, sens: 'Intensité de pesanteur au sol' },
       { tex: TX`g_h = g_0\,\dfrac{R_T^2}{(R_T + h)^2}`, sens: 'Intensité de pesanteur à l’altitude h' },

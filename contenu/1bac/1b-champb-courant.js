@@ -8,13 +8,13 @@ CONTENU['1b-champb-courant'] = {
       { titre: '2. Bobine plate', html: TX`<p>Au centre d’une bobine plate de \(N\) spires de rayon \(R\) : \(B = \dfrac{\mu_0\,N\,I}{2R}\), perpendiculaire au plan des spires.</p>` },
       { titre: '3. Le solénoïde', sim: 'solenoide', html: TX`<p>À l’intérieur d’un long solénoïde (longueur \(L\) grande devant le rayon), le champ est <b>uniforme</b>, parallèle à l’axe : \(B = \mu_0\,n\,I = \mu_0\,\dfrac{N}{L}\,I\) (\(n\) : nombre de spires par mètre). À l’extérieur, il ressemble à celui d’un aimant droit : face nord (sortie des lignes) et face sud.</p>`
         + FIG(440, 150, ARW('s1', '#1f6fe0') + `${Array.from({ length: 10 }, (_, k) => `<ellipse cx="${110 + k * 24}" cy="75" rx="8" ry="40" fill="none" stroke="#d98200" stroke-width="2.5"/>`).join('')}${[55, 75, 95].map(y => `<line x1="90" y1="${y}" x2="350" y2="${y}" stroke="#1f6fe0" stroke-width="1.6" marker-end="url(#s1)"/>`).join('')}<text x="70" y="80" font-weight="bold">S</text><text x="360" y="80" font-weight="bold">N</text><text x="220" y="140" text-anchor="middle" font-size="11">champ uniforme à l’intérieur</text>`) },
-      { titre: '4. Perméabilité du vide', html: TX`<p>\(\mu_0 = 4\pi\times10^{-7}\ \text{T·m·A}^{-1}\). Un noyau de fer doux à l’intérieur d’une bobine renforce fortement le champ (électroaimant).</p>` },
+      { titre: '4. Perméabilité du vide', html: TX`<p>\(\mu_0 = 4\pi\times10^{-7}\ \text{T}\cdot\text{m}\cdot\text{A}^{-1}\). Un noyau de fer doux à l’intérieur d’une bobine renforce fortement le champ (électroaimant).</p>` },
     ],
     formules: [
       { tex: TX`B = \dfrac{\mu_0\,I}{2\pi\,d}`, sens: 'Fil rectiligne infini' },
       { tex: TX`B = \dfrac{\mu_0\,N\,I}{2\,R}`, sens: 'Centre d’une bobine plate' },
       { tex: TX`B = \mu_0\,n\,I = \mu_0\,\dfrac{N}{L}\,I`, sens: 'Intérieur d’un solénoïde' },
-      { tex: TX`\mu_0 = 4\pi\times10^{-7}\ \text{T·m·A}^{-1}`, sens: 'Perméabilité du vide' },
+      { tex: TX`\mu_0 = 4\pi\times10^{-7}\ \text{T}\cdot\text{m}\cdot\text{A}^{-1}`, sens: 'Perméabilité du vide' },
     ],
     retenir: [
       'Un courant crée un champ magnétique proportionnel à I.',

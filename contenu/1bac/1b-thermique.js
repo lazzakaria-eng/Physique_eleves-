@@ -15,7 +15,7 @@ CONTENU['1b-thermique'] = {
       { tex: TX`\mu = m\,c`, sens: 'Capacité thermique (J/K)' },
       { tex: TX`Q = m\,L`, sens: 'Chaleur de changement d’état' },
       { tex: TX`\sum Q_i = 0`, sens: 'Système isolé (calorimètre)' },
-      { tex: TX`c_{eau} = 4185\ \text{J·kg}^{-1}\text{·K}^{-1}`, sens: 'Capacité thermique massique de l’eau' },
+      { tex: TX`c_{eau} = 4185\ \text{J}\cdot\text{kg}^{-1}\cdot\text{K}^{-1}`, sens: 'Capacité thermique massique de l’eau' },
     ],
     retenir: [
       'La chaleur va spontanément du chaud vers le froid.',

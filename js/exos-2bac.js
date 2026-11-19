@@ -14,7 +14,7 @@ Object.assign(EXOS, {
       s: TX`\(\lambda = \dfrac{c}{f} = \dfrac{3\times10^8}{10^8} = 3\ \text{m}\).` },
     { d: 2, t: 'Pourquoi moduler ?', q: TX`1) Calculer la longueur d’onde d’une onde électromagnétique de 1 kHz (fréquence d’un son).<br>2) Une antenne mesure environ \(\lambda/2\) : est-ce réalisable ? Que fait-on à la place ?`,
       s: TX`1) \(\lambda = 3\times10^{5}\ \text{m} = 300\ \text{km}\).<br>2) Une antenne de 150 km est irréalisable : on module une porteuse de haute fréquence (par exemple 1 MHz, \(\lambda = 300\ \text{m}\)).` },
-    { d: 3, t: 'Téléphone portable', q: TX`Un téléphone émet à 900 MHz (\(h = 6{,}62\times10^{-34}\ \text{J·s}\)).<br>1) Calculer \(\lambda\) et la longueur d’une antenne quart d’onde.<br>2) Calculer l’énergie d’un photon de cette onde.`,
+    { d: 3, t: 'Téléphone portable', q: TX`Un téléphone émet à 900 MHz (\(h = 6{,}62\times10^{-34}\ \text{J}\cdot\text{s}\)).<br>1) Calculer \(\lambda\) et la longueur d’une antenne quart d’onde.<br>2) Calculer l’énergie d’un photon de cette onde.`,
       s: TX`1) \(\lambda \approx 0{,}33\ \text{m}\) ; \(\lambda/4 \approx 8{,}3\ \text{cm}\).<br>2) \(E = h\nu \approx 6{,}0\times10^{-25}\ \text{J}\).` },
   ],
   '2b-modulation': [
@@ -29,8 +29,8 @@ Object.assign(EXOS, {
     { d: 1, t: 'Rotation uniformément accélérée', q: TX`Un disque part du repos et atteint 20 rad/s en 5 s avec une accélération angulaire constante.<br>Calculer \(\ddot\theta\) et le nombre de tours effectués.`,
       s: TX`\(\ddot\theta = 4\ \text{rad/s}^2\) ; \(\theta = \tfrac{1}{2}\ddot\theta t^2 = 50\ \text{rad} \approx 8\ \text{tours}\).` },
     { d: 2, t: 'Moment d’inertie', q: TX`Un couple de moment 2 N·m communique à un volant une accélération angulaire de 4 rad/s².<br>Calculer son moment d’inertie.`,
-      s: TX`\(\sum M = J_\Delta\ddot\theta\) donc \(J_\Delta = 0{,}5\ \text{kg·m}^2\).` },
-    { d: 3, t: 'Poulie et masse suspendue', q: TX`Un fil enroulé sur une poulie (\(J = 0{,}02\ \text{kg·m}^2\), \(r = 0{,}1\ \text{m}\)) porte une masse de 1 kg (\(g = 9{,}8\ \text{m/s}^2\)). Le fil ne glisse pas.<br>1) Écrire la deuxième loi de Newton pour la masse et la relation fondamentale pour la poulie.<br>2) En déduire l’accélération et la tension du fil.`,
+      s: TX`\(\sum M = J_\Delta\ddot\theta\) donc \(J_\Delta = 0{,}5\ \text{kg}\cdot\text{m}^2\).` },
+    { d: 3, t: 'Poulie et masse suspendue', q: TX`Un fil enroulé sur une poulie (\(J = 0{,}02\ \text{kg}\cdot\text{m}^2\), \(r = 0{,}1\ \text{m}\)) porte une masse de 1 kg (\(g = 9{,}8\ \text{m/s}^2\)). Le fil ne glisse pas.<br>1) Écrire la deuxième loi de Newton pour la masse et la relation fondamentale pour la poulie.<br>2) En déduire l’accélération et la tension du fil.`,
       s: TX`1) \(mg - T = ma\) ; \(Tr = J\ddot\theta = J\dfrac{a}{r}\).<br>2) \(a = \dfrac{mg}{m + J/r^2} = \dfrac{9{,}8}{3} \approx 3{,}27\ \text{m/s}^2\) ; \(T = m(g - a) \approx 6{,}5\ \text{N}\).` },
   ],
   '2b-oscillants': [
@@ -38,7 +38,7 @@ Object.assign(EXOS, {
       s: TX`\(T_0 = 2\pi\sqrt{\dfrac{m}{k}} \approx 0{,}63\ \text{s}\).` },
     { d: 2, t: 'Pendule qui bat la seconde', q: TX`1) Calculer la période d’un pendule simple de longueur 0,994 m (\(g = 9{,}81\ \text{m/s}^2\)).<br>2) Un pendule élastique est lâché de \(x = X_m = 4\ \text{cm}\) sans vitesse : écrire \(x(t)\) avec \(T_0 = 0{,}5\ \text{s}\).`,
       s: TX`1) \(T_0 = 2\pi\sqrt{\ell/g} \approx 2{,}0\ \text{s}\).<br>2) \(x(t) = 4\cos(4\pi t)\) (cm), car \(x(0) = X_m\) donne \(\varphi = 0\).` },
-    { d: 3, t: 'Pendule de torsion', q: TX`Un pendule de torsion a \(C = 4\times10^{-3}\ \text{N·m/rad}\) et \(J_\Delta = 10^{-4}\ \text{kg·m}^2\).<br>1) Calculer sa période.<br>2) On double \(J_\Delta\) : que devient la période ?`,
+    { d: 3, t: 'Pendule de torsion', q: TX`Un pendule de torsion a \(C = 4\times10^{-3}\ \text{N}\cdot\text{m/rad}\) et \(J_\Delta = 10^{-4}\ \text{kg}\cdot\text{m}^2\).<br>1) Calculer sa période.<br>2) On double \(J_\Delta\) : que devient la période ?`,
       s: TX`1) \(T_0 = 2\pi\sqrt{\dfrac{J_\Delta}{C}} \approx 0{,}99\ \text{s}\).<br>2) Elle est multipliée par \(\sqrt2\) : \(\approx 1{,}4\ \text{s}\).` },
   ],
   '2b-energie': [
@@ -50,7 +50,7 @@ Object.assign(EXOS, {
       s: TX`1) \(\Delta E = 0{,}05 - \tfrac{1}{2}\times40\times0{,}04^2 = 0{,}018\ \text{J}\).<br>2) En chaleur (travail des frottements) ; régime pseudo-périodique.` },
   ],
   '2b-atome': [
-    { d: 1, t: 'Raie rouge de l’hydrogène', q: TX`Les niveaux de l’hydrogène sont \(E_n = -\dfrac{13{,}6}{n^2}\ \text{eV}\).<br>Calculer l’énergie et la longueur d’onde du photon émis lors de la transition 3 → 2 (\(hc = 1240\ \text{eV·nm}\)).`,
+    { d: 1, t: 'Raie rouge de l’hydrogène', q: TX`Les niveaux de l’hydrogène sont \(E_n = -\dfrac{13{,}6}{n^2}\ \text{eV}\).<br>Calculer l’énergie et la longueur d’onde du photon émis lors de la transition 3 → 2 (\(hc = 1240\ \text{eV}\cdot\text{nm}\)).`,
       s: TX`\(\Delta E = E_3 - E_2 \approx 1{,}89\ \text{eV}\) ; \(\lambda = \dfrac{hc}{\Delta E} \approx 656\ \text{nm}\) (rouge).` },
     { d: 2, t: 'Ionisation', q: TX`Quelle énergie faut-il pour ioniser un atome d’hydrogène dans l’état \(n = 2\) ? Quelle est la longueur d’onde maximale du photon capable de le faire ?`,
       s: TX`\(E = 0 - E_2 = 3{,}4\ \text{eV}\) ; \(\lambda = \dfrac{1240}{3{,}4} \approx 365\ \text{nm}\).` },
@@ -67,7 +67,7 @@ Object.assign(EXOS, {
   ],
   '2bc-vitesse': [
     { d: 1, t: 'Vitesse de réaction', q: TX`Dans un volume de 100 mL, la tangente à la courbe \(x(t)\) a une pente de \(2\times10^{-5}\ \text{mol/s}\) à un instant donné.<br>Calculer la vitesse volumique de réaction.`,
-      s: TX`\(v = \dfrac{1}{V}\dfrac{dx}{dt} = \dfrac{2\times10^{-5}}{0{,}1} = 2\times10^{-4}\ \text{mol·L}^{-1}\text{·s}^{-1}\).` },
+      s: TX`\(v = \dfrac{1}{V}\dfrac{dx}{dt} = \dfrac{2\times10^{-5}}{0{,}1} = 2\times10^{-4}\ \text{mol}\cdot\text{L}^{-1}\cdot\text{s}^{-1}\).` },
     { d: 2, t: 'Temps de demi-réaction', q: TX`L’avancement final vaut 4 mmol ; la courbe \(x(t)\) passe par 2 mmol à \(t = 150\ \text{s}\).<br>Donner \(t_{1/2}\). Comment évolue la vitesse au cours du temps ? Pourquoi ?`,
       s: TX`\(t_{1/2} = 150\ \text{s}\). La vitesse diminue car les concentrations des réactifs diminuent.` },
     { d: 3, t: 'Suivi spectrophotométrique', q: TX`L’absorbance est proportionnelle à \([\text{I}_2]\) : \(A = k[\text{I}_2]\) avec \(k = 250\ \text{L/mol}\). Volume : 50 mL.<br>Pour \(A = 0{,}5\), calculer \([\text{I}_2]\) et l’avancement.`,
@@ -86,7 +86,7 @@ Object.assign(EXOS, {
       s: TX`\(Q_r = \dfrac{[\text{CH}_3\text{COO}^-][\text{H}_3\text{O}^+]}{[\text{CH}_3\text{COOH}]}\) (l’eau, solvant, n’apparaît pas).` },
     { d: 2, t: 'Constante d’équilibre', q: TX`Un acide AH à \(C = 0{,}01\ \text{mol/L}\) a un taux d’avancement final \(\tau = 0{,}04\).<br>Calculer la constante d’équilibre.`,
       s: TX`\(K = \dfrac{C\tau^2}{1 - \tau} = \dfrac{0{,}01\times0{,}0016}{0{,}96} \approx 1{,}7\times10^{-5}\).` },
-    { d: 3, t: 'K par conductimétrie', q: TX`Une solution d’acide éthanoïque à 0,01 mol/L a une conductivité \(\sigma = 1{,}6\times10^{-2}\ \text{S/m}\). \(\lambda(\text{H}_3\text{O}^+) = 35{,}0\) et \(\lambda(\text{CH}_3\text{COO}^-) = 4{,}09\ \text{mS·m}^2\text{/mol}\).<br>Calculer \([\text{H}_3\text{O}^+]\), \(\tau\) et K.`,
+    { d: 3, t: 'K par conductimétrie', q: TX`Une solution d’acide éthanoïque à 0,01 mol/L a une conductivité \(\sigma = 1{,}6\times10^{-2}\ \text{S/m}\). \(\lambda(\text{H}_3\text{O}^+) = 35{,}0\) et \(\lambda(\text{CH}_3\text{COO}^-) = 4{,}09\ \text{mS}\cdot\text{m}^2\text{/mol}\).<br>Calculer \([\text{H}_3\text{O}^+]\), \(\tau\) et K.`,
       s: TX`\([\text{H}_3\text{O}^+] = \dfrac{\sigma}{\lambda_1 + \lambda_2} \approx 0{,}41\ \text{mol/m}^3 = 4{,}1\times10^{-4}\ \text{mol/L}\) ; \(\tau \approx 0{,}041\) ; \(K = \dfrac{(4{,}1\times10^{-4})^2}{0{,}01 - 4{,}1\times10^{-4}} \approx 1{,}75\times10^{-5}\).` },
   ],
   '2bc-acidebase': [

@@ -132,9 +132,12 @@
       }).filter(d => d.href);
       return DOCS;
     });
-  const docList = docs => docs.length ? `<div class="docs">${docs.map(d => `<a class="doc" href="${esc(d.href)}" target="_blank" rel="noopener">${IC.file}<span><b>${esc(d.titre)}</b><small>${esc([d.type, BY[d.chapitre] ? BY[d.chapitre].fr : ''].filter(Boolean).join(' · '))}</small></span>${IC.arrow}</a>`).join('')}</div>` : '';
+  const docList = docs => docs.length ? `<div class="docs">${docs.map(d => `<a class="doc" href="${esc(d.href)}" target="_blank" rel="noopener"${d.corrige || /orrig/i.test(d.type || '') ? ' data-cor="1"' : ''}>${IC.file}<span><b>${esc(d.titre)}</b><small>${esc([d.type, BY[d.chapitre] ? BY[d.chapitre].fr : ''].filter(Boolean).join(' · '))}</small></span>${IC.arrow}</a>`).join('')}</div>` : '';
   function fillDocs(sel, pick, empty) {
-    docsReady.then(() => { const box = $(sel); if (!box) return; const d = DOCS.filter(pick); box.innerHTML = docList(d) || empty || ''; if (!d.length && !empty) box.hidden = true; });
+    docsReady.then(() => { const box = $(sel); if (!box) return; const d = DOCS.filter(pick); box.innerHTML = docList(d) || empty || ''; if (!d.length && !empty) box.hidden = true;
+      // corrections du professeur : code demandé
+      $$('a[data-cor]', box).forEach(x => x.addEventListener('click', ev => { if (!window.VERROU || VERROU.ok()) return; ev.preventDefault(); VERROU.ask(() => window.open(x.href, '_blank', 'noopener'), null, t('Les corrections sont réservées : entrez le code donné par le professeur.', 'التصحيح محفوظ : أدخل الرمز الذي يعطيه الأستاذ.')); }));
+    });
   }
   const teacherSeries = l => (SERIES[l.id] || []).filter(x => Array.isArray(x) && x[0] && /^(https:\/\/|series\/|pdf\/)[^\s"'<>]+$/.test(x[1] || ''));
 

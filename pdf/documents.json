@@ -6,6 +6,36 @@
       "chapitre": "tc-mouvement",
       "fichier": "exemple-serie-mouvement.pdf",
       "type": "Série"
+    },
+    {
+      "titre": "Série : Solutions électrolytiques et concentrations (1re Bac SM)",
+      "niveau": "1bac",
+      "chapitre": "1bc-electrolytes",
+      "fichier": "serie-solutions-electrolytiques-1bac-sm.pdf",
+      "type": "Série"
+    },
+    {
+      "titre": "Correction détaillée : Solutions électrolytiques et concentrations (1re Bac SM)",
+      "niveau": "1bac",
+      "chapitre": "1bc-electrolytes",
+      "fichier": "serie-solutions-electrolytiques-1bac-sm-corrige.pdf",
+      "type": "Correction",
+      "corrige": true
+    },
+    {
+      "titre": "Série : Suivi d’une transformation chimique (1re Bac SM)",
+      "niveau": "1bac",
+      "chapitre": "1bc-suivi",
+      "fichier": "serie-suivi-transformation-1bac-sm.pdf",
+      "type": "Série"
+    },
+    {
+      "titre": "Correction détaillée : Suivi d’une transformation chimique (1re Bac SM)",
+      "niveau": "1bac",
+      "chapitre": "1bc-suivi",
+      "fichier": "serie-suivi-transformation-1bac-sm-corrige.pdf",
+      "type": "Correction",
+      "corrige": true
     }
   ]
 }
