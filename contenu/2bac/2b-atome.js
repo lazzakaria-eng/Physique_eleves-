@@ -7,13 +7,13 @@ CONTENU['2b-atome'] = {
       { titre: '1. Limites de la mécanique de Newton', html: TX`<p>Selon Newton, l’électron pourrait tourner sur n’importe quelle orbite et perdrait de l’énergie en rayonnant ; de plus tous les atomes d’un même élément devraient être différents. L’expérience montre au contraire des <b>spectres de raies</b> identiques pour tous les atomes d’un élément.</p>` },
       { titre: '2. Quantification de l’énergie', sim: 'bohr', html: TX`<p>L’énergie d’un atome ne peut prendre que certaines valeurs \(E_n\) (niveaux). Pour l’hydrogène : \(E_n = -\dfrac{13{,}6}{n^2}\ \text{eV}\). Niveau fondamental \(n = 1\) ; états excités \(n > 1\) ; ionisation (\(E = 0\)) : \(13{,}6\ \text{eV}\).</p>`
         + FIG(380, 220, `${[[1, -13.6], [2, -3.4], [3, -1.51], [4, -0.85], [5, -0.54]].map(([n, E]) => { const y = 20 - E * 13; return `<line x1="60" y1="${y}" x2="240" y2="${y}" stroke="#14213d" stroke-width="2"/>${n <= 3 ? `<text x="250" y="${y + 4}" font-size="11">n = ${n} : ${String(E).replace('.', ',')} eV</text>` : ''}`; }).join('')}<line x1="60" y1="12" x2="240" y2="12" stroke="#12946a" stroke-dasharray="5 4"/><text x="250" y="10" fill="#12946a" font-size="11">E = 0 (ionisé)</text><line x1="120" y1="39.6" x2="120" y2="64.2" stroke="#d93a4a" stroke-width="2.5"/><text x="80" y="56" fill="#d93a4a" font-size="11">hν</text>`) },
-      { titre: '3. Émission et absorption', html: TX`<p>Transition entre les niveaux \(E_p\) et \(E_n\) : \(\Delta E = |E_p - E_n| = h\nu = \dfrac{hc}{\lambda}\), avec \(h = 6{,}63\times10^{-34}\ \text{J·s}\). <b>Émission</b> : l’atome descend d’un niveau et émet un photon ; <b>absorption</b> : il monte en absorbant un photon d’énergie exactement égale. Les raies d’absorption et d’émission d’un élément ont les mêmes longueurs d’onde.</p>` },
+      { titre: '3. Émission et absorption', html: TX`<p>Transition entre les niveaux \(E_p\) et \(E_n\) : \(\Delta E = |E_p - E_n| = h\nu = \dfrac{hc}{\lambda}\), avec \(h = 6{,}63\times10^{-34}\ \text{J}\cdot\text{s}\). <b>Émission</b> : l’atome descend d’un niveau et émet un photon ; <b>absorption</b> : il monte en absorbant un photon d’énergie exactement égale. Les raies d’absorption et d’émission d’un élément ont les mêmes longueurs d’onde.</p>` },
     ],
     formules: [
       { tex: TX`E_n = -\dfrac{13{,}6}{n^2}\ \text{(eV)}`, sens: 'Niveaux d’énergie de l’hydrogène' },
       { tex: TX`\Delta E = |E_p - E_n| = h\,\nu`, sens: 'Énergie du photon' },
       { tex: TX`\lambda = \dfrac{h\,c}{\Delta E}`, sens: 'Longueur d’onde de la radiation' },
-      { tex: TX`h = 6{,}63\times10^{-34}\ \text{J·s}`, sens: 'Constante de Planck' },
+      { tex: TX`h = 6{,}63\times10^{-34}\ \text{J}\cdot\text{s}`, sens: 'Constante de Planck' },
       { tex: TX`E_{ionisation} = 13{,}6\ \text{eV}`, sens: 'Ionisation de l’hydrogène' },
     ],
     retenir: [

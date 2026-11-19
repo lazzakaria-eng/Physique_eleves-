@@ -44,6 +44,6 @@ CONTENU['1b-travail'] = {
     { q: 'Le travail de la réaction normale d’un plan sur un solide qui glisse :', o: ['moteur', 'résistant', 'nul', 'égal au poids'], r: 2, e: 'Elle est perpendiculaire au déplacement.' },
     { q: 'Un objet de 2 kg monte de 3 m (g = 10). Travail du poids :', o: ['60 J', '−60 J', '6 J', '−6 J'], r: 1, e: TX`\(mg(z_A - z_B) = 20\times(-3)\).` },
     { q: 'Un moteur fournit 1200 J en 4 s. Sa puissance :', o: ['300 W', '4800 W', '1200 W', '0,003 W'], r: 0, e: TX`\(P = W/\Delta t\).` },
-    { q: TX`\(\mathcal M = 2\ \text{N·m}\), \(\omega = 50\ \text{rad/s}\). Puissance :`, o: ['25 W', '100 W', '52 W', '0,04 W'], r: 1, e: TX`\(P = \mathcal M\omega\).` },
+    { q: TX`\(\mathcal M = 2\ \text{N}\cdot\text{m}\), \(\omega = 50\ \text{rad/s}\). Puissance :`, o: ['25 W', '100 W', '52 W', '0,04 W'], r: 1, e: TX`\(P = \mathcal M\omega\).` },
   ],
 };

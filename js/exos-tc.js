@@ -2,7 +2,7 @@
 'use strict';
 Object.assign(EXOS, {
   'tc-gravitation': [
-    { d: 1, t: 'Attraction Terre – Lune', q: TX`Données : \(M_T = 5{,}97\times10^{24}\ \text{kg}\) ; \(M_L = 7{,}35\times10^{22}\ \text{kg}\) ; \(d = 3{,}84\times10^{8}\ \text{m}\) ; \(G = 6{,}67\times10^{-11}\ \text{N·m}^2\text{·kg}^{-2}\).<br>1) Calculer l’intensité de la force exercée par la Terre sur la Lune.<br>2) Comparer avec la force exercée par la Lune sur la Terre.`,
+    { d: 1, t: 'Attraction Terre – Lune', q: TX`Données : \(M_T = 5{,}97\times10^{24}\ \text{kg}\) ; \(M_L = 7{,}35\times10^{22}\ \text{kg}\) ; \(d = 3{,}84\times10^{8}\ \text{m}\) ; \(G = 6{,}67\times10^{-11}\ \text{N}\cdot\text{m}^2\cdot\text{kg}^{-2}\).<br>1) Calculer l’intensité de la force exercée par la Terre sur la Lune.<br>2) Comparer avec la force exercée par la Lune sur la Terre.`,
       s: TX`1) \(F = G\dfrac{M_T M_L}{d^2} \approx 1{,}98\times10^{20}\ \text{N}\).<br>2) Même intensité, même droite d’action, sens opposés (interaction).` },
     { d: 2, t: 'Poids en altitude', q: TX`À la surface de la Terre, \(g_0 = 9{,}8\ \text{N/kg}\).<br>1) Exprimer \(g\) à l’altitude \(h\) en fonction de \(g_0\), \(R_T\) et \(h\).<br>2) Calculer \(g\) pour \(h = R_T\).<br>3) Un astronaute de 60 kg pèse combien au sol ? À l’altitude \(R_T\) ?`,
       s: TX`1) \(g = g_0\dfrac{R_T^2}{(R_T + h)^2}\).<br>2) \(h = R_T\) : \(g = \dfrac{g_0}{4} = 2{,}45\ \text{N/kg}\).<br>3) Au sol \(P = 60\times9{,}8 = 588\ \text{N}\) ; en altitude \(P = 147\ \text{N}\). Sa masse reste 60 kg.` },
@@ -51,7 +51,7 @@ Object.assign(EXOS, {
   ],
   'tc-moment': [
     { d: 1, t: 'Clé de serrage', q: TX`On serre un écrou avec une clé en exerçant une force de 50 N perpendiculaire à la clé, à 25 cm de l’axe.<br>1) Calculer le moment de la force.<br>2) Comment serrer plus fort avec la même force ?`,
-      s: TX`1) \(M = F\cdot d = 50\times0{,}25 = 12{,}5\ \text{N·m}\).<br>2) Appuyer plus loin de l’axe (clé plus longue).` },
+      s: TX`1) \(M = F\cdot d = 50\times0{,}25 = 12{,}5\ \text{N}\cdot\text{m}\).<br>2) Appuyer plus loin de l’axe (clé plus longue).` },
     { d: 2, t: 'Balançoire', q: TX`Un enfant de 30 kg est assis à 2 m de l’axe d’une balançoire. Où doit s’asseoir un enfant de 40 kg pour l’équilibrer ?`,
       s: TX`Théorème des moments : \(30g\times2 = 40g\times x\) donc \(x = 1{,}5\ \text{m}\), de l’autre côté de l’axe.` },
     { d: 3, t: 'Barre maintenue horizontale', q: TX`Une barre homogène AB (1 m, 2 kg) peut tourner autour d’un axe en A. Elle est maintenue horizontale par un fil vertical en B. Une masse de 1 kg est suspendue à 0,7 m de A (\(g = 9{,}8\ \text{N/kg}\)).<br>1) Calculer la tension du fil.<br>2) Calculer la réaction de l’axe en A.`,

@@ -6,7 +6,7 @@ CONTENU['1bc-grandeurs'] = {
     sections: [
       { titre: '1. Solides et liquides', html: TX`<p>\(n = \dfrac{m}{M}\) ; pour un liquide de masse volumique \(\rho\) : \(m = \rho V\), donc \(n = \dfrac{\rho\,V}{M}\). Densité \(d = \dfrac{\rho}{\rho_{eau}}\).</p>` },
       { titre: '2. Pression d’un gaz et loi de Boyle-Mariotte', sim: 'gaz', html: TX`<p>La pression d’un gaz résulte des chocs de ses molécules sur les parois ; elle se mesure avec un manomètre (Pa). À température constante, pour une quantité de gaz donnée : \(P\cdot V = \text{constante}\) (loi de Boyle-Mariotte).</p>` },
-      { titre: '3. Équation d’état des gaz parfaits', html: TX`<p>\(P\,V = n\,R\,T\) avec \(P\) en Pa, \(V\) en m³, \(T\) en kelvins (\(T = \theta + 273{,}15\)), \(R = 8{,}31\ \text{J·mol}^{-1}\text{·K}^{-1}\). Volume molaire : \(V_m = \dfrac{RT}{P}\) (24 L/mol à 20 °C et 1013 hPa).</p>`
+      { titre: '3. Équation d’état des gaz parfaits', html: TX`<p>\(P\,V = n\,R\,T\) avec \(P\) en Pa, \(V\) en m³, \(T\) en kelvins (\(T = \theta + 273{,}15\)), \(R = 8{,}31\ \text{J}\cdot\text{mol}^{-1}\cdot\text{K}^{-1}\). Volume molaire : \(V_m = \dfrac{RT}{P}\) (24 L/mol à 20 °C et 1013 hPa).</p>`
         + FIG(400, 180, `<line x1="40" y1="160" x2="380" y2="160" stroke="#5b6577" stroke-width="1.5"/><line x1="40" y1="170" x2="40" y2="10" stroke="#5b6577" stroke-width="1.5"/><text x="370" y="176">V</text><text x="46" y="20">P</text><polyline points="${Array.from({ length: 60 }, (_, i) => { const V = 0.6 + i * 0.1; return (40 + V * 50) + ',' + (160 - 120 / V); }).join(' ')}" fill="none" stroke="#1f6fe0" stroke-width="3"/><text x="200" y="70" fill="#1f6fe0">P·V = constante (θ fixe)</text>`) },
     ],
     formules: [

@@ -44,7 +44,7 @@ CONTENU['tc-moment'] = {
   },
   quiz: [
     { q: 'Une force dont la droite d’action passe par l’axe de rotation a un moment :', o: ['maximal', 'nul', 'négatif', 'égal à F'], r: 1, e: TX`\(d = 0\) donc \(\mathcal M = 0\).` },
-    { q: 'Une force de 20 N agit à 30 cm de l’axe (droite d’action perpendiculaire au levier). Son moment :', o: ['600 N·m', '6 N·m', '0,67 N·m', '66,7 N·m'], r: 1, e: TX`\(\mathcal M = 20\times0{,}30 = 6\ \text{N·m}\).` },
+    { q: 'Une force de 20 N agit à 30 cm de l’axe (droite d’action perpendiculaire au levier). Son moment :', o: ['600 N·m', '6 N·m', '0,67 N·m', '66,7 N·m'], r: 1, e: TX`\(\mathcal M = 20\times0{,}30 = 6\ \text{N}\cdot\text{m}\).` },
     { q: 'Sur une balançoire, un enfant de 30 kg est à 2 m de l’axe. Un adulte de 60 kg doit se placer à :', o: ['4 m', '2 m', '1 m', '0,5 m'], r: 2, e: TX`\(30\times2 = 60\times d \Rightarrow d = 1\ \text{m}\).` },
     { q: 'Pour desserrer un écrou plus facilement, on utilise une clé :', o: ['plus courte', 'plus longue', 'plus lourde', 'de même longueur'], r: 1, e: 'Un bras de levier plus grand donne un moment plus grand pour la même force.' },
     { q: 'Le moment d’un couple de forces (F, d) vaut :', o: ['2F·d', 'F·d', 'F/d', '0'], r: 1, e: TX`\(\mathcal M_C = F\cdot d\).` },

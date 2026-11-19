@@ -7,7 +7,7 @@ CONTENU['tc-courant'] = {
       { titre: '1. Nature et sens du courant', sim: 'courant', html: TX`<ul><li>Dans un métal : les <b>électrons libres</b> se déplacent de la borne \(-\) vers la borne \(+\) du générateur, à l’extérieur de celui-ci.</li><li>Dans une solution ionique (électrolyte) : les <b>cations</b> se déplacent dans le sens du courant, les <b>anions</b> en sens inverse.</li><li><b>Sens conventionnel</b> : à l’extérieur du générateur, le courant va de la borne \(+\) vers la borne \(-\) (sens inverse des électrons).</li></ul>`
         + FIG(440, 140, ARW('c1') + ARW('c1b', '#1f6fe0') + `<rect x="40" y="20" width="360" height="100" fill="none" stroke="#14213d" stroke-width="2.5"/><rect x="190" y="110" width="60" height="20" fill="#fff"/><line x1="205" y1="104" x2="205" y2="136" stroke="#14213d" stroke-width="3"/><line x1="235" y1="110" x2="235" y2="130" stroke="#14213d" stroke-width="6"/><text x="196" y="100">+</text><text x="240" y="100">−</text><circle cx="220" cy="20" r="12" fill="#ffd27a" stroke="#14213d"/><line x1="70" y1="50" x2="70" y2="90" stroke="#d93a4a" stroke-width="2.5" marker-end="url(#c1)"/><text x="80" y="74" fill="#d93a4a" font-weight="bold">I (conventionnel)</text><line x1="370" y1="50" x2="370" y2="90" stroke="#1f6fe0" stroke-width="2.5" marker-end="url(#c1b)"/><text x="364" y="74" text-anchor="end" fill="#1f6fe0" font-weight="bold">électrons e⁻</text>`) },
       { titre: '2. Quantité d’électricité et intensité', html: TX`<p>La charge élémentaire est \(e = 1{,}6\times10^{-19}\ \text{C}\). Si \(n\) électrons traversent une section, la quantité d’électricité est \(Q = n\cdot e\) (en coulombs C).</p>
-<p>L’<b>intensité</b> du courant est le débit de charges : \(I = \dfrac{Q}{\Delta t}\), en ampères (A). \(1\ \text{A·h} = 3600\ \text{C}\) (capacité des batteries).</p>` },
+<p>L’<b>intensité</b> du courant est le débit de charges : \(I = \dfrac{Q}{\Delta t}\), en ampères (A). \(1\ \text{A}\cdot\text{h} = 3600\ \text{C}\) (capacité des batteries).</p>` },
       { titre: '3. Mesure de l’intensité', html: TX`<p>On mesure \(I\) avec un <b>ampèremètre</b> branché <b>en série</b>, le courant entrant par la borne A (ou mA) et sortant par la borne COM. On commence par le plus grand calibre. Mesure d’un appareil à aiguille : \(I = \dfrac{C\cdot n}{n_0}\) (C : calibre ; n : lecture ; \(n_0\) : nombre total de divisions). Incertitude : \(\Delta I = \dfrac{\text{classe}\times C}{100}\).</p>` },
       { titre: '4. Lois des intensités', sim: 'assoc', html: TX`<ul><li><b>Circuit série</b> : l’intensité est la même en tout point.</li><li><b>Loi des nœuds</b> : la somme des intensités des courants qui arrivent à un nœud est égale à la somme des intensités des courants qui en partent : \(\sum I_{entrants} = \sum I_{sortants}\).</li></ul>`
         + FIG(380, 120, ARW('c2') + `<circle cx="190" cy="60" r="6" fill="#14213d"/><text x="190" y="88" text-anchor="middle">N</text>${VEC(60, 60, 182, 60, 'I₁', '#d93a4a', 'c2')}${VEC(196, 56, 330, 15, 'I₂', '#1f6fe0', 'c2')}${VEC(196, 64, 330, 105, 'I₃', '#1f6fe0', 'c2')}<text x="20" y="114">I₁ = I₂ + I₃</text>`) },
@@ -31,7 +31,7 @@ CONTENU['tc-courant'] = {
       'Confondre sens des électrons et sens conventionnel.',
       TX`Oublier de convertir les durées en secondes ou les mA en A.`,
       'Penser que le courant « s’use » en traversant une lampe.',
-      TX`Oublier que \(1\ \text{A·h} = 3600\ \text{C}\).`,
+      TX`Oublier que \(1\ \text{A}\cdot\text{h} = 3600\ \text{C}\).`,
     ],
   },
   experiences: {
