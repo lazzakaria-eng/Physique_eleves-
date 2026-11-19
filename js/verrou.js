@@ -19,6 +19,8 @@ window.VERROU = (() => {
   const ok = () => { if (mem) return true; try { return sessionStorage.getItem(KEY) === EMP; } catch (e) { return false; } };
   const set = v => { mem = v; try { if (v) sessionStorage.setItem(KEY, EMP); else sessionStorage.removeItem(KEY); } catch (e) { /* stockage indisponible */ } document.dispatchEvent(new CustomEvent('verrou', { detail: v })); };
   const ar = () => document.documentElement.lang === 'ar';
+  // pas de code ? l’élève écrit au professeur sur Instagram (message direct)
+  const IG = () => { const u = (typeof INSTAGRAM_URL !== 'undefined' && INSTAGRAM_URL) || 'https://instagram.com/zakarialazrak', n = (u.match(/instagram\.com\/([\w.]+)/) || [])[1]; return n ? 'https://ig.me/m/' + n : u; };
   const T = (fr, a) => ar() ? a : fr;
 
   const CSS = `.vr-back{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:rgba(15,23,42,.55);backdrop-filter:blur(6px);padding:16px}
@@ -29,6 +31,8 @@ window.VERROU = (() => {
   .vr-keys{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.vr-keys button{font:inherit;font-size:1.6rem;font-weight:700;padding:14px 0;border-radius:16px;border:0;background:#f1f5f9;color:#0f172a;cursor:pointer;touch-action:manipulation}
   .vr-keys button:active{transform:scale(.96)}.vr-keys .vr-ok{background:#0f766e;color:#fff}.vr-keys .vr-del{background:#e2e8f0}
   .vr-err{color:#dc2626!important;font-weight:700;min-height:1.3em}.vr-shake{animation:vrs .4s}@keyframes vrs{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
+  .vr-ig{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:16px;padding:12px 16px;border-radius:16px;color:#fff!important;text-decoration:none;font-weight:700;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)}
+  .vr-ig small{display:block;font-weight:500;opacity:.9;font-size:.8rem}.vr-ig svg{width:26px;height:26px;flex:none}
   .vr-cancel{margin-top:14px;font:inherit;background:none;border:0;color:#475569;text-decoration:underline;cursor:pointer}
   @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .vr-box,:root:not([data-theme="light"]) .vr-page{background:#1e293b;color:#f1f5f9}:root:not([data-theme="light"]) .vr-keys button{background:#334155;color:#f1f5f9}}
   :root[data-theme="dark"] .vr-box,:root[data-theme="dark"] .vr-page{background:#1e293b;color:#f1f5f9}:root[data-theme="dark"] .vr-keys button{background:#334155;color:#f1f5f9}`;
@@ -42,6 +46,8 @@ window.VERROU = (() => {
       <div class="vr-dots">${'<i></i>'.repeat(4)}</div><p class="vr-err" aria-live="polite"></p>
       <input class="vr-in" type="password" inputmode="numeric" autocomplete="off" aria-label="Code" style="position:absolute;opacity:0;width:1px;height:1px">
       <div class="vr-keys">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<button type="button" data-k="${n}">${n}</button>`).join('')}<button type="button" class="vr-del" data-k="del">⌫</button><button type="button" data-k="0">0</button><button type="button" class="vr-ok" data-k="ok">✔</button></div>
+      <a class="vr-ig" href="${IG()}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
+        <span>${T('Pas de code ? Écris au professeur sur Instagram', 'ليس لديك الرمز ؟ راسل الأستاذ على إنستغرام')}<small>${T('Envoie ton nom, ta classe et ton idée ou ta question', 'أرسل اسمك وقسمك وفكرتك أو سؤالك')}</small></span></a>
       ${onCancel ? `<button type="button" class="vr-cancel">${T('Annuler', 'إلغاء')}</button>` : ''}</div>`;
     const box = host.firstElementChild, dots = box.querySelectorAll('.vr-dots i'), err = box.querySelector('.vr-err'), inp = box.querySelector('.vr-in');
     const paint = () => { const n = Math.max(4, val.length); if (dots.length !== n) box.querySelector('.vr-dots').innerHTML = '<i></i>'.repeat(n); box.querySelectorAll('.vr-dots i').forEach((d, i) => d.classList.toggle('on', i < val.length)); };
