@@ -54,8 +54,8 @@ window.DEFIS = (() => {
     [['Fe^3+', 'HO^-'], ['Fe(OH)3'], [1, 3, 1], 'tc', 'prec'], [['Cu^2+', 'HO^-'], ['Cu(OH)2'], [1, 2, 1], 'tc', 'prec'], [['Fe^2+', 'HO^-'], ['Fe(OH)2'], [1, 2, 1], 'tc', 'prec'],
     [['Al^3+', 'HO^-'], ['Al(OH)3'], [1, 3, 1], 'tc', 'prec'], [['Pb^2+', 'I^-'], ['PbI2'], [1, 2, 1], 'tc', 'prec'], [['Ca^2+', 'PO4^3-'], ['Ca3(PO4)2'], [3, 2, 1], 'tc', 'prec'],
     [['Ag^+', 'CrO4^2-'], ['Ag2CrO4'], [2, 1, 1], 'tc', 'prec'],
-    [['CaCl2'], ['Ca^2+', 'Cl^-'], [1, 1, 2], 'tc', 'diss'], [['Al2(SO4)3'], ['Al^3+', 'SO4^2-'], [1, 2, 3], 'tc', 'diss'], [['FeCl3'], ['Fe^3+', 'Cl^-'], [1, 1, 3], 'tc', 'diss'],
-    [['Na2SO4'], ['Na^+', 'SO4^2-'], [1, 2, 1], 'tc', 'diss'], [['K3PO4'], ['K^+', 'PO4^3-'], [1, 3, 1], 'tc', 'diss'], [['Na2CO3'], ['Na^+', 'CO3^2-'], [1, 2, 1], 'tc', 'diss'],
+    [['CaCl2'], ['Ca^2+', 'Cl^-'], [1, 1, 2], '1bac', 'diss'], [['Al2(SO4)3'], ['Al^3+', 'SO4^2-'], [1, 2, 3], '1bac', 'diss'], [['FeCl3'], ['Fe^3+', 'Cl^-'], [1, 1, 3], '1bac', 'diss'],
+    [['Na2SO4'], ['Na^+', 'SO4^2-'], [1, 2, 1], '1bac', 'diss'], [['K3PO4'], ['K^+', 'PO4^3-'], [1, 3, 1], '1bac', 'diss'], [['Na2CO3'], ['Na^+', 'CO3^2-'], [1, 2, 1], '1bac', 'diss'],
     [['Al', 'H^+'], ['Al^3+', 'H2'], [2, 6, 2, 3], 'tc', 'redox'], [['Cu', 'Ag^+'], ['Cu^2+', 'Ag'], [1, 2, 1, 2], 'tc', 'redox'], [['Fe2O3', 'CO'], ['Fe', 'CO2'], [1, 3, 2, 3], 'tc', 'redox'],
     [['Zn', 'H^+'], ['Zn^2+', 'H2'], [1, 2, 1, 1], 'tc', 'redox'], [['Fe', 'Cu^2+'], ['Fe^2+', 'Cu'], [1, 1, 1, 1], 'tc', 'redox'], [['Na', 'H2O'], ['Na^+', 'HO^-', 'H2'], [2, 2, 2, 2, 1], 'tc', 'redox'],
     [['Mg', 'HCl'], ['MgCl2', 'H2'], [1, 2, 1, 1], 'tc', 'redox'], [['Ag^+', 'Zn'], ['Ag', 'Zn^2+'], [2, 1, 2, 1], 'tc', 'redox'], [['Al', 'Cu^2+'], ['Al^3+', 'Cu'], [2, 3, 2, 3], 'tc', 'redox'],
@@ -87,21 +87,26 @@ window.DEFIS = (() => {
     [['C2H4O2', 'C2H6O'], ['C4H8O2', 'H2O'], [1, 1, 1, 1], '2bac', 'org'], [['C5H12O', 'C2H4O2'], ['C7H14O2', 'H2O'], [1, 1, 1, 1], '2bac', 'org'],
     [['(C2H3O)2O', 'C2H6O'], ['C4H8O2', 'C2H4O2'], [1, 1, 1, 1], '2bac', 'org'], [['C4H8O2', 'HO^-'], ['C2H3O2^-', 'C2H6O'], [1, 1, 1, 1], '2bac', 'org'],
     [['(C17H35COO)3C3H5', 'HO^-'], ['C17H35COO^-', 'C3H8O3'], [1, 3, 3, 1], '2bac', 'org'], [['C7H6O3', 'C4H6O3'], ['C9H8O4', 'C2H4O2'], [1, 1, 1, 1], '2bac', 'org'],
+    [['C2H4O2', 'CH4O'], ['C3H6O2', 'H2O'], [1, 1, 1, 1], '2bac', 'org'], [['CH2O2', 'C2H6O'], ['C3H6O2', 'H2O'], [1, 1, 1, 1], '2bac', 'org'], [['C4H8O2', 'H2O'], ['C2H4O2', 'C2H6O'], [1, 1, 1, 1], '2bac', 'org'],
+    [['H2O2', 'I^-', 'H^+'], ['I2', 'H2O'], [1, 2, 2, 1, 2], '2bac', 'redox'], [['MnO4^-', 'H2C2O4', 'H^+'], ['Mn^2+', 'CO2', 'H2O'], [2, 5, 6, 2, 10, 8], '2bac', 'redox'],
+    [['Fe', 'Ag^+'], ['Fe^2+', 'Ag'], [1, 2, 1, 2], '2bac', 'redox'], [['Al', 'Zn^2+'], ['Al^3+', 'Zn'], [2, 3, 2, 3], '2bac', 'redox'],
+    [['NH3', 'H3O^+'], ['NH4^+', 'H2O'], [1, 1, 1, 1], '2bac', 'ab'], [['CH3COOH', 'HO^-'], ['CH3COO^-', 'H2O'], [1, 1, 1, 1], '2bac', 'ab'], [['HCOOH', 'H2O'], ['HCOO^-', 'H3O^+'], [1, 1, 1, 1], '2bac', 'ab'],
   ];
 
   // chapitre(s) du programme de chaque équation
   function eqChaps(e) {
     const [r, p, , n, t] = e, txt = r.concat(p).join(' ');
-    if (t === 'diss') return ['1bc-electrolytes', '1bc-conductimetrie'];
+    if (t === 'diss') return ['1bc-electrolytes', '1bc-conductimetrie', '1bc-grandeurs'];
     if (n === 'tc') return t === 'redox' && /\^/.test(txt) && !/H\^\+|H2O/.test(txt) ? ['tcc-transformation', '1bc-redox', '2bc-piles', '2bc-spontanee'] : ['tcc-transformation'];
     if (n === '1bac') return t === 'ab' ? ['1bc-acidobase', '1bc-dosages'] : t === 'org' ? ['1bc-groupes'] : ['1bc-redox', '1bc-dosages'];
     if (t === 'ab') return ['2bc-deuxsens', '2bc-acidebase', '2bc-dosage'];
     if (t === 'elec') return ['2bc-electrolyse'];
-    if (t === 'redox') return /S2O8/.test(txt) ? ['2bc-lentes', '2bc-vitesse'] : ['2bc-piles', '2bc-spontanee'];
+    if (t === 'redox') return /S2O8|H2O2|H2C2O4/.test(txt) ? ['2bc-lentes', '2bc-vitesse'] : ['2bc-piles', '2bc-spontanee'];
     if (t === 'org') return /\(C2H3O\)2O|C17H35|C7H6O3|HO\^-/.test(txt) ? ['2bc-controle'] : ['2bc-ester'];
     return [];
   }
   EQ.forEach(e => { e.chs = eqChaps(e); });
+  const chLabel = (chs, sel) => { const C = A().C(), l = C.ALL.find(x => chs.includes(x.id) && (!sel || sel.includes(x.id))) || C.ALL.find(x => chs.includes(x.id)); return l ? C.t(l.fr, l.ar) : ''; };
   const EQ_CH = [...new Set(EQ.flatMap(e => e.chs))];
 
   /* ---------- habillage commun (équipes, tours, podium) ---------- */
@@ -150,13 +155,13 @@ window.DEFIS = (() => {
   function equilibrePlay(v, again) {
     const api = A(), TM = api.teams(), N = TM.length, sc = TM.map(() => 0), per = +v.nb, SEC = +v.sec, LV = { tc: ['tc'], '1bac': ['tc', '1bac'], '2bac': ['tc', '1bac', '2bac'], seul1: ['1bac'], seul2: ['2bac'] }[v.niv] || ['tc', '1bac', '2bac'];
     const inCh = e => !v.chs || e.chs.some(c => v.chs.includes(c));
-    let Q = shuffle(EQ.filter(e => inCh(e) && (v.type === 'all' || e[4] === v.type))); if (!Q.length) Q = shuffle(EQ.filter(inCh)); if (!Q.length) Q = shuffle(EQ); let i = 0; api.full(true);
+    let Q = shuffle(EQ.filter(e => inCh(e) && (v.type === 'all' || e[4] === v.type))); if (!Q.length) Q = shuffle(EQ.filter(inCh)); let i = 0; api.full(true);
     function round() {
       api.stopTimers(); if (i >= per * N) return api.podium('equilibre', TM, sc, again);
       const cur = i % N, eq = Q[i % Q.length], sp = eq[0].concat(eq[1]), c = sp.map(() => 1); let done = false, aide = false, wrong = 0;
       app().innerHTML = `<section class="jx-stage">${api.bar()}${board(TM, sc, cur)}
         <div class="jx-turnrow"><div class="jx-turn" style="--c:${api.COLORS[cur]}">${T('À', 'دور')} <b>${esc(TM[cur].n)}</b> ${T('d’équilibrer', 'للموازنة')} · ${Math.floor(i / N) + 1}/${per}</div>${ring(api.COLORS[cur], SEC)}</div>
-        <div class="jx-q jx-eqq" dir="ltr" lang="fr"><p class="jx-ch">${T(TY[eq[4]][0], TY[eq[4]][1])} · ${{ tc: 'Tronc commun', '1bac': '1re Bac', '2bac': '2e Bac' }[eq[3]]}</p><div class="jx-eq">${sp.map((s, k) => `${k === eq[0].length ? '<span class="jx-arrow">⟶</span>' : k ? '<span class="jx-plus">+</span>' : ''}
+        <div class="jx-q jx-eqq" dir="ltr" lang="fr"><p class="jx-ch">${T(TY[eq[4]][0], TY[eq[4]][1])} · ${esc(chLabel(eq.chs, v.chs))}</p><div class="jx-eq">${sp.map((s, k) => `${k === eq[0].length ? '<span class="jx-arrow">⟶</span>' : k ? '<span class="jx-plus">+</span>' : ''}
           <span class="jx-sp"><span class="jx-co"><button type="button" class="up" data-k="${k}">▲</button><b data-c="${k}">1</b><button type="button" class="dn" data-k="${k}">▼</button></span><span class="jx-f2">${fmt(s)}</span></span>`).join('')}</div>
           <div class="jx-bil" hidden></div>
           <div class="jx-cluebar"><button type="button" class="jx-hint" id="aide">📊 ${T('Bilan des atomes (−3)', 'حصيلة الذرات (−3)')}</button><button type="button" class="jx-btn big" id="ok">✔ ${T('Valider', 'تحقق')}</button></div><div class="jx-after"></div></div></section>`;
@@ -317,10 +322,12 @@ window.DEFIS = (() => {
       v => { const run = () => (v.mode === 'faire' ? dessinFaire : dessinVoir)(v, run); run(); }, DESSIN_CH);
   }
   function dessinVoir(v, again) {
-    const api = A(), TM = api.teams(), N = TM.length, sc = TM.map(() => 0), per = +v.nb, Q0 = SCH.filter(x => inChs(x, v)), Q = shuffle(Q0.length ? Q0 : SCH), DUR = 14000; let i = 0; api.full(true);
+    const api = A(), TM = api.teams(), N = TM.length, sc = TM.map(() => 0), per = +v.nb, Q0 = SCH.filter(x => inChs(x, v)), Q = shuffle(Q0), DUR = 14000;
+    if (!Q.length) { alert(T('Aucun schéma à identifier pour ces chapitres : choisissez le mode « Un élève dessine ».', 'لا يوجد تبيان لهذه الدروس : اختر نمط « يرسم تلميذ ».')); return dessinSetup(); } let i = 0; api.full(true);
     function round() {
       api.stopTimers(); if (i >= per * N) return api.podium('dessin', TM, sc, again);
-      let cur = i % N; const s = Q[i % Q.length], os = shuffle([s[0]].concat(shuffle(SCH.filter(x => x[0] !== s[0])).slice(0, 3).map(x => x[0]))); let done = false; const out = new Set();
+      let cur = i % N; const s = Q[i % Q.length], chim = x => x.chs.every(c => /^(tcc|1bc|2bc)-/.test(c)), alt = SCH.filter(x => x[0] !== s[0] && chim(x) === chim(s));
+      const os = shuffle([s[0]].concat(shuffle(alt.filter(x => Q.includes(x))).concat(shuffle(alt.filter(x => !Q.includes(x)))).slice(0, 3).map(x => x[0]))); let done = false; const out = new Set();
       app().innerHTML = `<section class="jx-stage">${api.bar()}${board(TM, sc, cur)}<div class="jx-turn"></div>
         <div class="jx-q jx-drawq"><div class="jx-canvas3"><svg viewBox="0 0 240 140">${s[1].map(d => `<path d="${d}" pathLength="1"/>`).join('')}</svg><span class="jx-pts"></span></div>
           <div class="jx-os">${os.map((o, k) => `<button type="button" data-k="${k}"><i>${'ABCD'[k]}</i><span>${esc(o)}</span></button>`).join('')}</div><div class="jx-after"></div></div></section>`;

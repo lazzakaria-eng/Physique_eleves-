@@ -61,30 +61,40 @@ window.JEUX = (() => {
       return { l, c, X, F: (c.formules || []).filter(f => f.tex && f.sens), R: (c.retenir || []).map(String).filter(x => strip(x).length > 8 && strip(x).length < 230),
         E: (c.erreurs || []).map(String).filter(x => FALSE_RE.test(strip(x))), XP: xs.filter(x => x && x.t) }; };
     const LV = same.map(info), byId = Object.fromEntries(LV.map(x => [x.l.id, x]));
+    // voisinage d’un chapitre : même unité du programme, puis même niveau et même matière (jamais l’autre matière ni un autre niveau)
+    const near = l => LV.filter(x => x.l !== l && x.l.niv === l.niv && x.l.mat === l.mat && x.l.ui === l.ui), far = l => LV.filter(x => x.l.niv === l.niv && x.l.mat === l.mat && x.l.ui !== l.ui);
     const uniq = a => { const s = new Set(); return a.filter(x => { const k = typeof x === 'object' ? x.tex + '|' + x.sens : strip(x); if (s.has(k)) return false; s.add(k); return true; }); };
     const key = x => typeof x === 'object' ? x.tex + '|' + x.sens : strip(x);
-    const others = (own, all, good, n = 3) => uniq(shuffle(own).concat(shuffle(all))).filter(x => key(x) !== key(good)).slice(0, n);
-    const fals = x => { const t = String(x).replace(FALSE_RE, ''); return t.charAt(0).toUpperCase() + t.slice(1); };
-    const allF = LV.flatMap(x => x.F), allFalse = LV.flatMap(x => x.E.map(fals)), allBut = LV.flatMap(x => x.XP.filter(e => e.but).map(e => e.but)), cc = e => strip(Array.isArray(e.cc) ? e.cc[0] : e.cc || '');
-    const allCc = LV.flatMap(x => x.XP.map(cc)).filter(t => t.length > 10 && t.length < 230);
+    const others = (own, nr, fr, good, n = 3) => uniq(shuffle(own).concat(shuffle(nr), shuffle(fr || []))).filter(x => key(x) !== key(good)).slice(0, n);
+    // « Croire que X : correction. » → « X. » (on retire la correction qui suit)
+    const fals = x => { let t = String(x).replace(FALSE_RE, '').replace(/\s*(?:\s:\s|\s;\s|\s\(c’est|\s\(c'est|\s—\s).*$/, '').replace(/[.\s]*$/, '.'); return t.charAt(0).toUpperCase() + t.slice(1); };
+    const cc = e => strip(Array.isArray(e.cc) ? e.cc[0] : e.cc || ''), okCc = t => t.length > 10 && t.length < 230;
+    const F_ = L => L.flatMap(x => x.F), FA_ = L => L.flatMap(x => x.E.map(fals)), B_ = L => L.flatMap(x => x.XP.filter(e => e.but).map(e => e.but)), CC_ = L => L.flatMap(x => x.XP.map(cc)).filter(okCc);
+    const DEP = /^(Son |Sa |Ses |Cette |Ce |Cet |Ces |Dans ce |Dans cette |Pour ce |Pour cette |Avec ce |Avec cette |De ce |En déduire|On en déduit)|\b(ce circuit|cette pile|ci-dessus|précédente?)\b/i;
     const out = [], seen = new Set();
     const add = (l, q, o, e) => { if (o.length < 2) return; const k = strip(q) + '|' + o.map(strip).join('|'); if (seen.has(k)) return; seen.add(k); out.push({ q, o, r: 0, e: e || '', ch: C.t(l.fr, l.ar), id: l.id }); };
     ls.forEach(l => {
-      const I = byId[l.id];
-      (I.c.quiz || []).concat(I.X.quiz || []).forEach(q => { if (q && q.o && q.o.length > 1 && q.r < q.o.length) { const o = [q.o[q.r]].concat(q.o.filter((_, k) => k !== q.r)); add(l, q.q, o, q.e); } });
+      const I = byId[l.id], NR = near(l), FR = far(l);
+      // questions du quiz ; une question qui dépend de la précédente (« Cette pile… ») reçoit ses données
+      [I.c.quiz || [], I.X.quiz || []].forEach(Z => { let prev = null; Z.forEach(q => { if (q && q.o && q.o.length > 1 && q.r < q.o.length) {
+        const o = [q.o[q.r]].concat(q.o.filter((_, k) => k !== q.r)), qq = prev && DEP.test(strip(q.q)) ? `<span class="jx-ctx">${prev.q} <b>→ ${prev.o[prev.r]}</b></span>${q.q}` : q.q;
+        if (!prev && DEP.test(strip(q.q))) return; add(l, qq, o, q.e); prev = DEP.test(strip(q.q)) && prev ? prev : q; } }); });
       I.F.forEach(f => {
-        const ot = others(I.F.filter(g => g.sens !== f.sens), allF.filter(g => g.sens !== f.sens), f).filter(g => g.sens !== f.sens);
+        const ot = others(I.F.filter(g => g.sens !== f.sens), F_(NR).filter(g => g.sens !== f.sens), F_(FR).filter(g => g.sens !== f.sens), f).filter(g => g.sens !== f.sens);
         const os = uniq(ot.map(g => C.esc(g.sens))).filter(x => x !== C.esc(f.sens)).slice(0, 3);
         if (os.length >= 2) add(l, C.t('Que représente la relation', 'ماذا تمثل العلاقة') + ` \\(${f.tex}\\) ?`, [C.esc(f.sens)].concat(os), '');
-        const ot2 = uniq(shuffle(I.F.filter(g => g.tex !== f.tex)).concat(shuffle(allF.filter(g => g.tex !== f.tex && g.sens !== f.sens)))).slice(0, 3);
+        const ot2 = uniq(shuffle(I.F.filter(g => g.tex !== f.tex)).concat(shuffle(F_(NR).filter(g => g.tex !== f.tex && g.sens !== f.sens)), shuffle(F_(FR).filter(g => g.tex !== f.tex && g.sens !== f.sens)))).slice(0, 3);
         if (ot2.length >= 2) add(l, C.t('Quelle relation correspond à', 'أي علاقة توافق') + ` : « ${C.esc(f.sens)} » ?`, [`\\(${f.tex}\\)`].concat(ot2.map(g => `\\(${g.tex}\\)`)), '');
       });
       I.R.forEach(r => add(l, C.t('Vrai ou faux ?', 'صحيح أم خطأ ؟') + ' ' + r, [C.t('Vrai', 'صحيح'), C.t('Faux', 'خطأ')], C.t('À retenir du cours.', 'يجب حفظه من الدرس.')));
       I.E.forEach(x => add(l, C.t('Vrai ou faux ?', 'صحيح أم خطأ ؟') + ' ' + fals(x), [C.t('Faux', 'خطأ'), C.t('Vrai', 'صحيح')], C.t('Erreur fréquente : ', 'خطأ شائع : ') + x));
-      I.R.slice(0, 4).forEach(r => { const fs = others(I.E.map(fals), allFalse, r); if (fs.length >= 3) add(l, C.t('Quelle affirmation est correcte ?', 'أي عبارة صحيحة ؟'), [r].concat(fs), ''); });
+      // une seule affirmation fausse parmi des affirmations vraies du même chapitre
+      I.E.forEach(x => { const tr = pick(I.R, 3); if (tr.length >= 2) add(l, C.t('Quelle affirmation est FAUSSE ?', 'أي عبارة خاطئة ؟'), [fals(x)].concat(tr), C.t('Erreur fréquente : ', 'خطأ شائع : ') + x); });
+      // une seule affirmation vraie parmi des erreurs du même chapitre ou de la même unité
+      I.R.slice(0, 4).forEach(r => { const fs = others(I.E.map(fals), FA_(NR), null, r); if (fs.length >= 2) add(l, C.t('Quelle affirmation est correcte ?', 'أي عبارة صحيحة ؟'), [r].concat(fs), ''); });
       I.XP.forEach(e => {
-        if (e.but) { const ob = others(I.XP.filter(x => x.but && x !== e).map(x => x.but), allBut, e.but); if (ob.length >= 2) add(l, C.t('Quel est le but de l’expérience', 'ما هدف التجربة') + ` « ${strip(e.t)} » ?`, [e.but].concat(ob), ''); }
-        const c0 = cc(e); if (c0.length > 10 && c0.length < 230) { const oc = others(I.XP.filter(x => x !== e).map(cc).filter(t => t.length > 10 && t.length < 230), allCc, c0); if (oc.length >= 2) add(l, C.t('Quelle conclusion tire-t-on de l’expérience', 'ما الاستنتاج من التجربة') + ` « ${strip(e.t)} » ?`, [c0].concat(oc), ''); }
+        if (e.but) { const ob = others(I.XP.filter(x => x.but && x !== e).map(x => x.but), B_(NR), B_(FR), e.but); if (ob.length >= 2) add(l, C.t('Quel est le but de l’expérience', 'ما هدف التجربة') + ` « ${strip(e.t)} » ?`, [e.but].concat(ob), ''); }
+        const c0 = cc(e); if (c0.length > 10 && c0.length < 230) { const oc = others(I.XP.filter(x => x !== e).map(cc).filter(okCc), CC_(NR), CC_(FR), c0); if (oc.length >= 2) add(l, C.t('Quelle conclusion tire-t-on de l’expérience', 'ما الاستنتاج من التجربة') + ` « ${strip(e.t)} » ?`, [c0].concat(oc), ''); }
       });
     });
     return out;
@@ -94,7 +104,7 @@ window.JEUX = (() => {
   /* ---------- choix d’un ou plusieurs chapitres (niveau par niveau) ---------- */
   const LVN = { tc: 'Tronc commun', '1bac': '1re Bac', '2bac': '2e Bac' };
   let CHS = [];
-  function chapPicker(key, avail) {
+  function chapPicker(key, avail, cnt) {
     const ALL = C.ALL.filter(l => !avail || avail.includes(l.id)), lvls = Object.keys(LVN).filter(n => ALL.some(l => l.niv.id === n));
     let chosen = (get('jx-chs-' + key, null) || []).filter(x => ALL.some(l => l.id === x)); if (!chosen.length) chosen = ALL.filter(l => l.niv.id === lvls[lvls.length - 1]).map(l => l.id);
     let tab = (ALL.find(l => chosen.includes(l.id)) || ALL[0]).niv.id, mat = 'all';
@@ -105,7 +115,7 @@ window.JEUX = (() => {
     const vis = () => ALL.filter(l => l.niv.id === tab && (mat === 'all' || l.mat === mat));
     const paint = () => {
       $$('.jx-chp-tabs [data-lv]').forEach(b => b.classList.toggle('on', b.dataset.lv === tab)); $$('.jx-chp-tabs [data-m]').forEach(b => b.classList.toggle('on', b.dataset.m === mat));
-      $('.jx-chp-list').innerHTML = vis().map(l => `<label class="${chosen.includes(l.id) ? 'on' : ''}"><input type="checkbox" value="${l.id}"${chosen.includes(l.id) ? ' checked' : ''}> <small>${l.mat === 'chimie' ? '🧪' : '⚛️'}</small> ${C.esc(C.t(l.fr, l.ar))}</label>`).join('');
+      $('.jx-chp-list').innerHTML = vis().map(l => `<label class="${chosen.includes(l.id) ? 'on' : ''}"><input type="checkbox" value="${l.id}"${chosen.includes(l.id) ? ' checked' : ''}> <small>${l.mat === 'chimie' ? '🧪' : '⚛️'}</small> ${C.esc(C.t(l.fr, l.ar))}${cnt && cnt[l.id] ? ` <em class="jx-chp-c">${cnt[l.id]}</em>` : ''}</label>`).join('');
       $$('.jx-chp-list input').forEach(c => c.addEventListener('change', () => { chosen = c.checked ? chosen.concat(c.value) : chosen.filter(x => x !== c.value); put('jx-chs-' + key, chosen); paint(); }));
       $('.jx-chp-n').textContent = chosen.length + ' ' + C.t('chapitre(s) choisi(s)', 'درس مختار'); const g = $('#go'); if (g) g.disabled = !chosen.length;
     };
@@ -118,11 +128,9 @@ window.JEUX = (() => {
     return { html, wire, get: () => chosen.slice() };
   }
   // éléments d’un jeu (énigmes, intrus…) des chapitres choisis ; complétés par des éléments du même niveau si trop peu
-  function byChs(arr, need) {
-    const inC = arr.filter(x => (x.c || []).some(c => CHS.includes(c))); if (inC.length >= need) return inC;
-    const lv = [...new Set(C.ALL.filter(l => CHS.includes(l.id)).map(l => l.niv.id))];
-    return inC.concat(shuffle(arr.filter(x => !inC.includes(x) && lv.includes(x.n)))).slice(0, Math.max(need, inC.length));
-  }
+  const chName = ids => { const l = C.ALL.find(x => (ids || []).includes(x.id) && CHS.includes(x.id)); return l ? C.t(l.fr, l.ar) : ''; };
+  function byChs(arr) { return arr.filter(x => (x.c || []).some(c => CHS.includes(c))).map(x => Object.assign({}, x, { ch: chName(x.c) })); }
+  const tagged = arr => arr.flatMap(x => x.c || []);
 
   /* ---------- habillage commun ---------- */
   const LET = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -208,20 +216,18 @@ window.JEUX = (() => {
 
   /* ---------- écran de réglage ---------- */
   function setup(g, fields, go, pickChs) {
-    const G = GAMES.concat(DUO).find(x => x[0] === g), cp = pickChs ? chapPicker('cours', null) : null;
+    const G = GAMES.concat(DUO).find(x => x[0] === g), cp = pickChs ? (Array.isArray(pickChs) ? chapPicker(g, [...new Set(pickChs)], pickChs.reduce((o, c) => (o[c] = (o[c] || 0) + 1, o), {})) : chapPicker('cours', null)) : null;
     app().innerHTML = `<section class="jx-page"><a class="jx-back" href="#/jeux">‹ ${C.t('Espace Jeux', 'فضاء الألعاب')}</a><div class="jx-setup ${G[6]}"><span class="jx-ic">${G[1]}</span><h1>${C.t(G[2], G[3])}</h1><p>${C.t(G[4], G[5])}</p>
       <p class="jx-teamsline">${teams().map((x, i) => `<span style="--c:${COLORS[i]}">${C.esc(x.n)}</span>`).join('')} <a href="#/jeux">${C.t('modifier', 'تعديل')}</a></p>
       ${cp ? cp.html : ''}<div class="jx-form">${fields}</div><button type="button" class="jx-btn big" id="go">▶ ${C.t('Lancer en plein écran', 'ابدأ في ملء الشاشة')}</button></div></section>`;
     if (cp) cp.wire();
-    const n = $('#niv'), ch = $('#ch');
-    if (n && ch) { const fill = () => { ch.innerHTML = chList(n.value).map(x => `<option value="${x[0]}">${C.esc(x[1])}</option>`).join(''); }; fill(); n.addEventListener('change', fill); }
     $('#go').addEventListener('click', async () => { if (cp) CHS = cp.get(); $('#go').disabled = true; $('#go').textContent = C.t('Chargement…', 'جار التحميل…'); try { await go(); } catch (e) { console.error(e); $('#go').disabled = false; $('#go').textContent = '▶'; } });
   }
   const qFields = () => '';
 
   /* ---------- moteur « chacun son tour » (Match, Unités) ---------- */
   function turns(game, Q, perTeam, secs, again) {
-    const T = teams(), N = T.length, sc = T.map(() => 0); let i = 0;
+    const T = teams(), N = T.length, sc = T.map(() => 0); let i = 0; Q = Q.filter(Boolean); perTeam = Math.max(1, Math.min(perTeam, Math.floor(Q.length / N)));
     full(true);
     function question() {
       stop(); if (i >= perTeam * N) return podium(game, T, sc, again);
@@ -318,12 +324,13 @@ window.JEUX = (() => {
   /* ---------- 3. Memory des formules par équipes ---------- */
   function memorySetup() {
     setup('memory', sel('nb', C.t('Nombre de paires', 'عدد الأزواج'), [['6', '6 (12 cartes)'], ['8', '8 (16 cartes)'], ['10', '10 (20 cartes)']], '8'), async () => {
-      const nb = +$('#nb').value, ls = C.ALL.filter(l => CHS.includes(l.id)), lv = [...new Set(ls.map(l => l.niv.id))], more = C.ALL.filter(l => lv.includes(l.niv.id) && !CHS.includes(l.id));
+      const nb = +$('#nb').value, ls = C.ALL.filter(l => CHS.includes(l.id)), sameU = C.ALL.filter(l => !CHS.includes(l.id) && ls.some(x => x.niv === l.niv && x.mat === l.mat && x.ui === l.ui));
+      const sameM = C.ALL.filter(l => !CHS.includes(l.id) && !sameU.includes(l) && ls.some(x => x.niv === l.niv && x.mat === l.mat)), more = sameU.concat(sameM);
       await Promise.all(ls.concat(more).map(l => C.loadContenu(l)));
       const fm = l => C.chapter(l).formules.filter(f => f.tex && f.sens).map(f => ({ tex: f.tex, sens: f.sens }));
       const F = [], seen = new Set(), addF = L => shuffle(L).forEach(l => fm(l).forEach(f => { if (!seen.has(f.sens)) { seen.add(f.sens); F.push(f); } }));
-      addF(ls); const own = F.length; if (own < nb) addF(more); // complété par d’autres chapitres du même niveau si besoin
-      const run = () => memoryPlay(shuffle(pick(F.slice(0, Math.max(own, nb)), nb)), run); run();
+      addF(ls); const own = F.length; if (own < nb) { addF(sameU); if (F.length < 6) addF(sameM); } // complété par d’autres chapitres du même niveau si besoin
+      const run = () => memoryPlay(shuffle(pick(F.slice(0, Math.max(own, Math.min(nb, F.length))), nb)), run); run();
     }, true);
   }
   function memoryPlay(F, again) {
@@ -364,28 +371,18 @@ window.JEUX = (() => {
   const C_CH = { 'km/h': ['tc-mouvement'], mA: ['tc-courant'], 'µF': ['2b-rc'], nm: ['2b-lumiere'], kJ: ['1b-travail'], mL: ['tcc-concentration'], 'cm²': ['tc-actions'], g: ['tcc-mole'], ms: ['tc-tension'], MeV: ['2b-noyaux'],
     'mmol/L': ['tcc-concentration'], '°C': ['1b-thermique'], mH: ['2b-rl'], 'kΩ': ['tc-passifs'], mm: ['tc-mouvement'] };
   const inU = tags => (tags || []).some(c => CHS.includes(c));
+  const UNIT_CHS = Object.values(U_CH).concat(Object.values(C_CH)).flat();
   function unitQ() {
     const UNf = UN.filter(x => inU(U_CH[x[1]])), CVf = CONV.filter(x => inU(C_CH[x[0]]));
-    if (UNf.length || CVf.length) { const useU = UNf.length && (!CVf.length || Math.random() < UNf.length / (UNf.length + CVf.length)); return useU ? unitQ1(UNf) : unitQ2(CVf); }
-    return Math.random() < 0.45 ? unitQ1(UN) : unitQ2(CONV);
+    if (!UNf.length && !CVf.length) return null;
+    const useU = UNf.length && (!CVf.length || Math.random() < UNf.length / (UNf.length + CVf.length)); return useU ? unitQ1(UNf) : unitQ2(CVf);
   }
   function unitQ1(L) {
     const [g, u] = L[Math.floor(Math.random() * L.length)], o = shuffle([u].concat(pick(UN.filter(x => x[1] !== u), 3).map(x => x[1])));
-    return { q: C.t('Quelle est l’unité de ', 'ما وحدة ') + g + ' ?', os: o.map(x => ({ o: x, ok: x === u })) };
+    return { q: C.t('Quelle est l’unité ' + (/^(un|une|a|e|é|i|o|u|h)/i.test(g) ? 'd’' : 'de ') + g, 'ما وحدة ' + g) + ' ?', os: o.map(x => ({ o: x, ok: x === u })) };
   }
   function unitQ2(L) {
     const c = L[Math.floor(Math.random() * L.length)], v = c[3][Math.floor(Math.random() * c[3].length)], res = c[1](v), good = num(res) + ' ' + c[2];
-    let wrong = [res * 10, res / 10, res * 1000, res / 1000, res * 100].map(x => num(x) + ' ' + c[2]);
-    if (c[2] === 'K') wrong = [num(v - 273) + ' K', num(v + 173) + ' K', num(v * 273) + ' K'];
-    const o = shuffle([good].concat(pick([...new Set(wrong)].filter(x => x !== good), 3)));
-    return { q: C.t('Convertis : ', 'حوّل : ') + String(v).replace('.', ',') + ' ' + c[0] + ' = ?', os: o.map(x => ({ o: x, ok: x === good })) };
-  }
-  function unitQold() {
-    if (Math.random() < 0.45) {
-      const [g, u] = UN[Math.floor(Math.random() * UN.length)], o = shuffle([u].concat(pick(UN.filter(x => x[1] !== u), 3).map(x => x[1])));
-      return { q: C.t('Quelle est l’unité de ', 'ما وحدة ') + g + ' ?', os: o.map(x => ({ o: x, ok: x === u })) };
-    }
-    const c = CONV[Math.floor(Math.random() * CONV.length)], v = c[3][Math.floor(Math.random() * c[3].length)], res = c[1](v), good = num(res) + ' ' + c[2];
     let wrong = [res * 10, res / 10, res * 1000, res / 1000, res * 100].map(x => num(x) + ' ' + c[2]);
     if (c[2] === 'K') wrong = [num(v - 273) + ' K', num(v + 173) + ' K', num(v * 273) + ' K'];
     const o = shuffle([good].concat(pick([...new Set(wrong)].filter(x => x !== good), 3)));
@@ -395,7 +392,7 @@ window.JEUX = (() => {
     setup('unites', sel('nb', C.t('Questions par équipe', 'أسئلة لكل فريق'), [['3', '3'], ['5', '5'], ['8', '8']], '5') + sel('sec', C.t('Temps par question', 'الوقت لكل سؤال'), [['15', '15 s'], ['20', '20 s'], ['30', '30 s']], '20'), async () => {
       const nb = +$('#nb').value, sec = +$('#sec').value;
       const run = () => turns('unites', Array.from({ length: nb * teams().length }, unitQ), nb, sec, run); run();
-    }, true);
+    }, UNIT_CHS);
   }
 
   /* ---------- jeux de réflexion ---------- */
@@ -405,14 +402,17 @@ window.JEUX = (() => {
   function intrusSetup() {
     setup('intrus', nbF() + sel('sec', C.t('Temps par question', 'الوقت لكل سؤال'), [['30', '30 s'], ['45', '45 s'], ['60', '60 s']], '45'), async () => {
       const nb = +$('#nb').value, sec = +$('#sec').value;
-      const mk = () => shuffle(byChs(D().intrus, nb * teams().length)).map(x => ({ q: C.t('Trouvez l’intrus, puis justifiez à voix haute :', 'أوجدوا الدخيل ثم عللوا بصوت مرتفع :'), os: shuffle(x.o.map((o, i) => ({ o, ok: i === x.r }))), e: x.e }));
+      const mk = () => shuffle(byChs(D().intrus)).map(x => ({ ch: x.ch, q: C.t('Trouvez l’intrus, puis justifiez à voix haute :', 'أوجدوا الدخيل ثم عللوا بصوت مرتفع :'), os: shuffle(x.o.map((o, i) => ({ o, ok: i === x.r }))), e: x.e }));
       const run = () => turns('intrus', mk(), nb, sec, run); run();
-    }, true);
+    }, tagged(D().intrus));
   }
   function defisSetup() {
     setup('defis', nbF() + sel('sec', C.t('Temps par question', 'الوقت لكل سؤال'), [['45', '45 s'], ['60', '60 s'], ['90', '90 s']], '60'), async () => {
       const nb = +$('#nb').value, sec = +$('#sec').value;
-      const run = () => turns('defis', shuffle(byChs(D().defis, nb * teams().length)), nb, sec, run); run();
+      // défis du chapitre + exercices de calcul et de raisonnement du quiz des mêmes chapitres
+      const own = byChs(D().defis), P = await pool(CHS), gen = /^(Que représente|Quelle relation|Vrai ou faux|Quelle affirmation|Quel est le but|Quelle conclusion)/;
+      const calc = P.filter(q => /\d/.test(strip(q.q)) && !gen.test(strip(q.q))), reas = P.filter(q => !calc.includes(q) && !gen.test(strip(q.q))), rest = P.filter(q => !calc.includes(q) && !reas.includes(q));
+      const run = () => { const Q = shuffle(own).concat(shuffle(calc), shuffle(reas), shuffle(rest)).slice(0, Math.max(nb * teams().length, own.length)); turns('defis', shuffle(Q), nb, sec, run); }; run();
     }, true);
   }
 
@@ -420,8 +420,8 @@ window.JEUX = (() => {
   function enigmesSetup() {
     setup('enigmes', nbF('2'), async () => {
       const nb = +$('#nb').value;
-      const run = () => enigmesPlay(shuffle(byChs(D().quisuisje, nb * teams().length)), nb, run); run();
-    }, true);
+      const run = () => enigmesPlay(shuffle(byChs(D().quisuisje)), nb, run); run();
+    }, tagged(D().quisuisje));
   }
   function enigmesPlay(Q, perTeam, again) {
     const T = teams(), N = T.length, sc = T.map(() => 0), PTS = [40, 30, 20, 10]; let i = 0; full(true);
@@ -429,7 +429,7 @@ window.JEUX = (() => {
       stop(); if (i >= perTeam * N || i >= Q.length) return podium('enigmes', T, sc, again);
       const e = Q[i], os = shuffle([e.r].concat(e.o).slice(0, 6)); let cur = i % N, c = 0, done = false;
       app().innerHTML = `<section class="jx-stage">${bar()}${board(T, sc, cur)}<div class="jx-turn"></div>
-        <div class="jx-q jx-enig" dir="ltr" lang="fr"><p class="jx-ch">🕵️ ${C.t('Qui suis-je ?', 'من أنا ؟')} · ${Math.floor(i / N) + 1}/${perTeam}</p><ol class="jx-clues"></ol>
+        <div class="jx-q jx-enig" dir="ltr" lang="fr"><p class="jx-ch">🕵️ ${C.t('Qui suis-je ?', 'من أنا ؟')}${e.ch ? ' · ' + C.esc(e.ch) : ''} · ${Math.floor(i / N) + 1}/${perTeam}</p><ol class="jx-clues"></ol>
         <div class="jx-cluebar"><button type="button" class="jx-hint" id="more">💡 ${C.t('Indice suivant', 'المؤشر التالي')}</button><span class="jx-pts"></span></div>
         <div class="jx-os six">${os.map((o, k) => `<button type="button" data-k="${k}"><i>${LET[k] || k + 1}</i><span>${o}</span></button>`).join('')}</div><div class="jx-after"></div></div></section>`;
       wireBar();
@@ -462,11 +462,11 @@ window.JEUX = (() => {
   function motsSetup() {
     setup('mots', nbF() + sel('sec', C.t('Temps par mot', 'الوقت لكل كلمة'), [['30', '30 s'], ['45', '45 s'], ['60', '60 s']], '45'), async () => {
       const nb = +$('#nb').value, sec = +$('#sec').value;
-      const run = () => motsPlay(shuffle(byChs(D().mots, nb * teams().length)), nb, sec, run); run();
-    }, true);
+      const run = () => motsPlay(shuffle(byChs(D().mots)), nb, sec, run); run();
+    }, tagged(D().mots));
   }
   function motsPlay(W, perTeam, SEC, again) {
-    const T = teams(), N = T.length, sc = T.map(() => 0); let i = 0; full(true);
+    const T = teams(), N = T.length, sc = T.map(() => 0); let i = 0; full(true); perTeam = Math.max(1, Math.min(perTeam, Math.floor(W.length / N)));
     function round() {
       stop(); if (i >= perTeam * N) return podium('mots', T, sc, again);
       const cur = i % N, w = W[i % W.length], word = w.m; let letters = word.split(''), mix;
@@ -554,7 +554,7 @@ window.JEUX = (() => {
     $$('button', box).forEach(b => b.addEventListener('pointerdown', e => { e.preventDefault(); hit(+b.dataset.j); }));
     box.__key = key => { const j = KEYS[k].indexOf(key) % 4; if (KEYS[k].includes(key) && j < os.length) hit(j); };
   }
-  const mixQ = P => Math.random() < 0.3 ? unitQ() : P[Math.floor(Math.random() * P.length)];
+  const mixQ = P => (Math.random() < 0.3 && unitQ()) || P[Math.floor(Math.random() * P.length)];
   const twoKeys = boxes => onKey(e => boxes.forEach(b => b && b.__key && b.__key(e.key.toLowerCase())));
 
   // ⚡ Duel éclair : même question, deux claviers
@@ -614,16 +614,19 @@ window.JEUX = (() => {
     const sc = [0, 0], GOAL = 7; let qi = 0; full(true);
     function round() {
       stop(); if (sc[0] >= GOAL || sc[1] >= GOAL) return duoWin('vraifaux', names, sc, again);
-      const q = P[qi++ % P.length], truth = Math.random() < 0.5, others = q.o.filter((_, i) => i !== q.r), prop = truth ? q.o[q.r] : others[Math.floor(Math.random() * others.length)];
+      const q = P[qi++ % P.length], VF = /^(Vrai ou faux \?|صحيح أم خطأ ؟)\s*/;
+      let truth, others, prop, qq;
+      if (VF.test(strip(q.q))) { qq = q.q.replace(VF, ''); prop = ''; truth = /^(Vrai|صحيح)$/.test(strip(q.o[q.r])); }
+      else { truth = Math.random() < 0.5; others = q.o.filter((_, i) => i !== q.r); prop = truth ? q.o[q.r] : others[Math.floor(Math.random() * others.length)]; qq = q.q; }
       let done = false;
-      app().innerHTML = `<section class="jx-stage">${bar()}<div class="jx-mid" dir="ltr" lang="fr"><p class="jx-ch">${C.t('Vrai ou faux ?', 'صحيح أم خطأ ؟')} · ${C.t('premier à', 'الأول إلى')} ${GOAL}</p><div class="jx-qt">${q.q} <span class="jx-prop">${prop}</span></div><div class="jx-after"></div></div>
+      app().innerHTML = `<section class="jx-stage">${bar()}<div class="jx-mid" dir="ltr" lang="fr"><p class="jx-ch">${C.t('Vrai ou faux ?', 'صحيح أم خطأ ؟')} · ${C.t('premier à', 'الأول إلى')} ${GOAL}</p>${q.ch ? `<p class="jx-ch">${C.esc(q.ch)}</p>` : ''}<div class="jx-qt">${qq}${prop ? ` <span class="jx-prop">${prop}</span>` : ''}</div><div class="jx-after"></div></div>
         <div class="jx-duo">${[0, 1].map(k => `<div class="jx-side" style="--c:${PC[k]}">${sideHead(names, k, sc[k])}<div class="jx-vf"><button type="button" class="v" data-k="${k}" data-v="1">✔ ${C.t('VRAI', 'صحيح')}</button><button type="button" class="f" data-k="${k}" data-v="0">✘ ${C.t('FAUX', 'خطأ')}</button></div></div>`).join('')}</div></section>`;
       wireBar(); C.typeset(app());
       const hit = (k, v) => {
         if (done) return; done = true; const ok = (v === 1) === truth, win = ok ? k : 1 - k; sc[win]++;
         $$('.jx-side')[win].classList.add('win'); $$('.jx-ssc')[win].textContent = sc[win]; beep(ok ? 'ok' : 'ko');
         $(`.jx-side:nth-child(${k + 1}) [data-v="${v}"]`).classList.add(ok ? 'ok' : 'ko');
-        $('.jx-after').innerHTML = `<p class="jx-e">${truth ? '✔ ' + C.t('C’était VRAI', 'كان صحيحا') : '✘ ' + C.t('C’était FAUX — bonne réponse : ', 'كان خطأ — الجواب الصحيح : ') + q.o[q.r]}</p>`; C.typeset($('.jx-after'));
+        $('.jx-after').innerHTML = `<p class="jx-e">${truth ? '✔ ' + C.t('C’était VRAI', 'كان صحيحا') : '✘ ' + C.t('C’était FAUX', 'كان خطأ') + (prop ? C.t(' — bonne réponse : ', ' — الجواب الصحيح : ') + q.o[q.r] : (q.e ? ' — ' + q.e : ''))}</p>`; C.typeset($('.jx-after'));
         later(round, 2200);
       };
       $$('.jx-vf button').forEach(b => b.addEventListener('pointerdown', e => { e.preventDefault(); hit(+b.dataset.k, +b.dataset.v); }));
@@ -635,7 +638,7 @@ window.JEUX = (() => {
   return {
     init(ctx) { C = ctx; },
     stop() { stop(); document.body.classList.remove('jx-full'); },
-    api: { pool: chs => pool(chs), bar: () => bar(), wireBar: () => wireBar(), full, beep, confetti, onKey, later, every, hook: f => hooks.push(f), duoWin: (g, n, sc, a) => duoWin(g, n, sc, a), duoNames: () => duoNames(), put, get, PC: ['#2563eb', '#dc2626'], C: () => C, teams: () => teams(), COLORS, podium: (g, T, sc, a) => podium(g, T, sc, a), stopTimers: () => stop() },
+    api: { pool: chs => pool(chs), ctx: () => C, bar: () => bar(), wireBar: () => wireBar(), full, beep, confetti, onKey, later, every, hook: f => hooks.push(f), duoWin: (g, n, sc, a) => duoWin(g, n, sc, a), duoNames: () => duoNames(), put, get, PC: ['#2563eb', '#dc2626'], C: () => C, teams: () => teams(), COLORS, podium: (g, T, sc, a) => podium(g, T, sc, a), stopTimers: () => stop() },
     page(sub) { stop(); if (window.DEFIS && DEFIS.list.some(g => g[0] === sub)) return DEFIS.page(sub); if (window.JEUX3D && JEUX3D.list.some(g => g[0] === sub)) return JEUX3D.page(sub); ({ match: matchSetup, duel: matchSetup, chrono: chronoSetup, memory: memorySetup, unites: unitesSetup, enigmes: enigmesSetup, defis: defisSetup, intrus: intrusSetup, mots: motsSetup }[sub] || (DUO.some(g => g[0] === sub) ? () => duoSetup(sub) : hub))(); },
   };
 })();
