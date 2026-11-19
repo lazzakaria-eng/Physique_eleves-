@@ -415,6 +415,7 @@
       $$('.seeexp').forEach(b => { b.classList.remove('open'); b.lastChild.textContent = t('Voir l’expérience', 'شاهد التجربة') + ' : ' + simName(b.dataset.sim); });
     }
     $$('.seeexp').forEach(b => b.addEventListener('click', () => {
+      if (!(window.VERROU ? VERROU.ok() : true)) { VERROU.ask(() => b.click(), null, t('Les expériences sont réservées à la classe : entrez le code donné par le professeur.', 'التجارب خاصة بالقسم : أدخل الرمز الذي يعطيه الأستاذ.')); return; }
       const box = b.nextElementSibling, open = !box.hidden;
       if (stopSim) { stopSim(); stopSim = null; }
       closeSteps();
@@ -423,6 +424,7 @@
       mountSim(box, b.dataset.sim);
     }));
     function show(id) {
+      if (id === 'experiences' && !(window.VERROU ? VERROU.ok() : true)) { VERROU.ask(() => show(id), () => { if (!$$('.panel').some(p => !p.hidden)) show('resume'); }, t('Les expériences sont réservées à la classe : entrez le code donné par le professeur.', 'التجارب خاصة بالقسم : أدخل الرمز الذي يعطيه الأستاذ.')); return; }
       if (stopSim) { stopSim(); stopSim = null; }
       closeSteps();
       $$('.tabs3d button').forEach(b => b.setAttribute('aria-selected', b.dataset.t === id));
@@ -504,8 +506,12 @@
     }));
     $$('.xpnav a').forEach(a => a.addEventListener('click', ev => { ev.preventDefault(); const s = document.getElementById('xp-' + a.dataset.xp); if (s) s.scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
     $$('.fopen').forEach(b => b.addEventListener('click', () => lightbox(FICHES[+b.dataset.f])));
+    // PDF corrigé et version à imprimer (qui contient les corrections) : code du professeur
+    $$('.pdfb.cor, .pdfb.alt2').forEach(a => a.addEventListener('click', ev => { if ((window.VERROU ? VERROU.ok() : true)) return; ev.preventDefault(); VERROU.ask(() => a.click(), null, t('Les corrections sont réservées : entrez le code donné par le professeur.', 'التصحيح محفوظ : أدخل الرمز الذي يعطيه الأستاذ.')); }));
     $$('.showcor').forEach(b => b.addEventListener('click', () => {
-      const c = b.nextElementSibling, open = c.hidden; c.hidden = !open;
+      const c = b.nextElementSibling, open = c.hidden;
+      if (open && !(window.VERROU ? VERROU.ok() : true)) { VERROU.ask(() => b.click(), null, t('Les corrections sont réservées : entrez le code donné par le professeur.', 'التصحيح محفوظ : أدخل الرمز الذي يعطيه الأستاذ.')); return; }
+      c.hidden = !open;
       b.setAttribute('aria-expanded', open); b.lastChild.textContent = open ? t('Masquer la correction', 'أخف التصحيح') : t('Afficher la correction', 'أظهر التصحيح');
       if (open) typeset(c);
     }));
@@ -629,7 +635,8 @@
     } else if ((m = h.match(/^#\/recherche\/?(.*)$/))) {
       search(m[1] || ''); document.title = t('Recherche', 'بحث') + ' — ' + site;
     } else if ((m = h.match(/^#\/jeux\/?(\w*)/)) && window.JEUX) {
-      JEUX.page(m[1]); document.title = t('Jeux & Défis', 'الألعاب والتحديات') + ' — ' + site;
+      if ((window.VERROU ? VERROU.ok() : true)) JEUX.page(m[1]); else VERROU.page($('#app'), () => route(), t('L’Espace Jeux est réservé à la classe : entrez le code donné par le professeur.', 'فضاء الألعاب خاص بالقسم : أدخل الرمز الذي يعطيه الأستاذ.'));
+      document.title = t('Jeux & Défis', 'الألعاب والتحديات') + ' — ' + site;
     } else { home(); document.title = site + ' | Prof. Zakaria Lazrak'; }
   }
   if (window.JEUX) JEUX.init({ t, esc, IC, typeset, loadContenu, chapter, ALL, store });
@@ -640,6 +647,11 @@
     theme = dark ? 'light' : 'dark'; store.set('theme', theme); route();
   });
   window.addEventListener('hashchange', route);
+  const lockb = $('#lockbtn');
+  if (lockb && window.VERROU) {
+    const paintLock = () => { lockb.hidden = !VERROU.ok(); lockb.title = t('Verrouiller (jeux, expériences, corrections)', 'إقفال (الألعاب، التجارب، التصحيح)'); };
+    lockb.addEventListener('click', () => { VERROU.lock(); route(); }); document.addEventListener('verrou', paintLock); paintLock();
+  }
   // effet 3D : les cartes s'inclinent sous la souris
   if (window.matchMedia && matchMedia('(pointer: fine)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
     let cur = null;

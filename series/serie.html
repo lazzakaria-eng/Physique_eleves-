@@ -70,6 +70,7 @@
   <main id="list"></main>
   <footer>© Zakaria Lazrak — Professeur de Physique-Chimie · instagram.com/zakarialazrak</footer>
 </div>
+<script src="../js/verrou.js"></script>
 <script src="../contenu/programme.js"></script>
 <script src="../contenu/outils.js"></script>
 <script src="../js/data.js"></script>
@@ -105,13 +106,19 @@
         '<div class="q">' + e.q + '</div>' + (e.fig ? '<figure class="fig">' + e.fig + '</figure>' : '') + '<details><summary>Afficher la correction</summary><div class="s">' + e.s + '</div></details></section>';
     }).join('') : '<p>Aucune série pour ce chapitre pour l’instant.</p>';
     var open = false;
+    // corrections réservées : code du professeur (sauf génération des PDF par les outils : ?pdf=1)
+    var tool = /[?&]pdf=1/.test(location.search), V = function () { return tool || !window.VERROU || VERROU.ok(); };
+    var MSG = 'Les corrections sont réservées : entrez le code donné par le professeur.';
+    document.querySelectorAll('details summary').forEach(function (s) { s.addEventListener('click', function (ev) { if (V() || s.parentNode.open) return; ev.preventDefault(); VERROU.ask(function () { s.parentNode.open = true; }, null, MSG); }); });
+    document.getElementById('d2').addEventListener('click', function (ev) { if (V()) return; ev.preventDefault(); var a = this; VERROU.ask(function () { a.click(); }, null, MSG); });
     document.getElementById('all').addEventListener('click', function () {
+      var b = this; if (!open && !V()) { VERROU.ask(function () { b.click(); }, null, MSG); return; }
       open = !open;
       document.querySelectorAll('details').forEach(function (d) { d.open = open; });
       this.textContent = open ? 'Masquer les corrections' : 'Afficher toutes les corrections';
     });
     document.getElementById('p1').addEventListener('click', function () { document.body.classList.remove('avec'); window.print(); });
-    if (/[?&]cor=1/.test(location.search)) { open = true; document.body.classList.add('avec'); document.querySelectorAll('details').forEach(function (d) { d.open = true; }); }
+    if (/[?&]cor=1/.test(location.search) && V()) { open = true; document.body.classList.add('avec'); document.querySelectorAll('details').forEach(function (d) { d.open = true; }); }
     if (/[?&]pdf=1/.test(location.search)) document.body.classList.add('pdf');
   })();
 </script>
