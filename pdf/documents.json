@@ -36,6 +36,20 @@
       "fichier": "serie-suivi-transformation-1bac-sm-corrige.pdf",
       "type": "Correction",
       "corrige": true
+    },
+    {
+      "titre": "Série : Le mouvement (Tronc commun, 2026/2027)",
+      "niveau": "tc",
+      "chapitre": "tc-mouvement",
+      "fichier": "serie-mouvement-tc-2026.pdf",
+      "type": "Série"
+    },
+    {
+      "titre": "Série : Le modèle de l’atome (Tronc commun, 2026/2027)",
+      "niveau": "tc",
+      "chapitre": "tcc-atome",
+      "fichier": "serie-modele-atome-tc-2026.pdf",
+      "type": "Série"
     }
   ]
 }
