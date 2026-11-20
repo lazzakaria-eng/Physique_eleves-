@@ -1079,3 +1079,6 @@ body.jx-full::before, body.jx-full::after { display: none; }
 .jx-chp-c { margin-inline-start: auto; font-style: normal; font-size: .8em; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, currentColor 12%, transparent); }
 .jx-ctx { display: block; font-size: .62em; font-weight: 500; opacity: .8; margin-bottom: .4em; padding: .3em .6em; border-inline-start: 4px solid #94a3b8; background: color-mix(in srgb, #94a3b8 12%, transparent); border-radius: 6px; }
 .jx-sq .jx-ctx, .jx-mid .jx-ctx { font-size: .75em; }
+/* séries du professeur : en tête de l’onglet Séries, bien visibles */
+.prof-docs { border: 2px solid var(--brand, #0f766e); box-shadow: 0 10px 30px color-mix(in srgb, var(--brand, #0f766e) 18%, transparent); }
+.prof-docs .doc { font-size: 1.05rem; }
