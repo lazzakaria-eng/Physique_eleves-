@@ -134,7 +134,7 @@
     });
   const docList = docs => docs.length ? `<div class="docs">${docs.map(d => `<a class="doc" href="${esc(d.href)}" target="_blank" rel="noopener"${d.corrige || /orrig/i.test(d.type || '') ? ' data-cor="1"' : ''}>${IC.file}<span><b>${esc(d.titre)}</b><small>${esc([d.type, BY[d.chapitre] ? BY[d.chapitre].fr : ''].filter(Boolean).join(' · '))}</small></span>${IC.arrow}</a>`).join('')}</div>` : '';
   function fillDocs(sel, pick, empty) {
-    docsReady.then(() => { const box = $(sel); if (!box) return; const d = DOCS.filter(pick); box.innerHTML = docList(d) || empty || ''; if (!d.length && !empty) box.hidden = true;
+    docsReady.then(() => { const box = $(sel); if (!box) return; const d = DOCS.map((x, i) => [x, x.corrige || /orrig/i.test(x.type || '') ? i - 1.5 : i]).filter(x => pick(x[0])).sort((a, b) => b[1] - a[1]).map(x => x[0]); /* les plus récents d’abord, chaque correction juste après sa série */ box.innerHTML = docList(d) || empty || ''; if (!d.length && !empty) box.hidden = true;
       // corrections du professeur : code demandé
       $$('a[data-cor]', box).forEach(x => x.addEventListener('click', ev => { if (!window.VERROU || VERROU.ok()) return; ev.preventDefault(); VERROU.ask(() => window.open(x.href, '_blank', 'noopener'), null, t('Les corrections sont réservées : entrez le code donné par le professeur.', 'التصحيح محفوظ : أدخل الرمز الذي يعطيه الأستاذ.')); }));
     });
@@ -374,6 +374,9 @@
 
     const ser = teacherSeries(l);
     const pSeries = `
+      <div class="card prof-docs"><h2 class="ptitle">📌 ${t('Séries et devoirs du professeur', 'سلاسل وفروض الأستاذ')}</h2>
+        <div id="chdocs"></div>${ser.length ? `<div class="series">${ser.map(x => `<a class="serie" href="${esc(x[1])}" target="_blank" rel="noopener">${IC.file}<span>${esc(x[0])}</span>${IC.arrow}</a>`).join('')}</div>` : ''}
+        <p class="hint" id="nodocs" hidden>${t('Le professeur ajoutera ici ses séries et devoirs (PDF).', 'سيضيف الأستاذ هنا سلاسله وفروضه (PDF).')}</p></div>
       <div class="card"><h2 class="ptitle">${IC.file} ${t('Séries d’exercices', 'سلاسل التمارين')}</h2>
         ${ch.exos.length ? `<div class="pdfs"><a class="pdfb" href="series/pdf/${l.id}.pdf" download>${IC.file}<span><b>PDF ${t('énoncés', 'التمارين')}</b><small>${ch.exos.length} ${t('exercices, à imprimer', 'تمارين للطبع')}</small></span></a>
           <a class="pdfb cor" href="series/pdf/${l.id}-corrige.pdf" download>${IC.check}<span><b>PDF ${t('avec corrections', 'مع التصحيح')}</b><small>${t('énoncés + corrigés', 'التمارين + التصحيح')}</small></span></a>
@@ -381,10 +384,7 @@
           <div class="legend"><span class="tag d1">★ ${levelLab(l, 1)}</span><span class="tag d2">★★ ${levelLab(l, 2)}</span><span class="tag d3">★★★ ${levelLab(l, 3)}</span></div>` : todo(t('Série d’exercices', 'سلسلة تمارين'))}</div>
       ${byD.map((arr, d) => arr.length ? `<section class="exlevel e${d + 1}"><h2>${'★'.repeat(d + 1)} ${levelLab(l, d + 1)} <small>${arr.length}</small></h2>
         ${arr.map(e => `<article class="exo2" dir="ltr" lang="fr"><h3>Exercice ${++ex} — ${esc(e.t || '')}</h3><div class="q">${e.q}</div>${e.fig ? `<figure class="fig">${e.fig}</figure>` : ''}
-          <button class="showcor" type="button" aria-expanded="false">${IC.check}<span>${t('Afficher la correction', 'أظهر التصحيح')}</span></button><div class="cor" hidden>${e.s}</div></article>`).join('')}</section>` : '').join('')}
-      <div class="card"><h2 class="ptitle">${t('Séries et devoirs du professeur', 'سلاسل وفروض الأستاذ')}</h2>
-        <div id="chdocs"></div>${ser.length ? `<div class="series">${ser.map(x => `<a class="serie" href="${esc(x[1])}" target="_blank" rel="noopener">${IC.file}<span>${esc(x[0])}</span>${IC.arrow}</a>`).join('')}</div>` : ''}
-        <p class="hint" id="nodocs" hidden>${t('Le professeur ajoutera ici ses séries et devoirs (PDF).', 'سيضيف الأستاذ هنا سلاسله وفروضه (PDF).')}</p></div>`;
+          <button class="showcor" type="button" aria-expanded="false">${IC.check}<span>${t('Afficher la correction', 'أظهر التصحيح')}</span></button><div class="cor" hidden>${e.s}</div></article>`).join('')}</section>` : '').join('')}`;
 
     const pQuiz = ch.quiz.length ? `<div class="card" dir="ltr" lang="fr"><h2 class="ptitle">${IC.check} Quiz — ${ch.quiz.length} questions</h2>
         <p class="hint">${t('Choisis une réponse : la correction s’affiche tout de suite.', 'اختر جوابا : يظهر التصحيح مباشرة.')}</p>
@@ -411,7 +411,7 @@
       </article>`;
 
     fillDocs('#chdocs', d => d.chapitre === l.id, '');
-    docsReady.then(() => { const nd = $('#nodocs'); if (nd) nd.hidden = !!(DOCS.some(d => d.chapitre === l.id) || ser.length); });
+    docsReady.then(() => { const has = DOCS.some(d => d.chapitre === l.id) || ser.length, pd = $('.prof-docs'); if (pd) pd.hidden = !has; });
 
     function closeSteps() {
       $$('.stepsim').forEach(c => { c.hidden = true; c.innerHTML = ''; });
