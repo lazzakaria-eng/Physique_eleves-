@@ -45,11 +45,42 @@
       "type": "Série"
     },
     {
+      "titre": "Correction détaillée : Le mouvement (Tronc commun, 2026/2027)",
+      "niveau": "tc",
+      "chapitre": "tc-mouvement",
+      "fichier": "serie-mouvement-tc-2026-corrige.pdf",
+      "type": "Correction",
+      "corrige": true
+    },
+    {
       "titre": "Série : Le modèle de l’atome (Tronc commun, 2026/2027)",
       "niveau": "tc",
       "chapitre": "tcc-atome",
       "fichier": "serie-modele-atome-tc-2026.pdf",
       "type": "Série"
+    },
+    {
+      "titre": "Correction détaillée : Le modèle de l’atome (Tronc commun, 2026/2027)",
+      "niveau": "tc",
+      "chapitre": "tcc-atome",
+      "fichier": "serie-modele-atome-tc-2026-corrige.pdf",
+      "type": "Correction",
+      "corrige": true
+    },
+    {
+      "titre": "Série : Les actions mécaniques (Tronc commun, 2026/2027)",
+      "niveau": "tc",
+      "chapitre": "tc-actions",
+      "fichier": "serie-actions-mecaniques-tc-2026.pdf",
+      "type": "Série"
+    },
+    {
+      "titre": "Correction détaillée : Les actions mécaniques (Tronc commun, 2026/2027)",
+      "niveau": "tc",
+      "chapitre": "tc-actions",
+      "fichier": "serie-actions-mecaniques-tc-2026-corrige.pdf",
+      "type": "Correction",
+      "corrige": true
     }
   ]
 }
