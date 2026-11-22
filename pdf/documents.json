@@ -81,6 +81,21 @@
       "fichier": "serie-actions-mecaniques-tc-2026-corrige.pdf",
       "type": "Correction",
       "corrige": true
+    },
+    {
+      "titre": "Série N°2 : Énergie potentielle de pesanteur et énergie mécanique (1re Bac SM)",
+      "niveau": "1bac",
+      "chapitre": "1b-epp",
+      "fichier": "serie2-energie-potentielle-mecanique-1bac-sm.pdf",
+      "type": "Série"
+    },
+    {
+      "titre": "Correction détaillée : Série N°2 – Énergie potentielle et énergie mécanique (1re Bac SM)",
+      "niveau": "1bac",
+      "chapitre": "1b-epp",
+      "fichier": "serie2-energie-potentielle-mecanique-1bac-sm-corrige.pdf",
+      "type": "Correction",
+      "corrige": true
     }
   ]
 }
