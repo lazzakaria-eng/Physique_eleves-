@@ -34,7 +34,7 @@ CONTENU['tc-inertie'] = {
     ],
   },
   experiences: {
-    sims: ['autoporteur', 'inertie', 'newton'],
+    sims: ['autoporteur', 'deuxauto', 'barycentre', 'inertie', 'newton'],
     protocole: { titre: 'Enregistrer le mouvement d’un autoporteur pseudo-isolé', materiel: 'table à coussin d’air réglée horizontale (niveau à bulle), autoporteur avec éclateur central, soufflerie, générateur d’impulsions (τ = 40 ms), feuille d’enregistrement, règle.',
       etapes: ['Régler l’horizontalité de la table avec le niveau à bulle (vis de réglage des pieds).', 'Mettre la soufflerie en marche : l’autoporteur flotte sur un coussin d’air.', 'Lancer l’autoporteur sans le faire tourner, puis déclencher l’enregistrement : l’éclateur marque la position G toutes les τ = 40 ms.', TX`Mesurer les distances \(G_0G_1,\ G_1G_2,\ \dots\) et calculer les vitesses \(v_i = \dfrac{G_{i-1}G_{i+1}}{2\tau}\).`, 'Dans la simulation « Autoporteur pseudo-isolé » : choisir « soufflerie en marche, table horizontale » et observer les points.'] },
     observations: TX`<ul><li>Les points \(G_0, G_1, G_2, \dots\) sont <b>alignés</b> : la trajectoire de G est une droite.</li><li>Les distances \(G_iG_{i+1}\) sont <b>égales</b> : la vitesse de G est constante.</li><li>L’autoporteur est soumis à son poids \(\vec P\) et à la réaction \(\vec R\) du coussin d’air (frottements négligeables) : \(\vec P + \vec R = \vec 0\).</li></ul>`,

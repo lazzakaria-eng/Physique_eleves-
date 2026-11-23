@@ -237,3 +237,54 @@ S('autoporteur', [['v0', ['vitesse de lancement v_0 (m/s)', 'سرعة الإطل
   r.push(v.w > 0 ? T_(ok ? 'Le point du bord a une trajectoire courbe : seul G suit le principe d’inertie.' : 'Le point du bord tourne autour de G.', ok ? 'نقطة الحافة مسارها منحن : G وحده يخضع لمبدأ القصور.' : 'نقطة الحافة تدور حول G.') : T_('Sans rotation, tous les points ont le même mouvement (translation).', 'بدون دوران، لكل النقط نفس الحركة (إزاحة).'));
   return r;
 });
+
+/* ---------- Principe d’inertie : barycentre de deux masses (tige sur une pointe) ---------- */
+S('barycentre', [['m1', ['masse m_1 (g)', 'الكتلة m_1 (g)'], 50, 500, 10, 300], ['m2', ['masse m_2 (g)', 'الكتلة m_2 (g)'], 50, 500, 10, 100],
+  ['xp', ['position de la pointe (cm depuis G_1)', 'موضع الحامل (cm انطلاقا من G_1)'], 0, 40, 0.5, 20]], 0, (c, v) => {
+  const T_ = (fr, ar) => SIM_LANG === 'ar' ? ar : fr;
+  const L = 40, K = 11, x0 = 100, y0 = 190, xG = L * v.m2 / (v.m1 + v.m2), ok = Math.abs(v.xp - xG) < 0.26;
+  const tilt = ok ? 0 : (v.xp > xG ? 1 : -1) * rad(9); // le côté le plus lourd par rapport à la pointe descend
+  const P = [x0 + v.xp * K, y0], pt = x => [P[0] + (x - v.xp) * K * Math.cos(tilt), P[1] - (x - v.xp) * K * Math.sin(tilt)];
+  c.text(T_('Tige légère portant deux masses, posée sur une pointe', 'ساق خفيفة تحمل كتلتين، موضوعة على حامل مدبب'), 20, 30, c.mute, 'left', 12);
+  c.poly([[P[0], P[1] + 4], [P[0] - 16, P[1] + 70], [P[0] + 16, P[1] + 70]], c.grid, c.ink); c.line(40, y0 + 70, 600, y0 + 70, c.ink, 3);
+  const A = pt(0), B = pt(L), g = pt(xG);
+  c.line(A[0], A[1], B[0], B[1], c.ink, 5);
+  const r1 = 10 + v.m1 / 30, r2 = 10 + v.m2 / 30;
+  c.circ(A[0], A[1] - r1 + 2, r1, c.b, c.ink); c.circ(B[0], B[1] - r2 + 2, r2, c.d, c.ink);
+  c.text('G_1 (m_1)', A[0], A[1] + 26, c.b, 'center', 12, true); c.text('G_2 (m_2)', B[0], B[1] + 26, c.d, 'center', 12, true);
+  c.circ(g[0], g[1], 6, c.a, c.ink); c.text('G', g[0], g[1] - 12, c.a, 'center', 14, true);
+  c.arrow(g[0], g[1], g[0], g[1] + 70, c.a, 'P');
+  c.text(ok ? T_('ÉQUILIBRE : la pointe est sous G', 'توازن : الحامل تحت G') : T_('La tige bascule du côté de G', 'الساق تميل نحو جهة G'), 320, 330, ok ? c.c : c.d, 'center', 15, true);
+  const g1 = xG, g2 = L - xG;
+  return [T_('Relation barycentrique : ', 'العلاقة المرجحية : ') + 'm_1·GG_1 = m_2·GG_2',
+    'G_1G = ' + fmt(g1) + ' cm   ;   GG_2 = ' + fmt(g2) + ' cm   (G_1G_2 = ' + L + ' cm)',
+    'm_1·GG_1 = ' + fmt(v.m1 * g1 / 1000, 3) + ' kg·cm   ;   m_2·GG_2 = ' + fmt(v.m2 * g2 / 1000, 3) + ' kg·cm',
+    T_('G est plus proche de la masse la plus grande ; la tige ne tient en équilibre que si la pointe est sous G.', 'G أقرب إلى الكتلة الأكبر ؛ لا تتوازن الساق إلا إذا كان الحامل تحت G.')];
+});
+
+/* ---------- Principe d’inertie : deux autoporteurs liés (système pseudo-isolé) ---------- */
+S('deuxauto', [['m1', ['masse m_1 (g)', 'الكتلة m_1 (g)'], 100, 600, 10, 400], ['m2', ['masse m_2 (g)', 'الكتلة m_2 (g)'], 100, 600, 10, 200],
+  ['v0', ['vitesse de G (m/s)', 'سرعة G (m/s)'], 0.1, 0.5, 0.02, 0.25], ['w', ['rotation (tours/s)', 'الدوران (دورة/s)'], 0, 1.5, 0.1, 0.6]], 1, (c, v, t) => {
+  const T_ = (fr, ar) => SIM_LANG === 'ar' ? ar : fr;
+  const K = 900, tau = 0.04, Lpx = 110, r1 = Lpx * v.m2 / (v.m1 + v.m2), r2 = Lpx - r1, X0 = 90, Y0 = 190;
+  const G = s => [X0 + v.v0 * s * K, Y0], ang = s => 2 * Math.PI * v.w * s + 0.6;
+  let tEnd = 0; while (tEnd < 8 && G(tEnd + tau)[0] < 560) tEnd += tau;
+  const tt = Math.min(t % (tEnd + 1.5), tEnd), n = Math.floor(tt / tau + 1e-9);
+  c.rect(20, 20, 600, 300, c.bg, c.ink, 2);
+  c.text(T_('Deux autoporteurs reliés par une tige, sur une table à coussin d’air horizontale (vue de dessus)', 'حاملان ذاتيان مربوطان بساق على منضدة أفقية (منظر علوي)'), 30, 38, c.mute, 'left', 12);
+  const A = s => { const g = G(s), a = ang(s); return [g[0] - r1 * Math.cos(a), g[1] - r1 * Math.sin(a)]; };
+  const Bp = s => { const g = G(s), a = ang(s); return [g[0] + r2 * Math.cos(a), g[1] + r2 * Math.sin(a)]; };
+  for (let k = 0; k <= n; k++) { const s = k * tau; const a = A(s), b = Bp(s), g = G(s); c.circ(a[0], a[1], 2.4, c.b); c.circ(b[0], b[1], 2.4, c.d); c.circ(g[0], g[1], 2.6, c.a); }
+  const a = A(tt), b = Bp(tt), g = G(tt), R1 = 10 + v.m1 / 40, R2 = 10 + v.m2 / 40;
+  c.line(a[0], a[1], b[0], b[1], c.ink, 4);
+  c.ctx.globalAlpha = .3; c.circ(a[0], a[1], R1, c.b); c.circ(b[0], b[1], R2, c.d); c.ctx.globalAlpha = 1; c.circ(a[0], a[1], R1, null, c.b, 2.5); c.circ(b[0], b[1], R2, null, c.d, 2.5);
+  c.circ(g[0], g[1], 5, c.a, c.ink);
+  c.text('● ' + T_('autoporteur 1 (m_1)', 'الحامل 1 (m_1)'), 30, 308, c.b, 'left', 12, true);
+  c.text('● ' + T_('autoporteur 2 (m_2)', 'الحامل 2 (m_2)'), 210, 308, c.d, 'left', 12, true);
+  c.text('● ' + T_('barycentre G du système', 'مرجح المجموعة G'), 390, 308, c.a, 'left', 12, true);
+  const step = v.v0 * tau * 1000;
+  return [T_('Le système {1 + 2 + tige} est pseudo-isolé : poids et réactions de la table se compensent.', 'المجموعة {1 + 2 + الساق} شبه معزولة : الأوزان وتأثيرات المنضدة تتعاوض.'),
+    T_('G (barycentre, plus proche de la masse la plus grande) : points alignés et équidistants de ', 'G (المرجح، أقرب إلى الكتلة الأكبر) : نقط مستقيمية ومتساوية المسافات ') + fmt(step) + ' mm (τ = 40 ms)',
+    'G_1G / GG_2 = m_2 / m_1 = ' + fmt(v.m2 / v.m1, 3),
+    T_('Les deux autoporteurs tournent autour de G : seul G a un mouvement rectiligne uniforme (principe d’inertie).', 'الحاملان يدوران حول G : وحده G في حركة مستقيمية منتظمة (مبدأ القصور).')];
+});
