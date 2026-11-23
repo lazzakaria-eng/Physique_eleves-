@@ -96,6 +96,21 @@
       "fichier": "serie2-energie-potentielle-mecanique-1bac-sm-corrige.pdf",
       "type": "Correction",
       "corrige": true
+    },
+    {
+      "titre": "Série N°1 : Travail et énergie cinétique (1re Bac SM)",
+      "niveau": "1bac",
+      "chapitre": "1b-ec",
+      "fichier": "serie1-travail-energie-cinetique-1bac-sm.pdf",
+      "type": "Série"
+    },
+    {
+      "titre": "Correction détaillée : Série N°1 – Travail et énergie cinétique (1re Bac SM)",
+      "niveau": "1bac",
+      "chapitre": "1b-ec",
+      "fichier": "serie1-travail-energie-cinetique-1bac-sm-corrige.pdf",
+      "type": "Correction",
+      "corrige": true
     }
   ]
 }

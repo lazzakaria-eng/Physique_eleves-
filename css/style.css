@@ -1082,3 +1082,13 @@ body.jx-full::before, body.jx-full::after { display: none; }
 /* séries du professeur : en tête de l’onglet Séries, bien visibles */
 .prof-docs { border: 2px solid var(--brand, #0f766e); box-shadow: 0 10px 30px color-mix(in srgb, var(--brand, #0f766e) 18%, transparent); }
 .prof-docs .doc { font-size: 1.05rem; }
+
+/* ---------- mode sombre : en-tête des chapitres, barre de recherche ---------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .lhead { background: radial-gradient(400px 220px at 100% 0%, rgba(255, 255, 255, .08), transparent 60%), linear-gradient(135deg, color-mix(in srgb, var(--k) 28%, #050b1d), color-mix(in srgb, var(--k) 45%, #0a1430) 70%, color-mix(in srgb, var(--k) 38%, #111c3c)); box-shadow: 0 8px 0 color-mix(in srgb, var(--k) 25%, #000), 0 22px 40px rgba(0, 0, 0, .45); }
+  :root:not([data-theme="light"]) .search { background: #141d35; color: #e6ecf8; box-shadow: 0 14px 30px rgba(0, 0, 0, .45), inset 0 0 0 1px rgba(255, 255, 255, .08); }
+  :root:not([data-theme="light"]) .search input { color: #e6ecf8; } :root:not([data-theme="light"]) .search input::placeholder { color: #8b97b3; }
+}
+:root[data-theme="dark"] .lhead { background: radial-gradient(400px 220px at 100% 0%, rgba(255, 255, 255, .08), transparent 60%), linear-gradient(135deg, color-mix(in srgb, var(--k) 28%, #050b1d), color-mix(in srgb, var(--k) 45%, #0a1430) 70%, color-mix(in srgb, var(--k) 38%, #111c3c)); box-shadow: 0 8px 0 color-mix(in srgb, var(--k) 25%, #000), 0 22px 40px rgba(0, 0, 0, .45); }
+:root[data-theme="dark"] .search { background: #141d35; color: #e6ecf8; box-shadow: 0 14px 30px rgba(0, 0, 0, .45), inset 0 0 0 1px rgba(255, 255, 255, .08); }
+:root[data-theme="dark"] .search input { color: #e6ecf8; } :root[data-theme="dark"] .search input::placeholder { color: #8b97b3; }
