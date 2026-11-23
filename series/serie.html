@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Série d'exercices | Zakaria Lazrak</title>
 <link rel="icon" href="../assets/icon.jpg">
+<script>try { var th = localStorage.getItem('theme'); if (th === 'dark' || th === 'light') document.documentElement.dataset.theme = th; } catch (e) { /* stockage indisponible */ }</script>
 <link rel="stylesheet" href="../assets/katex/katex.min.css">
 <style>
-  :root { --ink: #0d1424; --mute: #5b6577; --line: #dfe6f2; --bg: #f3f6fc; --card: #fff; --brand: #1f6fe0; --e1: #12946a; --e2: #d98200; --e3: #d93a4a; }
+  :root { --th: #eef3fb; --sol: #eaf7f1; --ink: #0d1424; --mute: #5b6577; --line: #dfe6f2; --bg: #f3f6fc; --card: #fff; --brand: #1f6fe0; --e1: #12946a; --e2: #d98200; --e3: #d93a4a; }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink); font-family: system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif; line-height: 1.65; }
   .page { max-width: 860px; margin: 0 auto; padding: 16px 16px 40px; }
@@ -35,8 +36,13 @@
   .s { margin-top: 10px; padding: 12px 14px; border-radius: 12px; background: #eaf7f1; overflow-x: auto; }
   footer { margin-top: 26px; text-align: center; font-size: .82rem; color: var(--mute); }
   .katex { font-size: 1.05em; }
+  .bar .alt { background: var(--card); } .tab th { background: var(--th); } .s { background: var(--sol); }
+  /* mode sombre (réglage de l’appareil ou bouton ☾ du site) ; l’impression reste claire */
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ink: #e6ecf8; --mute: #9aa6bf; --line: #26324f; --bg: #0a0f1e; --card: #121a30; --brand: #4d8ff0; --th: #1a2440; --sol: #0f2a22; } }
+  :root[data-theme="dark"] { --ink: #e6ecf8; --mute: #9aa6bf; --line: #26324f; --bg: #0a0f1e; --card: #121a30; --brand: #4d8ff0; --th: #1a2440; --sol: #0f2a22; }
+  :root[data-theme="dark"] .fig svg, :root:not([data-theme="light"]) .fig svg { background: #fff; border-radius: 10px; }
   @media print {
-    body { background: #fff; }
+    body { background: #fff; } :root:not(.x1):not(.x2):not(.x3) { --ink: #0d1424; --mute: #5b6577; --line: #dfe6f2; --card: #fff; --brand: #1f6fe0; --th: #eef3fb; --sol: #eaf7f1; }
     .bar, summary { display: none; }
     .page { padding: 0; max-width: none; }
     header.head { box-shadow: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
