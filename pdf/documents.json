@@ -111,6 +111,21 @@
       "fichier": "serie1-travail-energie-cinetique-1bac-sm-corrige.pdf",
       "type": "Correction",
       "corrige": true
+    },
+    {
+      "titre": "Série : Principe d’inertie – Centre d’inertie et relation barycentrique (Tronc commun, 2026/2027)",
+      "niveau": "tc",
+      "chapitre": "tc-inertie",
+      "fichier": "serie-principe-inertie-tc-2026.pdf",
+      "type": "Série"
+    },
+    {
+      "titre": "Correction détaillée : Principe d’inertie (Tronc commun, 2026/2027)",
+      "niveau": "tc",
+      "chapitre": "tc-inertie",
+      "fichier": "serie-principe-inertie-tc-2026-corrige.pdf",
+      "type": "Correction",
+      "corrige": true
     }
   ]
 }
