@@ -38,6 +38,21 @@ window.JEUX = (() => {
     if (!sonOn()) return;
     try {
       AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+      if (kind === 'goal' || kind === 'crowd') { // clameur de la foule (bruit filtré) + sifflet
+        const len = kind === 'goal' ? 2.4 : 1.2, buf = AC.createBuffer(1, AC.sampleRate * len, AC.sampleRate), d = buf.getChannelData(0);
+        for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (0.6 + 0.4 * Math.sin(i / AC.sampleRate * 9));
+        const src = AC.createBufferSource(), bp = AC.createBiquadFilter(), g = AC.createGain(), t0 = AC.currentTime; src.buffer = buf; bp.type = 'bandpass'; bp.frequency.value = 900; bp.Q.value = .7;
+        g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(.5, t0 + .25); g.gain.exponentialRampToValueAtTime(.0001, t0 + len);
+        src.connect(bp); bp.connect(g); g.connect(AC.destination); src.start(t0); src.stop(t0 + len);
+        if (kind === 'goal') beep('whistle');
+        return;
+      }
+      if (kind === 'whistle' || kind === 'kick') {
+        const o = AC.createOscillator(), g = AC.createGain(), t0 = AC.currentTime, w = kind === 'whistle';
+        o.type = w ? 'square' : 'sine'; o.frequency.setValueAtTime(w ? 2600 : 180, t0); if (w) { for (let k = 0; k < 6; k++) o.frequency.setValueAtTime(k % 2 ? 2400 : 2750, t0 + k * .05); } else o.frequency.exponentialRampToValueAtTime(50, t0 + .12);
+        g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(w ? .08 : .6, t0 + .01); g.gain.exponentialRampToValueAtTime(.0001, t0 + (w ? .45 : .16));
+        o.connect(g); g.connect(AC.destination); o.start(t0); o.stop(t0 + .5); return;
+      }
       const seq = { ok: [[660, 0], [880, .09], [1320, .18]], ko: [[220, 0], [160, .14]], tick: [[1000, 0]], win: [[523, 0], [659, .12], [784, .24], [1047, .36]], flip: [[500, 0]] }[kind];
       seq.forEach(([f, d]) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = kind === 'ko' ? 'sawtooth' : 'triangle'; o.frequency.value = f; o.connect(g); g.connect(AC.destination);
         const t0 = AC.currentTime + d, len = kind === 'tick' || kind === 'flip' ? .05 : .16; g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(.25, t0 + .01); g.gain.exponentialRampToValueAtTime(.0001, t0 + len); o.start(t0); o.stop(t0 + len + .02); });
@@ -84,7 +99,7 @@ window.JEUX = (() => {
         const os = uniq(ot.map(g => C.esc(g.sens))).filter(x => x !== C.esc(f.sens)).slice(0, 3);
         if (os.length >= 2) add(l, C.t('Que représente la relation', 'ماذا تمثل العلاقة') + ` \\(${f.tex}\\) ?`, [C.esc(f.sens)].concat(os), '');
         const ot2 = uniq(shuffle(I.F.filter(g => g.tex !== f.tex)).concat(shuffle(F_(NR).filter(g => g.tex !== f.tex && g.sens !== f.sens)), shuffle(F_(FR).filter(g => g.tex !== f.tex && g.sens !== f.sens)))).slice(0, 3);
-        if (ot2.length >= 2) add(l, C.t('Quelle relation correspond à', 'أي علاقة توافق') + ` : « ${C.esc(f.sens)} » ?`, [`\\(${f.tex}\\)`].concat(ot2.map(g => `\\(${g.tex}\\)`)), '');
+        const t2 = [...new Set(ot2.map(g => g.tex))].filter(x => x !== f.tex); if (t2.length >= 2) add(l, C.t('Quelle relation correspond à', 'أي علاقة توافق') + ` : « ${C.esc(f.sens)} » ?`, [`\\(${f.tex}\\)`].concat(t2.map(x => `\\(${x}\\)`)), '');
       });
       I.R.forEach(r => add(l, C.t('Vrai ou faux ?', 'صحيح أم خطأ ؟') + ' ' + r, [C.t('Vrai', 'صحيح'), C.t('Faux', 'خطأ')], C.t('À retenir du cours.', 'يجب حفظه من الدرس.')));
       I.E.forEach(x => add(l, C.t('Vrai ou faux ?', 'صحيح أم خطأ ؟') + ' ' + fals(x), [C.t('Faux', 'خطأ'), C.t('Vrai', 'صحيح')], C.t('Erreur fréquente : ', 'خطأ شائع : ') + x));
@@ -96,6 +111,8 @@ window.JEUX = (() => {
         if (e.but) { const ob = others(I.XP.filter(x => x.but && x !== e).map(x => x.but), B_(NR), B_(FR), e.but); if (ob.length >= 2) add(l, C.t('Quel est le but de l’expérience', 'ما هدف التجربة') + ` « ${strip(e.t)} » ?`, [e.but].concat(ob), ''); }
         const c0 = cc(e); if (c0.length > 10 && c0.length < 230) { const oc = others(I.XP.filter(x => x !== e).map(cc).filter(okCc), CC_(NR), CC_(FR), c0); if (oc.length >= 2) add(l, C.t('Quelle conclusion tire-t-on de l’expérience', 'ما الاستنتاج من التجربة') + ` « ${strip(e.t)} » ?`, [c0].concat(oc), ''); }
       });
+      // questions de calcul générées (nouvelles valeurs à chaque partie)
+      if (window.QGEN) QGEN.gen(l.id, 40).forEach(x => add(l, x.q, x.o, x.e));
     });
     return out;
   }
@@ -171,12 +188,14 @@ window.JEUX = (() => {
     ['enigmes', '🕵️', 'Qui suis-je ?', 'من أنا ؟', 'Des indices de plus en plus faciles. Moins l’équipe utilise d’indices, plus elle gagne de points.', 'مؤشرات تصبح أسهل فأسهل. كلما استعمل الفريق مؤشرات أقل ربح نقاطا أكثر.', 'g5'],
     ['defis', '🧠', 'Défis de réflexion', 'تحديات التفكير', 'Des problèmes courts où il faut raisonner. Un indice est disponible… mais il coûte 5 points.', 'مسائل قصيرة تتطلب التفكير. يوجد مؤشر… لكنه يكلف 5 نقاط.', 'g7'],
     ['intrus', '🔍', 'L’intrus', 'الدخيل', 'Quatre éléments : un seul n’est pas comme les autres. Trouvez-le, puis justifiez !', 'أربعة عناصر : واحد فقط مختلف. جدوه ثم عللوا !', 'g6'],
+    ['penalty', '🥅', 'Tirs au but', 'ركلات الترجيح', 'Bonne réponse = droit de tirer : choisis ton coin, le gardien plonge ! 5 tirs par équipe, puis mort subite.', 'جواب صحيح = حق التسديد : اختر الزاوية والحارس يرتمي ! 5 تسديدات لكل فريق ثم الموت المفاجئ.', 'g9'],
     ['mots', '🔤', 'Lettres mélangées', 'الحروف المبعثرة', 'Remettez les lettres dans l’ordre pour retrouver le mot scientifique défini.', 'رتبوا الحروف لإيجاد الكلمة العلمية المعرّفة.', 'g8'],
   ];
   const DUO = [
     ['duo', '⚡', 'Duel éclair', 'مبارزة خاطفة', 'Même question pour les deux joueurs : le premier qui touche la bonne réponse marque le point.', 'نفس السؤال للاعبين : أول من يلمس الجواب الصحيح يربح النقطة.', 'd1'],
     ['corde', '🪢', 'Tir à la corde', 'شد الحبل', 'Chaque bonne réponse tire la corde de ton côté. Amène le nœud dans ton camp !', 'كل جواب صحيح يشد الحبل نحوك. اجلب العقدة إلى جهتك !', 'd2'],
     ['fusees', '🚀', 'Course de fusées', 'سباق الصواريخ', 'Chacun ses questions : chaque bonne réponse fait monter ta fusée. La première en haut gagne.', 'لكل لاعب أسئلته : كل جواب صحيح يرفع صاروخك. الأول في القمة يفوز.', 'd3'],
+    ['foot', '⚽', 'Match de foot', 'مباراة كرة القدم', 'Même question pour les deux joueurs : chaque bonne réponse pousse le ballon vers le but adverse. Le premier à 3 buts gagne !', 'نفس السؤال للاعبين : كل جواب صحيح يدفع الكرة نحو مرمى الخصم. أول من يسجل 3 أهداف يفوز !', 'd5'],
     ['vraifaux', '✅', 'Vrai ou faux réflexe', 'صحيح أم خطأ', 'Une affirmation au centre : le plus rapide à répondre juste marque. Une erreur donne le point à l’adversaire !', 'عبارة في الوسط : الأسرع بالجواب الصحيح يربح. الخطأ يمنح النقطة للخصم !', 'd4'],
   ];
   const G3 = () => (window.JEUX3D ? JEUX3D.list : []);
@@ -529,7 +548,7 @@ window.JEUX = (() => {
       const names = [$('#n1').value.trim() || nm[0], $('#n2').value.trim() || nm[1]]; put('jx-duo', names);
       CHS = cp.get(); $('#go').disabled = true; $('#go').textContent = C.t('Chargement…', 'جار التحميل…');
       const P = (await pool(CHS)).filter(q => q.o.length >= 2 && q.o.length <= 4 && String(q.q).length < 260);
-      const run = () => ({ duo: duoPlay, corde: cordePlay, fusees: fuseesPlay, vraifaux: vfPlay })[g](shuffle(P), names, run); run();
+      const run = () => ({ duo: duoPlay, corde: cordePlay, fusees: fuseesPlay, vraifaux: vfPlay, foot: footPlay })[g](shuffle(P), names, run); run();
     });
   }
   function duoWin(game, names, sc, again) {
@@ -553,6 +572,109 @@ window.JEUX = (() => {
     };
     $$('button', box).forEach(b => b.addEventListener('pointerdown', e => { e.preventDefault(); hit(+b.dataset.j); }));
     box.__key = key => { const j = KEYS[k].indexOf(key) % 4; if (KEYS[k].includes(key) && j < os.length) hit(j); };
+  }
+
+  /* ---------- ⚽ Match de foot (2 joueurs face au tableau) ---------- */
+  function footPlay(P, names, again) {
+    const GOALS = 3, sc = [0, 0]; let pos = 0, qi = 0; full(true);
+    const pitch = () => `<div class="jx-pitch"><i class="jx-pl mid"></i><i class="jx-pl circ"></i><i class="jx-pl box l"></i><i class="jx-pl box r"></i>
+      <b class="jx-goal l" style="--c:${PC[0]}"></b><b class="jx-goal r" style="--c:${PC[1]}"></b><span class="jx-ball">⚽</span>
+      <span class="jx-fsc"><em style="--c:${PC[0]}">${C.esc(names[0])}</em><strong>${sc[0]} – ${sc[1]}</strong><em style="--c:${PC[1]}">${C.esc(names[1])}</em></span><div class="jx-but" hidden></div></div>`;
+    const place = () => { const b = $('.jx-ball'); if (b) b.style.left = (50 + pos * 14) + '%'; };
+    function round() {
+      stop(); if (sc[0] >= GOALS || sc[1] >= GOALS) return duoWin('foot', names, sc, again);
+      const q = P[qi++ % P.length], os = opts(q), out = [false, false]; let done = false;
+      app().innerHTML = `<section class="jx-stage jx-footst">${bar()}${pitch()}<div class="jx-mid" dir="ltr" lang="fr"><p class="jx-ch">${C.esc(q.ch || '')} · ${C.t('premier à', 'الأول إلى')} ${GOALS} ${C.t('buts', 'أهداف')}</p><div class="jx-qt">${q.q}</div></div>
+        <div class="jx-duo">${[0, 1].map(k => `<div class="jx-side" style="--c:${PC[k]}">${sideHead(names, k, sc[k], k === 0 ? ' →' : ' ←')}<div class="jx-sos">${os.map((o, j) => `<button type="button" data-k="${k}" data-j="${j}"><i>${LET[j]}</i><span>${o.o}</span></button>`).join('')}</div></div>`).join('')}</div></section>`;
+      wireBar(); C.typeset(app()); place();
+      const hit = (k, j) => {
+        if (done || out[k]) return; const ok = os[j].ok, b = $(`.jx-side:nth-child(${k + 1}) [data-j="${j}"]`);
+        if (ok) {
+          done = true; b.classList.add('ok'); $$('.jx-side')[k].classList.add('win'); beep('kick');
+          pos += k === 0 ? 1 : -1; const ball = $('.jx-ball'); ball.classList.remove('kick'); void ball.offsetWidth; ball.classList.add('kick'); place();
+          if (Math.abs(pos) >= 3) {
+            sc[k]++; later(() => { beep('goal'); confetti(); const bt = $('.jx-but'); bt.hidden = false; bt.style.setProperty('--c', PC[k]); bt.innerHTML = `<b>${C.t('BUT !', 'هدف !')}</b><span>${C.esc(names[k])} · ${sc[0]} – ${sc[1]}</span>`; $$('.jx-ssc')[k].textContent = sc[k]; }, 450);
+            later(() => { pos = 0; round(); }, 3200); return;
+          }
+          later(round, 1300); return;
+        }
+        out[k] = true; b.classList.add('ko'); $$('.jx-side')[k].classList.add('out'); beep('ko');
+        if (out[0] && out[1]) { done = true; $$('.jx-sos button').forEach(x => { if (os[+x.dataset.j].ok) x.classList.add('ok'); }); later(round, 1800); }
+      };
+      $$('.jx-duo button').forEach(b => b.addEventListener('pointerdown', e => { e.preventDefault(); hit(+b.dataset.k, +b.dataset.j); }));
+      onKey(e => { const key = e.key.toLowerCase(); [0, 1].forEach(k => { const j = KEYS[k].indexOf(key); if (j >= 0 && j % 4 < os.length) hit(k, j % 4); }); });
+    }
+    beep('whistle'); round();
+  }
+
+  /* ---------- 🥅 Tirs au but (équipes) ---------- */
+  function penaltySetup() {
+    setup('penalty', sel('nb', C.t('Tirs par équipe', 'تسديدات لكل فريق'), [['3', '3'], ['5', '5'], ['7', '7']], '5') + sel('sec', C.t('Temps pour répondre', 'الوقت للإجابة'), [['20', '20 s'], ['30', '30 s'], ['45', '45 s']], '30')
+      + sel('gk', C.t('Gardien', 'الحارس'), [['1', C.t('débutant', 'مبتدئ')], ['2', C.t('normal', 'عادي')], ['3', C.t('champion', 'بطل')]], '2'), async () => {
+      const nb = +$('#nb').value, sec = +$('#sec').value, gk = +$('#gk').value, P = await pool(CHS);
+      if (!P.length) throw new Error('aucune question');
+      const run = () => penaltyPlay(shuffle(P), nb, sec, gk, run); run();
+    }, true);
+  }
+  function penaltyPlay(P, NB, SEC, GK, again) {
+    const T = teams(), N = T.length, sc = T.map(() => 0), shots = T.map(() => []); let i = 0, qi = 0; full(true);
+    const dots = k => shots[k].map(x => `<i class="${x ? 'g' : 'm'}">${x ? '⚽' : '✕'}</i>`).join('') + '<i class="e"></i>'.repeat(Math.max(0, NB - shots[k].length));
+    const head = cur => `<div class="jx-pens">${T.map((t, k) => `<div class="jx-pen${k === cur ? ' on' : ''}" style="--c:${COLORS[k]}"><b>${C.esc(t.n)}</b><span>${dots(k)}</span><strong>${sc[k]}</strong></div>`).join('')}</div>`;
+    // fin : après NB tirs chacun, s’il n’y a qu’un seul premier ; sinon mort subite (5 tours au plus)
+    const finished = () => { const best = Math.max(...sc); return sc.filter(x => x === best).length === 1 || i >= (NB + 5) * N; };
+    function turn() {
+      stop(); if (i >= NB * N && i % N === 0 && finished()) return podium('penalty', T, sc, again);
+      const cur = i % N, q = P[qi++ % P.length], os = opts(q); let left = SEC, lock = false;
+      app().innerHTML = `<section class="jx-stage jx-penst">${bar()}${head(cur)}
+        <div class="jx-turnrow"><div class="jx-turn" style="--c:${COLORS[cur]}">⚽ ${C.esc(T[cur].n)} · ${C.t('tir', 'تسديدة')} ${Math.floor(i / N) + 1}${i >= NB * N ? ' · ' + C.t('mort subite', 'الموت المفاجئ') : '/' + NB}</div>
+        <div class="jx-ring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45"/><circle class="v" cx="50" cy="50" r="45" style="--c:${COLORS[cur]}"/></svg><span>${SEC}</span></div></div>
+        <div class="jx-q" dir="ltr" lang="fr"><p class="jx-ch">${C.esc(q.ch || '')} · ${C.t('bonne réponse = droit de tirer', 'جواب صحيح = حق التسديد')}</p><div class="jx-qt">${q.q}</div>
+        <div class="jx-os">${os.map((o, k) => `<button type="button" data-k="${k}"><i>${LET[k]}</i><span>${o.o}</span></button>`).join('')}</div><div class="jx-after"></div></div></section>`;
+      wireBar(); C.typeset($('.jx-q'));
+      const ring = $('.jx-ring .v'), rs = $('.jx-ring span');
+      every(() => { left = Math.max(0, left - 0.1); ring.style.strokeDashoffset = 283 * (1 - left / SEC); rs.textContent = Math.ceil(left); if (left <= 0) answer(-1); }, 100);
+      function answer(k) {
+        if (lock) return; lock = true; stop();
+        const ok = k >= 0 && os[k].ok; $$('.jx-os button').forEach((x, j) => { if (os[j].ok) x.classList.add('ok'); if (j === k && !ok) x.classList.add('ko'); });
+        if (!ok) { beep('ko'); later(() => shoot(cur, false), 1500); return; }
+        beep('ok'); later(() => shoot(cur, true), 700);
+      }
+      $$('.jx-os button').forEach(b => b.addEventListener('click', () => answer(+b.dataset.k)));
+      onKey(e => { const k = '1234'.indexOf(e.key) >= 0 ? '1234'.indexOf(e.key) : 'abcd'.indexOf(e.key.toLowerCase()); if (k >= 0 && k < os.length) answer(k); });
+    }
+    // écran du tir : 6 zones (2 lignes × 3 colonnes) ; mauvaise réponse = tir raté
+    function shoot(cur, allowed) {
+      stop();
+      app().innerHTML = `<section class="jx-stage jx-penst">${bar()}${head(cur)}<div class="jx-turn" style="--c:${COLORS[cur]}">${allowed ? '🎯 ' + C.esc(T[cur].n) + ' : ' + C.t('choisis où tirer !', 'اختر مكان التسديد !') : '😬 ' + C.t('Mauvaise réponse : tir raté !', 'جواب خاطئ : تسديدة ضائعة !')}</div>
+        <div class="jx-pfield"><div class="jx-gbox"><div class="jx-net"></div>${[0, 1, 2, 3, 4, 5].map(z => `<button type="button" class="jx-zone" data-z="${z}"${allowed ? '' : ' disabled'}><span>${z + 1}</span></button>`).join('')}
+          <svg class="jx-keeper" viewBox="0 0 80 110"><circle cx="40" cy="16" r="12" fill="#f2c9a0"/><rect x="24" y="30" width="32" height="40" rx="8" fill="#facc15"/><path d="M24 36 L6 22 M56 36 L74 22" stroke="#facc15" stroke-width="9" stroke-linecap="round"/><circle cx="6" cy="20" r="7" fill="#16a34a"/><circle cx="74" cy="20" r="7" fill="#16a34a"/><path d="M30 70 L26 104 M50 70 L54 104" stroke="#1f2937" stroke-width="10" stroke-linecap="round"/></svg></div>
+          <span class="jx-pball">⚽</span><div class="jx-presult" hidden></div></div></section>`;
+      wireBar();
+      const ball = $('.jx-pball'), kp = $('.jx-keeper'), gb = $('.jx-gbox'), res = $('.jx-presult');
+      const center = z => { const r = gb.getBoundingClientRect(), f = ball.parentNode.getBoundingClientRect(), c = z % 3, w = Math.floor(z / 3); return [r.left - f.left + r.width * (c + .5) / 3, r.top - f.top + r.height * (w + .5) / 2]; };
+      const fly = (x, y, sc2) => { const b0 = ball.getBoundingClientRect(), f = ball.parentNode.getBoundingClientRect(); ball.style.transform = `translate(${x - (b0.left - f.left + b0.width / 2)}px, ${y - (b0.top - f.top + b0.height / 2)}px) scale(${sc2}) rotate(540deg)`; };
+      const finish = goal => {
+        shots[cur].push(goal); if (goal) sc[cur]++;
+        res.hidden = false; res.className = 'jx-presult ' + (goal ? 'g' : 'm'); res.innerHTML = goal ? C.t('BUT !', 'هدف !') : allowed ? C.t('ARRÊT DU GARDIEN !', 'تصدى الحارس !') : C.t('À CÔTÉ !', 'خارج المرمى !');
+        if (goal) { beep('goal'); confetti(); } else beep('ko');
+        $$('.jx-pen strong')[cur].textContent = sc[cur]; $$('.jx-pen span')[cur].innerHTML = dots(cur);
+        i++; later(turn, 2600);
+      };
+      if (!allowed) { beep('kick'); const r = gb.getBoundingClientRect(), f = ball.parentNode.getBoundingClientRect(); fly(r.left - f.left + r.width * (Math.random() < .5 ? -.1 : 1.1), r.top - f.top - 40, .5); later(() => finish(false), 900); return; }
+      let done = false;
+      const kick = z => {
+        if (done) return; done = true; beep('kick');
+        const zk = Math.random() < [0, .2, .33, .45][GK] ? z : Math.floor(Math.random() * 6); // le gardien devine plus ou moins bien
+        const [kx, ky] = center(zk), g0 = gb.getBoundingClientRect(), f = ball.parentNode.getBoundingClientRect();
+        kp.style.left = (kx - (g0.left - f.left)) + 'px'; kp.style.top = (ky - (g0.top - f.top)) + 'px'; kp.classList.add('dive' + (zk % 3));
+        const [x, y] = center(z); fly(x, y, .55); $$('.jx-zone').forEach(b => { b.disabled = true; b.classList.toggle('pick', +b.dataset.z === z); });
+        const saved = zk === z || (zk % 3 === z % 3 && Math.random() < .5);
+        later(() => finish(!saved), 750);
+      };
+      $$('.jx-zone').forEach(b => b.addEventListener('click', () => kick(+b.dataset.z)));
+      onKey(e => { const z = '123456'.indexOf(e.key); if (z >= 0) kick(z); });
+    }
+    beep('whistle'); turn();
   }
   const mixQ = P => (Math.random() < 0.3 && unitQ()) || P[Math.floor(Math.random() * P.length)];
   const twoKeys = boxes => onKey(e => boxes.forEach(b => b && b.__key && b.__key(e.key.toLowerCase())));
@@ -639,6 +761,6 @@ window.JEUX = (() => {
     init(ctx) { C = ctx; },
     stop() { stop(); document.body.classList.remove('jx-full'); },
     api: { pool: chs => pool(chs), ctx: () => C, bar: () => bar(), wireBar: () => wireBar(), full, beep, confetti, onKey, later, every, hook: f => hooks.push(f), duoWin: (g, n, sc, a) => duoWin(g, n, sc, a), duoNames: () => duoNames(), put, get, PC: ['#2563eb', '#dc2626'], C: () => C, teams: () => teams(), COLORS, podium: (g, T, sc, a) => podium(g, T, sc, a), stopTimers: () => stop() },
-    page(sub) { stop(); if (window.DEFIS && DEFIS.list.some(g => g[0] === sub)) return DEFIS.page(sub); if (window.JEUX3D && JEUX3D.list.some(g => g[0] === sub)) return JEUX3D.page(sub); ({ match: matchSetup, duel: matchSetup, chrono: chronoSetup, memory: memorySetup, unites: unitesSetup, enigmes: enigmesSetup, defis: defisSetup, intrus: intrusSetup, mots: motsSetup }[sub] || (DUO.some(g => g[0] === sub) ? () => duoSetup(sub) : hub))(); },
+    page(sub) { stop(); if (window.DEFIS && DEFIS.list.some(g => g[0] === sub)) return DEFIS.page(sub); if (window.JEUX3D && JEUX3D.list.some(g => g[0] === sub)) return JEUX3D.page(sub); ({ match: matchSetup, duel: matchSetup, chrono: chronoSetup, memory: memorySetup, unites: unitesSetup, enigmes: enigmesSetup, defis: defisSetup, intrus: intrusSetup, mots: motsSetup, penalty: penaltySetup }[sub] || (DUO.some(g => g[0] === sub) ? () => duoSetup(sub) : hub))(); },
   };
 })();
