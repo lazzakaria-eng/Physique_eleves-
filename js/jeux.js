@@ -13,6 +13,7 @@ window.JEUX = (() => {
   let hooks = [];
   const stop = () => { hooks.forEach(f => { try { f(); } catch (e) { /* déjà arrêté */ } }); hooks = []; timers.forEach(x => { clearInterval(x); clearTimeout(x); }); timers = []; if (keyH) { document.removeEventListener('keydown', keyH); keyH = null; } };
   const later = (f, ms) => timers.push(setTimeout(f, ms));
+  const hook = f => hooks.push(f);
   const every = (f, ms) => timers.push(setInterval(f, ms));
   const onKey = f => { if (keyH) document.removeEventListener('keydown', keyH); keyH = e => { if (!e.target.closest('input, select, textarea')) f(e); }; document.addEventListener('keydown', keyH); };
   const get = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v === null ? d : v; } catch (e) { return d; } };
@@ -121,6 +122,34 @@ window.JEUX = (() => {
   /* ---------- choix d’un ou plusieurs chapitres (niveau par niveau) ---------- */
   const LVN = { tc: 'Tronc commun', '1bac': '1re Bac', '2bac': '2e Bac' };
   let CHS = [];
+  /* source des questions : cours (chapitres) ou culture générale (thèmes) */
+  let MODE = 'cours', CATS_SEL = [];
+  const CULT_OK = ['match', 'chrono', 'penalty', 'duo', 'corde', 'fusees', 'vraifaux', 'foot'];
+  async function getQ() { return MODE === 'culture' && window.CULTURE ? CULTURE.gen(CATS_SEL, 500) : pool(CHS); }
+  function catPicker() {
+    const ALLC = window.CULTURE ? CULTURE.CATS : []; let chosen = (get('jx-cult-cats', null) || ALLC.map(c => c[0])).filter(x => ALLC.some(c => c[0] === x));
+    const html = `<div class="jx-chp jx-catp"><div class="jx-chp-h"><b>🌍 ${C.t('Thèmes de culture générale', 'مواضيع الثقافة العامة')}</b><span class="jx-cat-n"></span></div><div class="jx-cat-list"></div>
+      <div class="jx-cat-acts"><button type="button" data-a="all">✔ ${C.t('Tous les thèmes', 'كل المواضيع')}</button><button type="button" data-a="none">✕ ${C.t('Aucun', 'لا شيء')}</button></div></div>`;
+    const paint = () => {
+      $('.jx-cat-list').innerHTML = ALLC.map(c => `<label class="${chosen.includes(c[0]) ? 'on' : ''}"><input type="checkbox" value="${c[0]}"${chosen.includes(c[0]) ? ' checked' : ''}> <small>${c[1]}</small> ${C.esc(C.t(c[2], c[3]))}</label>`).join('');
+      $$('.jx-cat-list input').forEach(x => x.addEventListener('change', () => { chosen = x.checked ? chosen.concat(x.value) : chosen.filter(y => y !== x.value); put('jx-cult-cats', chosen); paint(); }));
+      $('.jx-cat-n').textContent = chosen.length + ' ' + C.t('thème(s)', 'موضوع'); document.dispatchEvent(new Event('jx-src'));
+    };
+    const wire = () => { $$('.jx-cat-acts button').forEach(b => b.addEventListener('click', () => { chosen = b.dataset.a === 'all' ? ALLC.map(c => c[0]) : []; put('jx-cult-cats', chosen); paint(); })); paint(); };
+    return { html, wire, get: () => chosen.slice() };
+  }
+  // bloc « Cours / Culture générale » : cp = sélecteur de chapitres, ct = sélecteur de thèmes
+  function srcBlock(cp, ct) {
+    let src = get('jx-src', 'cours'); if (!window.CULTURE) src = 'cours';
+    const html = `<div class="jx-src"><button type="button" data-src="cours">📚 ${C.t('Questions du cours', 'أسئلة الدروس')}</button><button type="button" data-src="culture">🌍 ${C.t('Culture générale', 'الثقافة العامة')}</button></div>
+      <div class="jx-pane" data-pane="cours">${cp.html}</div><div class="jx-pane" data-pane="culture">${ct.html}</div>`;
+    const sync = () => {
+      $$('.jx-src button').forEach(b => b.classList.toggle('on', b.dataset.src === src)); $$('.jx-pane').forEach(p => { p.hidden = p.dataset.pane !== src; });
+      const g = $('#go'); if (g) g.disabled = src === 'culture' ? !ct.get().length : !cp.get().length;
+    };
+    const wire = () => { cp.wire(); ct.wire(); $$('.jx-src button').forEach(b => b.addEventListener('click', () => { src = b.dataset.src; put('jx-src', src); sync(); })); document.addEventListener('jx-src', sync); hook(() => document.removeEventListener('jx-src', sync)); sync(); };
+    return { html, wire, mode: () => src };
+  }
   function chapPicker(key, avail, cnt) {
     const ALL = C.ALL.filter(l => !avail || avail.includes(l.id)), lvls = Object.keys(LVN).filter(n => ALL.some(l => l.niv.id === n));
     let chosen = (get('jx-chs-' + key, null) || []).filter(x => ALL.some(l => l.id === x)); if (!chosen.length) chosen = ALL.filter(l => l.niv.id === lvls[lvls.length - 1]).map(l => l.id);
@@ -201,8 +230,13 @@ window.JEUX = (() => {
     ['foot', '⚽', 'Match de foot', 'مباراة كرة القدم', 'Même question pour les deux joueurs : chaque bonne réponse pousse le ballon vers le but adverse. Le premier à 3 buts gagne !', 'نفس السؤال للاعبين : كل جواب صحيح يدفع الكرة نحو مرمى الخصم. أول من يسجل 3 أهداف يفوز !', 'd5'],
     ['vraifaux', '✅', 'Vrai ou faux réflexe', 'صحيح أم خطأ', 'Une affirmation au centre : le plus rapide à répondre juste marque. Une erreur donne le point à l’adversaire !', 'عبارة في الوسط : الأسرع بالجواب الصحيح يربح. الخطأ يمنح النقطة للخصم !', 'd4'],
   ];
+  const CULT = [
+    ['pyramide', '🏆', 'La pyramide des champions', 'هرم الأبطال', '12 marches de plus en plus difficiles, 3 jokers (50:50, changer, aide de la classe). Une erreur : on redescend au palier !', '12 درجة تزداد صعوبة و3 مساعدات. خطأ واحد : تنزل إلى آخر محطة آمنة !', 'g1'],
+    ['rouecult', '🎡', 'La roue des thèmes', 'عجلة المواضيع', 'La roue choisit le thème et la valeur (100, 200, 300… ou ×2). Bonne réponse = les points !', 'العجلة تختار الموضوع والقيمة. جواب صحيح = النقاط !', 'g3'],
+    ['buzzer', '🔔', 'Le buzzer des devinettes', 'جرس الألغاز', 'Des devinettes en français et en arabe : la première équipe qui buzze répond à voix haute, le professeur valide.', 'ألغاز بالفرنسية والعربية : أول فريق يضغط على الجرس يجيب، والأستاذ يحكم.', 'g6'],
+  ];
   const G3 = () => (window.JEUX3D ? JEUX3D.list : []);
-  const gName = id => { const g = GAMES.concat(DUO, G3(), window.DEFIS ? DEFIS.list : []).find(x => x[0] === id); return g ? C.t(g[2], g[3]) : id; };
+  const gName = id => { const g = GAMES.concat(DUO, CULT, G3(), window.DEFIS ? DEFIS.list : []).find(x => x[0] === id); return g ? C.t(g[2], g[3]) : id; };
   function hub() {
     full(false);
     const T = teams(), tr = tournoi(), pal = get('jx-palmares', []);
@@ -219,6 +253,8 @@ window.JEUX = (() => {
       <div class="jx-games">${DEFIS.list.map(g => `<a class="jx-game tilt ${g[6]}" href="#/jeux/${g[0]}"><span class="jx-ic">${g[1]}</span><b>${C.t(g[2], g[3])}</b><span>${C.t(g[4], g[5])}</span><span class="jx-meta"><em>${C.t('Lancer', 'ابدأ')} ›</em></span></a>`).join('')}</div>` : ''}
       <h2 class="jx-sec">👥 ${C.t('Jeux par équipes', 'ألعاب الفرق')}</h2>
       <div class="jx-games">${GAMES.map(g => `<a class="jx-game tilt ${g[6]}" href="#/jeux/${g[0]}"><span class="jx-ic">${g[1]}</span><b>${C.t(g[2], g[3])}</b><span>${C.t(g[4], g[5])}</span><span class="jx-meta"><em>${C.t('Lancer', 'ابدأ')} ›</em></span></a>`).join('')}</div>
+      ${window.CULTURE ? `<h2 class="jx-sec">🌍 ${C.t('Culture générale & devinettes', 'الثقافة العامة والألغاز')} <small>${C.t('Tous les jeux par équipes et à 2 joueurs proposent aussi « Culture générale »', 'كل ألعاب الفرق واللاعبين تقترح أيضا « الثقافة العامة »')}</small></h2>
+      <div class="jx-games">${CULT.map(g => `<a class="jx-game tilt ${g[6]}" href="#/jeux/${g[0]}"><span class="jx-ic">${g[1]}</span><b>${C.t(g[2], g[3])}</b><span>${C.t(g[4], g[5])}</span><span class="jx-meta"><em>${C.t('Lancer', 'ابدأ')} ›</em></span></a>`).join('')}</div>` : ''}
       <h2 class="jx-sec">🆚 ${C.t('Jeux à 2 joueurs — face à face sur l’écran', 'ألعاب لاعبين اثنين — وجها لوجه على الشاشة')}</h2>
       <div class="jx-games">${DUO.map(g => `<a class="jx-game tilt duo ${g[6]}" href="#/jeux/${g[0]}"><span class="jx-ic">${g[1]}</span><b>${C.t(g[2], g[3])}</b><span>${C.t(g[4], g[5])}</span><span class="jx-meta"><em>${C.t('Lancer', 'ابدأ')} ›</em></span></a>`).join('')}</div>
       ${G3().length ? `<h2 class="jx-sec">🧊 ${C.t('Jeux 3D — stratégie, mémoire et réflexes', 'ألعاب ثلاثية الأبعاد — ذكاء، ذاكرة وسرعة بديهة')}</h2>
@@ -238,12 +274,14 @@ window.JEUX = (() => {
 
   /* ---------- écran de réglage ---------- */
   function setup(g, fields, go, pickChs) {
-    const G = GAMES.concat(DUO).find(x => x[0] === g), cp = pickChs ? (Array.isArray(pickChs) ? chapPicker(g, [...new Set(pickChs)], pickChs.reduce((o, c) => (o[c] = (o[c] || 0) + 1, o), {})) : chapPicker('cours', null)) : null;
+    const G = GAMES.concat(DUO, CULT).find(x => x[0] === g), onlyCult = pickChs === 'culture', withCult = pickChs === true && CULT_OK.includes(g) && !!window.CULTURE;
+    const cp = pickChs && !onlyCult ? (Array.isArray(pickChs) ? chapPicker(g, [...new Set(pickChs)], pickChs.reduce((o, c) => (o[c] = (o[c] || 0) + 1, o), {})) : chapPicker('cours', null)) : null;
+    const ct = onlyCult || withCult ? catPicker() : null, sb = withCult ? srcBlock(cp, ct) : null;
     app().innerHTML = `<section class="jx-page"><a class="jx-back" href="#/jeux">‹ ${C.t('Espace Jeux', 'فضاء الألعاب')}</a><div class="jx-setup ${G[6]}"><span class="jx-ic">${G[1]}</span><h1>${C.t(G[2], G[3])}</h1><p>${C.t(G[4], G[5])}</p>
       <p class="jx-teamsline">${teams().map((x, i) => `<span style="--c:${COLORS[i]}">${C.esc(x.n)}</span>`).join('')} <a href="#/jeux">${C.t('modifier', 'تعديل')}</a></p>
-      ${cp ? cp.html : ''}<div class="jx-form">${fields}</div><button type="button" class="jx-btn big" id="go">▶ ${C.t('Lancer en plein écran', 'ابدأ في ملء الشاشة')}</button></div></section>`;
-    if (cp) cp.wire();
-    $('#go').addEventListener('click', async () => { if (cp) CHS = cp.get(); $('#go').disabled = true; $('#go').textContent = C.t('Chargement…', 'جار التحميل…'); try { await go(); } catch (e) { console.error(e); $('#go').disabled = false; $('#go').textContent = '▶'; } });
+      ${sb ? sb.html : cp ? cp.html : ct ? ct.html : ''}<div class="jx-form">${fields}</div><button type="button" class="jx-btn big" id="go">▶ ${C.t('Lancer en plein écran', 'ابدأ في ملء الشاشة')}</button></div></section>`;
+    if (sb) sb.wire(); else { if (cp) cp.wire(); if (ct) { ct.wire(); const sy = () => { $('#go').disabled = !ct.get().length; }; document.addEventListener('jx-src', sy); hook(() => document.removeEventListener('jx-src', sy)); sy(); } }
+    $('#go').addEventListener('click', async () => { if (cp) CHS = cp.get(); if (ct) CATS_SEL = ct.get(); MODE = onlyCult ? 'culture' : sb ? sb.mode() : 'cours'; $('#go').disabled = true; $('#go').textContent = C.t('Chargement…', 'جار التحميل…'); try { await go(); } catch (e) { console.error(e); $('#go').disabled = false; $('#go').textContent = '▶'; } });
   }
   const qFields = () => '';
 
@@ -292,7 +330,7 @@ window.JEUX = (() => {
   /* ---------- 1. Match des équipes ---------- */
   function matchSetup() {
     setup('match', qFields() + sel('nb', C.t('Questions par équipe', 'أسئلة لكل فريق'), [['3', '3'], ['5', '5'], ['8', '8'], ['10', '10']], '5') + sel('sec', C.t('Temps par question', 'الوقت لكل سؤال'), [['20', '20 s'], ['30', '30 s'], ['45', '45 s'], ['60', '60 s']], '30'), async () => {
-      const nb = +$('#nb').value, sec = +$('#sec').value, P = await pool(CHS);
+      const nb = +$('#nb').value, sec = +$('#sec').value, P = await getQ();
       if (!P.length) throw new Error('aucune question');
       const run = () => turns('match', shuffle(P), nb, sec, run); run();
     }, true);
@@ -301,7 +339,7 @@ window.JEUX = (() => {
   /* ---------- 2. Course contre la montre (une équipe après l’autre) ---------- */
   function chronoSetup() {
     setup('chrono', qFields() + sel('sec', C.t('Durée par équipe', 'المدة لكل فريق'), [['45', '45 s'], ['60', '60 s'], ['90', '90 s']], '60'), async () => {
-      const sec = +$('#sec').value, P = await pool(CHS);
+      const sec = +$('#sec').value, P = await getQ();
       if (!P.length) throw new Error('aucune question');
       const run = () => chronoPlay(shuffle(P), sec, run); run();
     }, true);
@@ -540,17 +578,17 @@ window.JEUX = (() => {
   const duoNames = () => get('jx-duo', [C.t('Joueur bleu', 'اللاعب الأزرق'), C.t('Joueur rouge', 'اللاعب الأحمر')]);
   const KEYS = [['1', '2', '3', '4', 'a', 'z', 'e', 'r'], ['7', '8', '9', '0', 'u', 'i', 'o', 'p']];
   function duoSetup(g) {
-    const nm = duoNames(), G = DUO.find(x => x[0] === g), cp = chapPicker('cours', null);
+    const nm = duoNames(), G = DUO.find(x => x[0] === g), cp = chapPicker('cours', null), ct = window.CULTURE ? catPicker() : null, sb = ct ? srcBlock(cp, ct) : null;
     app().innerHTML = `<section class="jx-page"><a class="jx-back" href="#/jeux">‹ ${C.t('Espace Jeux', 'فضاء الألعاب')}</a><div class="jx-setup ${G[6]}"><span class="jx-ic">${G[1]}</span><h1>${C.t(G[2], G[3])}</h1><p>${C.t(G[4], G[5])}</p>
       <p class="jx-note">${C.t('Les deux élèves se placent devant l’écran : le joueur bleu à gauche, le joueur rouge à droite. Chacun touche uniquement sa moitié.', 'يقف التلميذان أمام الشاشة : الأزرق على اليسار والأحمر على اليمين. كل واحد يلمس نصفه فقط.')}</p>
       <div class="jx-form"><label class="jx-f p1"><span>${C.t('Joueur de gauche', 'لاعب اليسار')}</span><input id="n1" maxlength="16" value="${C.esc(nm[0])}"></label>
-        <label class="jx-f p2"><span>${C.t('Joueur de droite', 'لاعب اليمين')}</span><input id="n2" maxlength="16" value="${C.esc(nm[1])}"></label></div>${cp.html}
+        <label class="jx-f p2"><span>${C.t('Joueur de droite', 'لاعب اليمين')}</span><input id="n2" maxlength="16" value="${C.esc(nm[1])}"></label></div>${sb ? sb.html : cp.html}
       <button type="button" class="jx-btn big" id="go">▶ ${C.t('Lancer en plein écran', 'ابدأ في ملء الشاشة')}</button></div></section>`;
-    cp.wire();
+    if (sb) sb.wire(); else cp.wire();
     $('#go').addEventListener('click', async () => {
       const names = [$('#n1').value.trim() || nm[0], $('#n2').value.trim() || nm[1]]; put('jx-duo', names);
-      CHS = cp.get(); $('#go').disabled = true; $('#go').textContent = C.t('Chargement…', 'جار التحميل…');
-      const P = (await pool(CHS)).filter(q => q.o.length >= 2 && q.o.length <= 4 && String(q.q).length < 260);
+      CHS = cp.get(); if (ct) CATS_SEL = ct.get(); MODE = sb ? sb.mode() : 'cours'; $('#go').disabled = true; $('#go').textContent = C.t('Chargement…', 'جار التحميل…');
+      const P = (await getQ()).filter(q => q.o.length >= 2 && q.o.length <= 4 && String(q.q).length < 260);
       const run = () => ({ duo: duoPlay, corde: cordePlay, fusees: fuseesPlay, vraifaux: vfPlay, foot: footPlay })[g](shuffle(P), names, run); run();
     });
   }
@@ -614,7 +652,7 @@ window.JEUX = (() => {
   function penaltySetup() {
     setup('penalty', sel('nb', C.t('Tirs par équipe', 'تسديدات لكل فريق'), [['3', '3'], ['5', '5'], ['7', '7']], '5') + sel('sec', C.t('Temps pour répondre', 'الوقت للإجابة'), [['20', '20 s'], ['30', '30 s'], ['45', '45 s']], '30')
       + sel('gk', C.t('Gardien', 'الحارس'), [['1', C.t('débutant', 'مبتدئ')], ['2', C.t('normal', 'عادي')], ['3', C.t('champion', 'بطل')]], '2'), async () => {
-      const nb = +$('#nb').value, sec = +$('#sec').value, gk = +$('#gk').value, P = await pool(CHS);
+      const nb = +$('#nb').value, sec = +$('#sec').value, gk = +$('#gk').value, P = await getQ();
       if (!P.length) throw new Error('aucune question');
       const run = () => penaltyPlay(shuffle(P), nb, sec, gk, run); run();
     }, true);
@@ -679,7 +717,138 @@ window.JEUX = (() => {
     }
     beep('whistle'); turn();
   }
-  const mixQ = P => (Math.random() < 0.3 && unitQ()) || P[Math.floor(Math.random() * P.length)];
+
+  /* ================= 🌍 CULTURE GÉNÉRALE ================= */
+  const pickD = (P, used, d) => { const f = k => P.find(q => !used.has(q) && k(q)); const q = f(x => x.d === d) || f(x => x.d <= d) || f(() => true) || P[Math.floor(Math.random() * P.length)]; used.add(q); return q; };
+
+  /* 🏆 La pyramide des champions : chaque équipe gravit 12 marches */
+  function pyramideSetup() {
+    setup('pyramide', sel('sec', C.t('Temps par question', 'الوقت لكل سؤال'), [['20', '20 s'], ['30', '30 s'], ['45', '45 s']], '30'), async () => {
+      const sec = +$('#sec').value, P = CULTURE.gen(CATS_SEL, 600); const run = () => pyramidePlay(shuffle(P), sec, run); run();
+    }, 'culture');
+  }
+  function pyramidePlay(P, SEC, again) {
+    const T = teams(), N = T.length, sc = T.map(() => 0), PTS = [100, 200, 300, 500, 1000, 2000, 4000, 8000, 16000, 32000, 64000, 125000], SAFE = [3, 7], used = new Set(); let k = 0; full(true);
+    const ladder = (lvl, c) => `<ol class="cu-pyr" style="--c:${c}">${PTS.map((p, i) => `<li class="${i === lvl ? 'cur' : i < lvl ? 'done' : ''}${SAFE.includes(i) ? ' safe' : ''}"><i>${i + 1}</i><b>${p.toLocaleString('fr-FR')}</b></li>`).reverse().join('')}</ol>`;
+    function intro() {
+      stop(); if (k >= N) return podium('pyramide', T, sc, again);
+      app().innerHTML = `<section class="jx-stage">${bar()}${board(T, sc, k)}<div class="jx-ready" style="--c:${COLORS[k]}"><p>🏆 ${C.t('Au sommet de la pyramide :', 'إلى قمة الهرم :')} ${PTS[11].toLocaleString('fr-FR')} pts</p><h1>${C.esc(T[k].n)}</h1>
+        <p>${C.t('Paliers assurés : marches 4 et 8. Vous pouvez vous arrêter à tout moment.', 'محطات آمنة : الدرجة 4 و8. يمكنكم التوقف في أي لحظة.')}</p><button type="button" class="jx-btn huge" id="start">▶ ${C.t('Grimper !', 'اصعدوا !')}</button></div></section>`;
+      wireBar(); $('#start').addEventListener('click', () => climb({ f: 1, c: 1, a: 1 })); onKey(e => { if (e.key === 'Enter') climb({ f: 1, c: 1, a: 1 }); });
+    }
+    function climb(J) {
+      let lvl = 0;
+      const ask = q0 => {
+        stop(); const q = q0 || pickD(P, used, lvl < 4 ? 1 : lvl < 8 ? 2 : 3), os = opts(q); let left = SEC, lock = false;
+        app().innerHTML = `<section class="jx-stage cu-pyst">${bar()}<div class="cu-pywrap"><div class="cu-pyq" dir="ltr" lang="fr"><div class="jx-turnrow"><div class="jx-turn" style="--c:${COLORS[k]}"><b>${C.esc(T[k].n)}</b> · ${C.t('marche', 'الدرجة')} ${lvl + 1}/12 · ${PTS[lvl].toLocaleString('fr-FR')} pts</div><div class="jx-ring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45"/><circle class="v" cx="50" cy="50" r="45" style="--c:${COLORS[k]}"/></svg><span>${SEC}</span></div></div>
+          <div class="jx-q"><p class="jx-ch">${C.esc(q.ch || '')}</p><div class="jx-qt">${q.q}</div><div class="jx-os">${os.map((o, j) => `<button type="button" data-k="${j}"><i>${LET[j]}</i><span>${o.o}</span></button>`).join('')}</div><div class="jx-after"></div></div>
+          <div class="cu-jok"><button type="button" data-j="f"${J.f ? '' : ' disabled'}>✂️ 50 : 50</button><button type="button" data-j="c"${J.c ? '' : ' disabled'}>🔄 ${C.t('Changer', 'تغيير')}</button><button type="button" data-j="a"${J.a ? '' : ' disabled'}>🙋 ${C.t('Aide de la classe (+20 s)', 'مساعدة القسم (+20 ث)')}</button>
+          <button type="button" class="stop" id="stopb"${lvl ? '' : ' disabled'}>🛑 ${C.t('S’arrêter', 'التوقف')} (${lvl ? PTS[lvl - 1].toLocaleString('fr-FR') : 0} pts)</button></div></div>${ladder(lvl, COLORS[k])}</div></section>`;
+        wireBar(); C.typeset($('.cu-pyq'));
+        const ring = $('.jx-ring .v'), rs = $('.jx-ring span'); let tot = SEC;
+        every(() => { left = Math.max(0, left - 0.1); ring.style.strokeDashoffset = 283 * (1 - left / tot); rs.textContent = Math.ceil(left); if (left <= 0) answer(-1); }, 100);
+        const end = (gain, msg) => { sc[k] = gain; later(() => { const a = $('.jx-after'); if (a) a.innerHTML = `<p class="jx-e">${msg}</p>`; }, 10); later(() => { k++; intro(); }, 2600); };
+        function answer(j) {
+          if (lock) return; lock = true; stop(); const ok = j >= 0 && os[j].ok;
+          $$('.jx-os button').forEach((b, i) => { if (os[i].ok) b.classList.add('ok'); if (i === j && !ok) b.classList.add('ko'); });
+          if (ok) { beep('ok'); lvl++; if (lvl >= 12) { beep('goal'); confetti(); return end(PTS[11], '🏆 ' + C.t('SOMMET ATTEINT !', 'وصلتم إلى القمة !')); } return later(() => ask(), 1100); }
+          beep('ko'); const g = lvl > 7 ? PTS[7] : lvl > 3 ? PTS[3] : 0; end(g, C.t('Raté ! Retour au palier : ', 'خطأ ! العودة إلى المحطة : ') + g.toLocaleString('fr-FR') + ' pts');
+        }
+        $$('.jx-os button').forEach(b => b.addEventListener('click', () => answer(+b.dataset.k)));
+        onKey(e => { const j = '1234'.indexOf(e.key) >= 0 ? '1234'.indexOf(e.key) : 'abcd'.indexOf(e.key.toLowerCase()); if (j >= 0 && j < os.length) answer(j); });
+        $$('.cu-jok [data-j]').forEach(b => b.addEventListener('click', () => {
+          if (lock || b.disabled) return; const t = b.dataset.j; J[t] = 0; b.disabled = true; beep('flip');
+          if (t === 'f') shuffle(os.map((o, i) => i).filter(i => !os[i].ok)).slice(0, Math.max(0, os.length - 2)).forEach(i => { const x = $$('.jx-os button')[i]; x.disabled = true; x.classList.add('gone'); });
+          if (t === 'c') { lock = true; ask(); }
+          if (t === 'a') { left += 20; tot += 20; }
+        }));
+        $('#stopb').addEventListener('click', () => { if (lock || !lvl) return; lock = true; stop(); end(PTS[lvl - 1], C.t('Sage décision : ', 'قرار حكيم : ') + PTS[lvl - 1].toLocaleString('fr-FR') + ' pts'); });
+      };
+      ask();
+    }
+    intro();
+  }
+
+  /* 🎡 La roue des thèmes */
+  function roueSetup() {
+    setup('rouecult', sel('nb', C.t('Tours par équipe', 'أدوار لكل فريق'), [['3', '3'], ['5', '5'], ['8', '8']], '5') + sel('sec', C.t('Temps par question', 'الوقت لكل سؤال'), [['20', '20 s'], ['30', '30 s'], ['45', '45 s']], '30'), async () => {
+      const nb = +$('#nb').value, sec = +$('#sec').value, cats = CATS_SEL.slice(); const run = () => rouePlay(cats, nb, sec, run); run();
+    }, 'culture');
+  }
+  function rouePlay(cats, NB, SEC, again) {
+    const T = teams(), N = T.length, sc = T.map(() => 0), CC = CULTURE.CATS.filter(c => cats.includes(c[0])), S = [], used = new Set(); let i = 0, rot = 0; full(true);
+    while (S.length < 8) S.push(CC[S.length % CC.length]);
+    const pal = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'], n = S.length, a = 360 / n;
+    const bank = {}; const Q = c => { bank[c] = bank[c] && bank[c].length ? bank[c] : shuffle(CULTURE.gen([c], 200)); return bank[c]; };
+    function spin() {
+      stop(); if (i >= NB * N) return podium('rouecult', T, sc, again);
+      const cur = i % N, vals = S.map(() => [100, 200, 300][Math.floor(Math.random() * 3)]), dbl = Math.floor(Math.random() * n * 5);
+      app().innerHTML = `<section class="jx-stage">${bar()}${board(T, sc, cur)}<div class="jx-turn" style="--c:${COLORS[cur]}">🎡 ${C.esc(T[cur].n)} · ${C.t('tour', 'دور')} ${Math.floor(i / N) + 1}/${NB}</div>
+        <div class="cu-roue"><div class="cu-ptr">▼</div><div class="cu-wheel" style="background:conic-gradient(${S.map((c, j) => `${pal[j]} ${j * a}deg ${(j + 1) * a}deg`).join(',')})">${S.map((c, j) => `<span style="transform:rotate(${j * a + a / 2}deg)"><em>${c[1]}<small>${dbl === j ? '×2 (400)' : vals[j]}</small></em></span>`).join('')}</div>
+        <button type="button" class="jx-btn huge" id="spin">🎡 ${C.t('Tourner la roue !', 'أدر العجلة !')}</button></div></section>`;
+      wireBar();
+      const go = () => {
+        const b = $('#spin'); if (!b || b.disabled) return; b.disabled = true; beep('flip');
+        const j = Math.floor(Math.random() * n); rot += 360 * (4 + Math.floor(Math.random() * 3)) + (360 - (j * a + a / 2) - (rot % 360));
+        const w = $('.cu-wheel'); w.style.transform = `rotate(${rot}deg)`;
+        later(() => ask(cur, S[j], dbl === j ? 'x2' : '', dbl === j ? 400 : vals[j]), 3700);
+      };
+      $('#spin').addEventListener('click', go); onKey(e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+    }
+    function ask(cur, cat, tag, val) {
+      stop(); const d = val <= 100 ? 1 : val <= 200 ? 2 : 3, q = pickD(Q(cat[0]), used, d), os = opts(q); let left = SEC, lock = false;
+      app().innerHTML = `<section class="jx-stage">${bar()}${board(T, sc, cur)}
+        <div class="jx-turnrow"><div class="jx-turn" style="--c:${COLORS[cur]}">${cat[1]} ${C.esc(C.t(cat[2], cat[3]))} · <b>${tag === 'x2' ? '×2 ⇒ ' : ''}${val} pts</b></div><div class="jx-ring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45"/><circle class="v" cx="50" cy="50" r="45" style="--c:${COLORS[cur]}"/></svg><span>${SEC}</span></div></div>
+        <div class="jx-q" dir="ltr" lang="fr"><div class="jx-qt">${q.q}</div><div class="jx-os">${os.map((o, j) => `<button type="button" data-k="${j}"><i>${LET[j]}</i><span>${o.o}</span></button>`).join('')}</div><div class="jx-after"></div></div></section>`;
+      wireBar(); C.typeset($('.jx-q'));
+      const ring = $('.jx-ring .v'), rs = $('.jx-ring span');
+      every(() => { left = Math.max(0, left - 0.1); ring.style.strokeDashoffset = 283 * (1 - left / SEC); rs.textContent = Math.ceil(left); if (left <= 0) answer(-1); }, 100);
+      function answer(j) {
+        if (lock) return; lock = true; stop(); const ok = j >= 0 && os[j].ok;
+        $$('.jx-os button').forEach((b, x) => { if (os[x].ok) b.classList.add('ok'); if (x === j && !ok) b.classList.add('ko'); });
+        if (ok) { sc[cur] += val; beep('ok'); $('.jx-board').outerHTML = board(T, sc, cur); } else beep('ko');
+        $('.jx-after').innerHTML = `<button type="button" class="jx-btn big" id="nx">${C.t('Équipe suivante', 'الفريق التالي')} ›</button>`;
+        const nx = () => { i++; spin(); }; $('#nx').addEventListener('click', nx); onKey(e => { if (e.key === 'Enter') nx(); });
+      }
+      $$('.jx-os button').forEach(b => b.addEventListener('click', () => answer(+b.dataset.k)));
+      onKey(e => { const j = '1234'.indexOf(e.key) >= 0 ? '1234'.indexOf(e.key) : 'abcd'.indexOf(e.key.toLowerCase()); if (j >= 0 && j < os.length) answer(j); });
+    }
+    spin();
+  }
+
+  /* 🔔 Le buzzer des devinettes (réponse orale, le professeur valide) */
+  function buzzerSetup() {
+    setup('buzzer', sel('lg', C.t('Langue des devinettes', 'لغة الألغاز'), [['both', C.t('français et arabe', 'الفرنسية والعربية')], ['fr', 'français'], ['ar', 'العربية']], 'both')
+      + sel('nb', C.t('Nombre de devinettes', 'عدد الألغاز'), [['8', '8'], ['12', '12'], ['20', '20']], '12'), async () => {
+      const lg = $('#lg').value, nb = +$('#nb').value, R = CULTURE.riddles(lg === 'both' ? ['fr', 'ar'] : [lg]); const run = () => buzzerPlay(R.slice(0, nb), run); run();
+    }, false);
+  }
+  function buzzerPlay(R, again) {
+    const T = teams(), N = T.length, sc = T.map(() => 0); let i = 0; full(true);
+    function round() {
+      stop(); if (i >= R.length) return podium('buzzer', T, sc, again);
+      const r = R[i], out = new Set(); let who = -1, shown = false;
+      app().innerHTML = `<section class="jx-stage">${bar()}${board(T, sc, -1)}<div class="jx-q cu-rid"><p class="jx-ch">🔔 ${C.t('Devinette', 'لغز')} ${i + 1}/${R.length}</p><div class="jx-qt" dir="${r.l === 'ar' ? 'rtl' : 'ltr'}" lang="${r.l}">${C.esc(r.q)}</div>
+        <div class="cu-ans" dir="${r.l === 'ar' ? 'rtl' : 'ltr'}" hidden></div><div class="cu-ctl"></div></div>
+        <div class="cu-buzz">${T.map((t, k) => `<button type="button" data-k="${k}" style="--c:${COLORS[k]}">🔔 ${C.esc(t.n)}<small>${C.t('touche', 'زر')} ${k + 1}</small></button>`).join('')}</div></section>`;
+      wireBar();
+      const ctl = $('.cu-ctl'), ans = $('.cu-ans');
+      const reveal = () => { shown = true; ans.hidden = false; ans.innerHTML = '💡 ' + C.esc(r.a); ctl.innerHTML = `<button type="button" class="jx-btn big" id="nx">${C.t('Devinette suivante', 'اللغز التالي')} ›</button>`; $('#nx').addEventListener('click', () => { i++; round(); }); };
+      const idle = () => { ctl.innerHTML = `<button type="button" class="jx-btn ghost" id="rv">👁 ${C.t('Montrer la réponse', 'أظهر الجواب')}</button>`; $('#rv').addEventListener('click', reveal); };
+      const buzz = k => {
+        if (who >= 0 || shown || out.has(k)) return; who = k; beep('whistle');
+        $$('.cu-buzz button').forEach((b, x) => b.classList.toggle('on', x === k));
+        ctl.innerHTML = `<p class="cu-who" style="--c:${COLORS[k]}">🔔 ${C.esc(T[k].n)} ${C.t('répond !', 'تجيب !')}</p><button type="button" class="jx-btn big ok" id="yes">✔ ${C.t('Juste (+10)', 'صحيح (+10)')}</button><button type="button" class="jx-btn big ko" id="no">✘ ${C.t('Faux (−5)', 'خطأ (−5)')}</button>`;
+        $('#yes').addEventListener('click', () => { sc[k] += 10; beep('ok'); confetti(); $('.jx-board').outerHTML = board(T, sc, k); reveal(); });
+        $('#no').addEventListener('click', () => { sc[k] -= 5; beep('ko'); out.add(k); $$('.cu-buzz button')[k].classList.add('out'); $$('.cu-buzz button')[k].classList.remove('on'); $('.jx-board').outerHTML = board(T, sc, -1); who = -1; if (out.size >= N) reveal(); else idle(); });
+      };
+      $$('.cu-buzz button').forEach(b => b.addEventListener('pointerdown', e => { e.preventDefault(); buzz(+b.dataset.k); }));
+      onKey(e => { const k = '1234'.indexOf(e.key); if (k >= 0 && k < N) buzz(k); else if (e.key === 'Enter' && shown) { i++; round(); } });
+      idle();
+    }
+    round();
+  }
+  const mixQ = P => (MODE === 'cours' && Math.random() < 0.3 && unitQ()) || P[Math.floor(Math.random() * P.length)];
   const twoKeys = boxes => onKey(e => boxes.forEach(b => b && b.__key && b.__key(e.key.toLowerCase())));
 
   // ⚡ Duel éclair : même question, deux claviers
@@ -764,6 +933,6 @@ window.JEUX = (() => {
     init(ctx) { C = ctx; },
     stop() { stop(); document.body.classList.remove('jx-full'); },
     api: { pool: chs => pool(chs), ctx: () => C, bar: () => bar(), wireBar: () => wireBar(), full, beep, confetti, onKey, later, every, hook: f => hooks.push(f), duoWin: (g, n, sc, a) => duoWin(g, n, sc, a), duoNames: () => duoNames(), put, get, PC: ['#2563eb', '#dc2626'], C: () => C, teams: () => teams(), COLORS, podium: (g, T, sc, a) => podium(g, T, sc, a), stopTimers: () => stop() },
-    page(sub) { stop(); if (window.DEFIS && DEFIS.list.some(g => g[0] === sub)) return DEFIS.page(sub); if (window.JEUX3D && JEUX3D.list.some(g => g[0] === sub)) return JEUX3D.page(sub); ({ match: matchSetup, duel: matchSetup, chrono: chronoSetup, memory: memorySetup, unites: unitesSetup, enigmes: enigmesSetup, defis: defisSetup, intrus: intrusSetup, mots: motsSetup, penalty: penaltySetup }[sub] || (DUO.some(g => g[0] === sub) ? () => duoSetup(sub) : hub))(); },
+    page(sub) { stop(); if (window.DEFIS && DEFIS.list.some(g => g[0] === sub)) return DEFIS.page(sub); if (window.JEUX3D && JEUX3D.list.some(g => g[0] === sub)) return JEUX3D.page(sub); ({ match: matchSetup, duel: matchSetup, chrono: chronoSetup, memory: memorySetup, unites: unitesSetup, enigmes: enigmesSetup, defis: defisSetup, intrus: intrusSetup, mots: motsSetup, penalty: penaltySetup, pyramide: pyramideSetup, rouecult: roueSetup, buzzer: buzzerSetup }[sub] || (DUO.some(g => g[0] === sub) ? () => duoSetup(sub) : hub))(); },
   };
 })();
