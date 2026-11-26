@@ -116,6 +116,9 @@ window.DEFIS = (() => {
     const ALL = A().C().ALL.filter(l => avail.includes(l.id)), lvls = Object.keys(LVN).filter(n => ALL.some(l => l.niv.id === n));
     let chosen = (A().get('jx-chs-' + id, null) || []).filter(x => avail.includes(x)); if (!chosen.length) chosen = ALL.filter(l => l.niv.id === lvls[lvls.length - 1]).map(l => l.id);
     let tab = (ALL.find(l => chosen.includes(l.id)) || ALL[0]).niv.id;
+    // un seul niveau à la fois
+    const lvOf = x => (ALL.find(l => l.id === x) || {}).niv, onLevel = () => { chosen = chosen.filter(x => (lvOf(x) || {}).id === tab); if (!chosen.length) chosen = ALL.filter(l => l.niv.id === tab).map(l => l.id); A().put('jx-chs-' + id, chosen); };
+    onLevel();
     const html = `<div class="jx-chp"><div class="jx-chp-h"><b>📚 ${T('Chapitres du programme', 'دروس المقرر')}</b><span class="jx-chp-n"></span></div>
       <div class="jx-chp-tabs">${lvls.map(n => `<button type="button" data-lv="${n}">${LVN[n]}</button>`).join('')}</div><div class="jx-chp-list"></div>
       <div class="jx-chp-acts"><button type="button" data-a="all">✔ ${T('Tout ce niveau', 'كل المستوى')}</button><button type="button" data-a="none">✕ ${T('Aucun', 'لا شيء')}</button></div></div>`;
@@ -123,15 +126,15 @@ window.DEFIS = (() => {
       $$('.jx-chp-tabs button').forEach(b => b.classList.toggle('on', b.dataset.lv === tab));
       $('.jx-chp-list').innerHTML = ALL.filter(l => l.niv.id === tab).map(l => `<label class="${chosen.includes(l.id) ? 'on' : ''}"><input type="checkbox" value="${l.id}"${chosen.includes(l.id) ? ' checked' : ''}> ${esc(A().C().t(l.fr, l.ar))}</label>`).join('');
       $$('.jx-chp-list input').forEach(c => c.addEventListener('change', () => { chosen = c.checked ? chosen.concat(c.value) : chosen.filter(x => x !== c.value); A().put('jx-chs-' + id, chosen); paint(); }));
-      $('.jx-chp-n').textContent = chosen.length + ' ' + T('chapitre(s) choisi(s)', 'درس مختار');
+      $('.jx-chp-n').textContent = chosen.length + ' ' + T('chapitre(s) choisi(s)', 'درس مختار') + ' · ' + LVN[tab];
       $('#go').disabled = !chosen.length;
     };
     const wire = () => {
-      $$('.jx-chp-tabs button').forEach(b => b.addEventListener('click', () => { tab = b.dataset.lv; paint(); }));
+      $$('.jx-chp-tabs button').forEach(b => b.addEventListener('click', () => { if (tab !== b.dataset.lv) { tab = b.dataset.lv; onLevel(); } paint(); }));
       $$('.jx-chp-acts button').forEach(b => b.addEventListener('click', () => { const ids = ALL.filter(l => l.niv.id === tab).map(l => l.id); chosen = b.dataset.a === 'all' ? [...new Set(chosen.concat(ids))] : chosen.filter(x => !ids.includes(x)); A().put('jx-chs-' + id, chosen); paint(); }));
       paint();
     };
-    return { html, wire, get: () => chosen.slice() };
+    return { html, wire, get: () => chosen.filter(x => (lvOf(x) || {}).id === tab) };
   }
   function setup(id, fields, go, avail) {
     const G = list.find(x => x[0] === id), TM = A().teams(), cp = avail ? chapPicker(id, avail) : null;

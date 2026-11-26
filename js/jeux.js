@@ -125,6 +125,9 @@ window.JEUX = (() => {
     const ALL = C.ALL.filter(l => !avail || avail.includes(l.id)), lvls = Object.keys(LVN).filter(n => ALL.some(l => l.niv.id === n));
     let chosen = (get('jx-chs-' + key, null) || []).filter(x => ALL.some(l => l.id === x)); if (!chosen.length) chosen = ALL.filter(l => l.niv.id === lvls[lvls.length - 1]).map(l => l.id);
     let tab = (ALL.find(l => chosen.includes(l.id)) || ALL[0]).niv.id, mat = 'all';
+    // un seul niveau à la fois : jamais de questions d’un autre niveau
+    const lvOf = id => (ALL.find(l => l.id === id) || {}).niv, onLevel = () => { chosen = chosen.filter(x => (lvOf(x) || {}).id === tab); if (!chosen.length) chosen = ALL.filter(l => l.niv.id === tab).map(l => l.id); put('jx-chs-' + key, chosen); };
+    onLevel();
     const html = `<div class="jx-chp"><div class="jx-chp-h"><b>📚 ${C.t('Niveau et chapitres du programme', 'المستوى ودروس المقرر')}</b><span class="jx-chp-n"></span></div>
       <div class="jx-chp-tabs">${lvls.map(n => `<button type="button" data-lv="${n}">${LVN[n]}</button>`).join('')}<span class="jx-chp-sep"></span>
         ${[['all', C.t('Tout', 'الكل')], ['physique', C.t('Physique', 'الفيزياء')], ['chimie', C.t('Chimie', 'الكيمياء')]].map(m => `<button type="button" class="m" data-m="${m[0]}">${m[1]}</button>`).join('')}</div><div class="jx-chp-list"></div>
@@ -134,15 +137,15 @@ window.JEUX = (() => {
       $$('.jx-chp-tabs [data-lv]').forEach(b => b.classList.toggle('on', b.dataset.lv === tab)); $$('.jx-chp-tabs [data-m]').forEach(b => b.classList.toggle('on', b.dataset.m === mat));
       $('.jx-chp-list').innerHTML = vis().map(l => `<label class="${chosen.includes(l.id) ? 'on' : ''}"><input type="checkbox" value="${l.id}"${chosen.includes(l.id) ? ' checked' : ''}> <small>${l.mat === 'chimie' ? '🧪' : '⚛️'}</small> ${C.esc(C.t(l.fr, l.ar))}${cnt && cnt[l.id] ? ` <em class="jx-chp-c">${cnt[l.id]}</em>` : ''}</label>`).join('');
       $$('.jx-chp-list input').forEach(c => c.addEventListener('change', () => { chosen = c.checked ? chosen.concat(c.value) : chosen.filter(x => x !== c.value); put('jx-chs-' + key, chosen); paint(); }));
-      $('.jx-chp-n').textContent = chosen.length + ' ' + C.t('chapitre(s) choisi(s)', 'درس مختار'); const g = $('#go'); if (g) g.disabled = !chosen.length;
+      $('.jx-chp-n').textContent = chosen.length + ' ' + C.t('chapitre(s) choisi(s)', 'درس مختار') + ' · ' + LVN[tab]; const g = $('#go'); if (g) g.disabled = !chosen.length;
     };
     const wire = () => {
-      $$('.jx-chp-tabs [data-lv]').forEach(b => b.addEventListener('click', () => { tab = b.dataset.lv; paint(); }));
+      $$('.jx-chp-tabs [data-lv]').forEach(b => b.addEventListener('click', () => { if (tab !== b.dataset.lv) { tab = b.dataset.lv; onLevel(); } paint(); }));
       $$('.jx-chp-tabs [data-m]').forEach(b => b.addEventListener('click', () => { mat = b.dataset.m; paint(); }));
       $$('.jx-chp-acts button').forEach(b => b.addEventListener('click', () => { const ids = vis().map(l => l.id); chosen = b.dataset.a === 'all' ? [...new Set(chosen.concat(ids))] : chosen.filter(x => !ids.includes(x)); put('jx-chs-' + key, chosen); paint(); }));
       paint();
     };
-    return { html, wire, get: () => chosen.slice() };
+    return { html, wire, get: () => chosen.filter(x => (lvOf(x) || {}).id === tab) };
   }
   // éléments d’un jeu (énigmes, intrus…) des chapitres choisis ; complétés par des éléments du même niveau si trop peu
   const chName = ids => { const l = C.ALL.find(x => (ids || []).includes(x.id) && CHS.includes(x.id)); return l ? C.t(l.fr, l.ar) : ''; };
