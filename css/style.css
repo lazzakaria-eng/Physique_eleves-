@@ -1171,3 +1171,14 @@ body.jx-full::before, body.jx-full::after { display: none; }
 .cu-buzz button small { font-size: .45em; opacity: .85; } .cu-buzz button.on { transform: scale(1.06); box-shadow: 0 0 0 8px color-mix(in srgb, var(--c) 40%, transparent), 0 8px 0 color-mix(in srgb, var(--c) 60%, #000); }
 .cu-buzz button.out { opacity: .3; }
 @media (max-width: 800px) { .cu-pywrap { grid-template-columns: 1fr; } }
+
+/* ---------- SciFunLab (liens externes par chapitre) ---------- */
+.sflogo { display: inline-grid; place-items: center; padding: 4px 10px; border-radius: 10px; font-weight: 900; color: #fff; background: linear-gradient(135deg, #7c3aed, #ec4899); margin-inline-end: 6px; }
+.sfgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; margin-top: 12px; }
+.sfcard { display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 18px; background: var(--card); border: 1px solid var(--line); color: var(--ink); text-decoration: none; transition: transform .15s, box-shadow .15s; border-top: 4px solid #a855f7; }
+.sfcard:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+.sfcard.sf-guide { border-top-color: #ec4899; } .sfcard.sf-cat { border-top-color: var(--mute); }
+.sfcard .sfk { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: #a855f7; }
+.sfcard.sf-guide .sfk { color: #ec4899; } .sfcard.sf-cat .sfk { color: var(--mute); }
+.sfcard b { font-size: 1.05rem; } .sfcard small { color: var(--mute); line-height: 1.45; flex: 1; }
+.sfcard i { font-style: normal; font-weight: 800; color: var(--brand); align-self: flex-end; }

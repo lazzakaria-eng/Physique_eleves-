@@ -343,6 +343,8 @@
 
     const P = ch.protocole;
     const PH = ((window.PHET_CH && PHET_CH[l.id]) || []).filter(x => PHET[x]);
+    const SF = window.SCIFUN ? (((window.SCIFUN_CH && SCIFUN_CH[l.id]) || []).concat(/^(tcc|1bc|2bc)-/.test(l.id) ? 'chimie' : 'physique')).filter(x => SCIFUN[x]) : [];
+    const sfURL = x => 'https://www.scifunlab.com/' + (x[0] === 'sim' ? 'simulations/science/' : '') + x[1];
     const lst = v => Array.isArray(v) ? `<ul>${v.map(e => `<li>${e}</li>`).join('')}</ul>` : (/^\s*</.test(v) ? v : `<p>${v}</p>`);
     const XPS = (P ? [{ t: P.titre, mat: P.materiel, e: P.etapes, obs: ch.observations, cc: ch.conclusion, sim: ch.sims[0] }] : []).concat(ch.xps);
     XPS.forEach(x => { if (x.sim && SIMS[x.sim] && !ch.sims.includes(x.sim)) ch.sims.push(x.sim); });
@@ -358,6 +360,10 @@
           <div class="phbt"><button type="button" class="phgo" data-ph="${s}">${IC.play}<span>${t('Lancer', 'تشغيل')}</span></button><a href="${phURL(s)}" target="_blank" rel="noopener">${t('Nouvel onglet', 'نافذة جديدة')} ↗</a></div></article>`).join('')}</div>
         <div class="phview" hidden><div class="phbar"><b></b><span><button type="button" class="phfull">⛶ ${t('Plein écran', 'ملء الشاشة')}</button><button type="button" class="phclose">✕ ${t('Fermer', 'إغلاق')}</button></span></div><div class="phframe"></div></div>
         <p class="phcred">PhET Interactive Simulations, University of Colorado Boulder — <a href="https://phet.colorado.edu/fr/" target="_blank" rel="noopener">phet.colorado.edu</a> — licence CC-BY 4.0.</p></section>` : ''}
+      ${SF.length ? `<section class="card sfl"><h2 class="ptitle"><span class="sflogo">SciFunLab</span> ${t('Expériences amusantes SciFunLab', 'تجارب ممتعة من SciFunLab')}</h2>
+        <p class="hint">${t('Simulations gratuites, sans inscription (en anglais). Elles s’ouvrent dans un nouvel onglet.', 'محاكاة مجانية بدون تسجيل (بالإنجليزية). تفتح في نافذة جديدة.')}</p>
+        <div class="sfgrid">${SF.map(s => { const x = SCIFUN[s]; return `<a class="sfcard sf-${x[0]}" dir="ltr" lang="fr" href="${sfURL(x)}" target="_blank" rel="noopener"><span class="sfk">${x[0] === 'sim' ? t('Simulation', 'محاكاة') : x[0] === 'guide' ? t('Guide + simulations', 'دليل + محاكاة') : t('Catalogue', 'الفهرس')}</span><b>${x[2]}</b><small>${x[3]}</small><i>${t('Ouvrir', 'فتح')} ↗</i></a>`; }).join('')}</div>
+        <p class="phcred">SciFunLab — <a href="https://www.scifunlab.com/" target="_blank" rel="noopener">scifunlab.com</a> — site externe, contenu en anglais.</p></section>` : ''}
       ${XPS.length > 1 ? `<nav class="card xpnav"><h2 class="ptitle">${IC.flask} ${t('Les expériences du chapitre', 'تجارب الدرس')} <small>${XPS.length}</small></h2>
         <ol dir="ltr" lang="fr">${XPS.map((x, j) => `<li><a href="#xp-${j + 1}" data-xp="${j + 1}">${x.t || 'Expérience ' + (j + 1)}</a></li>`).join('')}</ol></nav>` : ''}
       ${XPS.length ? XPS.map((x, j) => `<section class="xp" id="xp-${j + 1}" dir="ltr" lang="fr">
